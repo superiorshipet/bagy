@@ -48,6 +48,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
   const [placedOrderNumber, setPlacedOrderNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isApplyingPromo, setIsApplyingPromo] = useState(false);
+  const [appliedPromoCode, setAppliedPromoCode] = useState('');
 
   if (!isOpen) return null;
 
@@ -56,12 +58,40 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const discountAmount = (subtotal * discountPercent) / 100;
   const total = Math.max(0, subtotal - discountAmount + deliveryFee);
 
-  const handleApplyPromo = () => {
-    if (promoCode.trim().toUpperCase() === 'BAGY10' || promoCode.trim().toUpperCase() === 'LOLA') {
-      setDiscountPercent(10);
-      setPromoError('');
-    } else {
-      setPromoError('كود الخصم غير صالح أو منتهي الصلاحية');
+  const handleApplyPromo = async () => {
+    const cleanCode = promoCode.trim().toUpperCase();
+    if (!cleanCode) {
+      setPromoError('يرجى إدخال كود الخصم أولاً');
+      return;
+    }
+    setIsApplyingPromo(true);
+    setPromoError('');
+    try {
+      const res = await fetch(`/api/promos?code=${encodeURIComponent(cleanCode)}`);
+      const data = await res.json();
+      if (data.success && data.promo) {
+        setDiscountPercent(data.promo.discountPercent);
+        setAppliedPromoCode(data.promo.code);
+        setPromoError('');
+        try {
+          confetti({
+            particleCount: 40,
+            spread: 50,
+            origin: { y: 0.6 },
+            colors: ['#10b981', '#9b287b', '#ffffff'],
+          });
+        } catch (e) {}
+      } else {
+        setDiscountPercent(0);
+        setAppliedPromoCode('');
+        setPromoError(data.error || 'كود الخصم غير صالح أو منتهي الصلاحية');
+      }
+    } catch (e) {
+      setDiscountPercent(0);
+      setAppliedPromoCode('');
+      setPromoError('فشل الاتصال بالخادم للتحقق من كود الخصم');
+    } finally {
+      setIsApplyingPromo(false);
     }
   };
 
@@ -363,29 +393,41 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             </div>
 
             {/* Promo Code */}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <div className="flex gap-2">
                 <input
                   type="text"
-                  placeholder="كود الخصم (جرب: LOLA أو BAGY10)"
+                  placeholder="أدخل كود الخصم (Promo Code)..."
                   value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value)}
-                  className="flex-1 px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 uppercase"
+                  onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                  className="flex-1 px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 uppercase font-mono font-bold"
                 />
                 <button
                   type="button"
                   onClick={handleApplyPromo}
-                  className="px-4 py-2 rounded-xl bg-stone-900 dark:bg-white text-white dark:text-stone-900 text-xs font-bold hover:bg-black transition-colors"
+                  disabled={isApplyingPromo}
+                  className="px-4 py-2 rounded-xl bg-stone-900 dark:bg-white text-white dark:text-stone-900 text-xs font-bold hover:bg-black transition-colors disabled:opacity-50 cursor-pointer"
                 >
-                  تطبيق
+                  {isApplyingPromo ? 'جاري التحقق...' : 'تطبيق'}
                 </button>
               </div>
-              {discountPercent > 0 && (
-                <p className="text-[11px] text-green-600 font-bold">
-                  ✓ تم تفعيل خصم {discountPercent}% بنجاح!
-                </p>
+              {discountPercent > 0 && appliedPromoCode && (
+                <div className="flex items-center justify-between text-[11px] text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/40 p-2 rounded-xl border border-emerald-200 dark:border-emerald-900/40">
+                  <span>✓ تم تفعيل كود ({appliedPromoCode}) بخصم {discountPercent}%</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDiscountPercent(0);
+                      setAppliedPromoCode('');
+                      setPromoCode('');
+                    }}
+                    className="text-stone-400 hover:text-red-500 font-normal underline"
+                  >
+                    إلغاء
+                  </button>
+                </div>
               )}
-              {promoError && <p className="text-[11px] text-red-500">{promoError}</p>}
+              {promoError && <p className="text-[11px] text-red-500 font-medium">{promoError}</p>}
             </div>
 
             {/* Price Breakdown */}

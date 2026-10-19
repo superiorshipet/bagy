@@ -83,6 +83,16 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [notificationMsg, setNotificationMsg] = useState('');
 
+  // Promo codes state
+  const [promos, setPromos] = useState<any[]>([]);
+  const [newPromo, setNewPromo] = useState({
+    code: '',
+    discountPercent: 15,
+    maxUsage: 500,
+  });
+  const [isSubmittingPromo, setIsSubmittingPromo] = useState(false);
+  const [promoSuccessMsg, setPromoSuccessMsg] = useState('');
+
   const loadData = () => {
     setLoading(true);
     Promise.all([
@@ -91,13 +101,15 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       fetch('/api/products').then((res) => res.json()),
       fetch('/api/admin/users').then((res) => res.json()),
       fetch('/api/categories').then((res) => res.json()),
+      fetch('/api/promos').then((res) => res.json()),
     ])
-      .then(([statsRes, ordersRes, productsRes, usersRes, catRes]) => {
+      .then(([statsRes, ordersRes, productsRes, usersRes, catRes, promosRes]) => {
         if (statsRes.success) setStats(statsRes.stats);
         if (ordersRes.success) setOrders(ordersRes.orders);
         if (productsRes.success) setProducts(productsRes.products);
         if (usersRes.success) setUsers(usersRes.users);
         if (catRes.success) setCategories(catRes.categories);
+        if (promosRes.success) setPromos(promosRes.promos);
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
@@ -348,6 +360,67 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     }
   };
 
+  // Handle Create Promo Code
+  const handleCreatePromo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPromo.code || !newPromo.discountPercent) {
+      alert('يرجى إدخال كود الخصم ونسبة الخصم');
+      return;
+    }
+    setIsSubmittingPromo(true);
+    try {
+      const res = await fetch('/api/promos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newPromo),
+      });
+      const data = await res.json();
+      if (data.success && data.promo) {
+        setPromos((prev) => [data.promo, ...prev]);
+        setPromoSuccessMsg(`✓ تم إضافة كود الخصم "${data.promo.code}" بنسبة ${data.promo.discountPercent}% بنجاح!`);
+        setNewPromo({
+          code: '',
+          discountPercent: 15,
+          maxUsage: 500,
+        });
+        setTimeout(() => setPromoSuccessMsg(''), 4000);
+      } else {
+        alert(data.error || 'فشل إضافة كود الخصم');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('خطأ في الاتصال بالسيرفر أثناء إضافة كود الخصم');
+    } finally {
+      setIsSubmittingPromo(false);
+    }
+  };
+
+  // Handle Delete Promo Code
+  const handleDeletePromo = async (promoId: string, promoCodeStr: string) => {
+    if (!window.confirm(`هل أنت متأكد من حذف كود الخصم "${promoCodeStr}" نهائياً من قاعدة البيانات؟`)) {
+      return;
+    }
+    setDeletingId(promoId);
+    try {
+      const res = await fetch(`/api/promos?id=${promoId}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPromos((prev) => prev.filter((p) => p.id !== promoId));
+        setNotificationMsg(`✓ تم حذف كود الخصم "${promoCodeStr}" بنجاح.`);
+        setTimeout(() => setNotificationMsg(''), 4000);
+      } else {
+        alert(data.error || 'حدث خطأ أثناء حذف كود الخصم');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('فشل الاتصال بالخادم لحذف كود الخصم');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const filteredOrders = orders.filter((order) => {
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     const matchesSearch =
@@ -467,7 +540,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             }`}
           >
             <Tag className="w-4 h-4" />
-            أكواد الخصم والعروض
+            أكواد الخصم والعروض ({promos.length})
           </button>
         </div>
 
@@ -1129,26 +1202,168 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             </div>
           )}
 
-          {/* TAB 5: PROMO CODES */}
+          {/* TAB 5: PROMO CODES MANAGEMENT */}
           {activeTab === 'promos' && (
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold text-stone-900 dark:text-white">أكواد الخصم المفعلة في النظام</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900/40 space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="font-black text-sm text-[#9b287b]">LOLA</span>
-                    <span className="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-bold">مفعل</span>
+            <div className="space-y-6">
+              {/* Notification Message */}
+              {promoSuccessMsg && (
+                <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-bold flex items-center justify-between">
+                  <span>{promoSuccessMsg}</span>
+                  <button onClick={() => setPromoSuccessMsg('')} className="text-emerald-600 hover:text-emerald-800">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Add New Promo Code Form */}
+              <div className="p-5 sm:p-6 rounded-3xl bg-stone-50/80 dark:bg-stone-900/40 border border-stone-200 dark:border-stone-800 space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-[#fdf2f8] dark:bg-[#2e1327] text-[#9b287b] flex items-center justify-center font-bold">
+                    <Plus className="w-4 h-4" />
                   </div>
-                  <p className="text-xs text-stone-500">خصم ترحيبي 10% لكافة العملاء</p>
+                  <div>
+                    <h3 className="text-sm font-bold text-stone-900 dark:text-white">إضافة كود خصم جديد (Create Promo Code)</h3>
+                    <p className="text-xs text-stone-500">حدد رمز الكود ونسبة الخصم التي تريد تطبيقها للعملاء في السلة</p>
+                  </div>
                 </div>
 
-                <div className="p-4 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900/40 space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="font-black text-sm text-[#9b287b]">BAGY10</span>
-                    <span className="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-bold">مفعل</span>
+                <form onSubmit={handleCreatePromo} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                        رمز كود الخصم (Promo Code):
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="مثلاً: SUMMER30 أو VIP50"
+                        value={newPromo.code}
+                        onChange={(e) => setNewPromo({ ...newPromo, code: e.target.value.toUpperCase().trim() })}
+                        className="w-full px-3.5 py-2.5 text-xs font-mono font-bold uppercase rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white focus:ring-2 focus:ring-[#9b287b]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                        نسبة الخصم (%):
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          required
+                          min={1}
+                          max={100}
+                          placeholder="مثلاً: 20"
+                          value={newPromo.discountPercent}
+                          onChange={(e) => setNewPromo({ ...newPromo, discountPercent: Number(e.target.value) })}
+                          className="w-full px-3.5 py-2.5 text-xs font-bold rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white focus:ring-2 focus:ring-[#9b287b] pl-8"
+                        />
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-stone-400">%</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                        الحد الأقصى لمرات الاستخدام:
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        placeholder="500"
+                        value={newPromo.maxUsage}
+                        onChange={(e) => setNewPromo({ ...newPromo, maxUsage: Number(e.target.value) })}
+                        className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white focus:ring-2 focus:ring-[#9b287b]"
+                      />
+                    </div>
                   </div>
-                  <p className="text-xs text-stone-500">خصم 10% لمتابعي المتجر الجدد</p>
+
+                  {/* Quick percentage pills */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[11px] text-stone-400 font-bold">نسب سريعة:</span>
+                    {[10, 15, 20, 25, 30, 40, 50, 70].map((pct) => (
+                      <button
+                        key={pct}
+                        type="button"
+                        onClick={() => setNewPromo({ ...newPromo, discountPercent: pct })}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-colors ${
+                          newPromo.discountPercent === pct
+                            ? 'bg-[#9b287b] text-white border-[#9b287b]'
+                            : 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:border-stone-300'
+                        }`}
+                      >
+                        {pct}%
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex justify-end pt-2">
+                    <button
+                      type="submit"
+                      disabled={isSubmittingPromo}
+                      className="px-6 py-2.5 rounded-xl bg-[#9b287b] hover:bg-[#831f67] text-white text-xs font-bold shadow-md transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>{isSubmittingPromo ? 'جاري الإضافة...' : 'إضافة وتفعيل كود الخصم'}</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* List of Existing Promo Codes */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-stone-900 dark:text-white flex items-center gap-2">
+                    <span>أكواد الخصم الحالية في قاعدة البيانات</span>
+                    <span className="text-xs bg-[#fdf2f8] dark:bg-[#281223] text-[#9b287b] font-bold px-2 py-0.5 rounded-full">
+                      {promos.length} كود
+                    </span>
+                  </h3>
                 </div>
+
+                {promos.length === 0 ? (
+                  <div className="p-8 text-center text-xs text-stone-400 border border-dashed border-stone-200 dark:border-stone-800 rounded-2xl">
+                    لا توجد أكواد خصم حالياً. أضف كود خصم جديد من النموذج أعلاه.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                    {promos.map((promo) => (
+                      <div
+                        key={promo.id}
+                        className="p-4 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900/50 shadow-sm flex flex-col justify-between gap-3 hover:border-stone-300 dark:hover:border-stone-700 transition-all"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-black text-base text-stone-900 dark:text-white tracking-wider bg-stone-100 dark:bg-stone-800 px-2.5 py-1 rounded-xl">
+                                {promo.code}
+                              </span>
+                              <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-400 font-bold px-2 py-0.5 rounded-full">
+                                {promo.isActive ? 'مفعل 🟢' : 'معطل 🔴'}
+                              </span>
+                            </div>
+                            <div className="text-sm font-extrabold text-[#9b287b] dark:text-[#be3999]">
+                              خصم {promo.discountPercent}% على كامل السلة
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => handleDeletePromo(promo.id, promo.code)}
+                            disabled={deletingId === promo.id}
+                            className="p-2 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+                            title="مسح كود الخصم نهائياً"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <div className="pt-2 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between text-[11px] text-stone-400">
+                          <span>الاستخدام: {promo.usedCount || 0} / {promo.maxUsage || '∞'}</span>
+                          <span>{new Date(promo.createdAt).toLocaleDateString('ar-EG')}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
