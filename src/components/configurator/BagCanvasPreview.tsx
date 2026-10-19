@@ -31,9 +31,10 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
   // View mode: 3D interactive SVG is always the primary default
   const [viewMode, setViewMode] = React.useState<'3d' | 'photo'>('3d');
 
-  // Support all 6 built-in types + fallback any custom admin categories or crescent/hobo to a designer silhouette
+  // Support all 6 built-in types + Balmain pleated bag (for 'vv' / 'balmain') + fallback designer crescent/hobo
   const isBuiltIn = ['tote', 'shoulder', 'crossbody', 'mini', 'backpack', 'clutch'].includes(config.bagType);
-  const isCustomOrHobo = !isBuiltIn || config.bagType === 'crescent' || config.bagType === 'hobo' || config.bagType === 'ava';
+  const isBalmain = config.bagType === 'vv' || config.bagType === 'balmain' || config.bagType?.toLowerCase().includes('balmain');
+  const isCustomOrHobo = (!isBuiltIn && !isBalmain) || config.bagType === 'crescent' || config.bagType === 'hobo' || config.bagType === 'ava' || config.bagType === 'u';
 
   // Determine scale based on size
   const scaleMap = {
@@ -54,6 +55,8 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
       ? 278
       : config.bagType === 'shoulder'
       ? 252
+      : isBalmain
+      ? 262
       : isCustomOrHobo
       ? 270
       : 275;
@@ -539,6 +542,122 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
           </g>
         )}
 
+        {isBalmain && (
+          <g id="balmain-handle-and-interior" className="transition-all duration-300">
+            {/* 1. Interior shaded cavity visible in the top scoop */}
+            <path
+              d="M 125 158 Q 200 198 275 158 Q 200 135 125 158 Z"
+              fill="#101016"
+              filter="drop-shadow(0 4px 6px rgba(0,0,0,0.6))"
+            />
+            {/* Interior leather rim highlight */}
+            <path
+              d="M 125 158 Q 200 198 275 158"
+              fill="none"
+              stroke="rgba(255,255,255,0.12)"
+              strokeWidth="1.5"
+            />
+
+            {/* 2. Main Curved Shoulder Handle Arch */}
+            {config.strapId === 'woven_guitar' ? (
+              <g>
+                <path
+                  d="M 122 170 C 110 50, 290 50, 278 170"
+                  fill="none"
+                  stroke="#181824"
+                  strokeWidth="24"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 122 170 C 110 50, 290 50, 278 170"
+                  fill="none"
+                  stroke="url(#bohoJacquardPattern)"
+                  strokeWidth="20"
+                  strokeLinecap="round"
+                />
+              </g>
+            ) : config.strapId === 'chunky_chain' ? (
+              <g>
+                <path
+                  d="M 122 170 C 110 50, 290 50, 278 170"
+                  fill="none"
+                  stroke="#1a1a1a"
+                  strokeWidth="14"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 122 170 C 110 50, 290 50, 278 170"
+                  fill="none"
+                  stroke="url(#hardwareGradient)"
+                  strokeWidth="11"
+                  strokeDasharray="6 9"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 122 170 C 110 50, 290 50, 278 170"
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeWidth="2.5"
+                  strokeDasharray="2 13"
+                  strokeOpacity="0.85"
+                />
+              </g>
+            ) : (
+              <g>
+                {/* Sculptural Leather Handle with subtle taper and 3D lighting */}
+                <path
+                  d="M 122 170 C 110 50, 290 50, 278 170"
+                  fill="none"
+                  stroke={primaryHex}
+                  strokeWidth="22"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 122 170 C 110 50, 290 50, 278 170"
+                  fill="none"
+                  stroke="url(#leatherLight)"
+                  strokeWidth="22"
+                  strokeLinecap="round"
+                />
+                {/* Edge fine stitching along the handle */}
+                <path
+                  d="M 124 165 C 114 55, 286 55, 276 165"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.3)"
+                  strokeWidth="1"
+                  strokeDasharray="3 3"
+                />
+
+                {/* Left side adjustment strap tab & metal buckle as seen in Balmain bag photo */}
+                <g id="balmain-handle-buckle">
+                  <rect
+                    x="114"
+                    y="108"
+                    width="12"
+                    height="18"
+                    rx="3"
+                    fill="url(#hardwareGradient)"
+                    stroke="#111"
+                    strokeWidth="0.5"
+                    filter="drop-shadow(0 2px 3px rgba(0,0,0,0.3))"
+                  />
+                  <line x1="114" y1="117" x2="126" y2="117" stroke="#111" strokeWidth="2" />
+                  <path
+                    d="M 118 126 L 114 158 Q 112 165 108 165 Q 104 165 106 156 L 112 126 Z"
+                    fill={primaryHex}
+                    stroke="rgba(0,0,0,0.2)"
+                    strokeWidth="0.5"
+                  />
+                  <path
+                    d="M 118 126 L 114 158 Q 112 165 108 165 Q 104 165 106 156 L 112 126 Z"
+                    fill="url(#leatherLight)"
+                  />
+                </g>
+              </g>
+            )}
+          </g>
+        )}
+
         {isCustomOrHobo && (
           <g id="crescent-strap" className="transition-all duration-300">
             {config.strapId === 'woven_guitar' ? (
@@ -792,6 +911,226 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
             {/* Clasp Point */}
             <circle cx="200" cy="205" r="9" fill="url(#hardwareGradient)" stroke="#1a1a1a" strokeWidth="0.5" />
             <circle cx="200" cy="205" r="4" fill="#111111" />
+          </g>
+        )}
+
+        {isBalmain && (
+          <g id="balmain-body" className="transition-all duration-300">
+            {/* A. Base Silhouette & Volume (Upper draped tier + Lower billowing cloud pouch) */}
+            <path
+              d="M 120 162
+                 Q 200 196 280 162
+                 C 288 185, 280 205, 270 216
+                 C 325 245, 335 285, 310 312
+                 C 290 328, 245 322, 200 322
+                 C 155 322, 110 328, 90 312
+                 C 65 285, 75 245, 130 216
+                 C 120 205, 112 185, 120 162 Z"
+              fill={primaryHex}
+              className="transition-colors duration-300"
+              filter="drop-shadow(0 12px 18px rgba(0,0,0,0.35))"
+            />
+
+            {/* Leather texture overlay if selected */}
+            {currentMaterial.texture === 'crosshatch' && (
+              <path
+                d="M 120 162
+                   Q 200 196 280 162
+                   C 288 185, 280 205, 270 216
+                   C 325 245, 335 285, 310 312
+                   C 290 328, 245 322, 200 322
+                   C 155 322, 110 328, 90 312
+                   C 65 285, 75 245, 130 216
+                   C 120 205, 112 185, 120 162 Z"
+                fill="url(#saffianoPattern)"
+              />
+            )}
+            {currentMaterial.texture === 'croc' && (
+              <path
+                d="M 120 162
+                   Q 200 196 280 162
+                   C 288 185, 280 205, 270 216
+                   C 325 245, 335 285, 310 312
+                   C 290 328, 245 322, 200 322
+                   C 155 322, 110 328, 90 312
+                   C 65 285, 75 245, 130 216
+                   C 120 205, 112 185, 120 162 Z"
+                fill="url(#crocPattern)"
+              />
+            )}
+
+            {/* Base Volumetric Light & Soft Shading */}
+            <path
+              d="M 120 162
+                 Q 200 196 280 162
+                 C 288 185, 280 205, 270 216
+                 C 325 245, 335 285, 310 312
+                 C 290 328, 245 322, 200 322
+                 C 155 322, 110 328, 90 312
+                 C 65 285, 75 245, 130 216
+                 C 120 205, 112 185, 120 162 Z"
+              fill="url(#leatherLight)"
+            />
+
+            {/* B. Deep Sculptural Folds and Pleats (Upper Section - cascading to cinch) */}
+            <g id="balmain-upper-pleats">
+              <path d="M 142 172 Q 148 195 152 216" stroke="rgba(0,0,0,0.35)" strokeWidth="3" fill="none" />
+              <path d="M 144 172 Q 150 195 154 216" stroke="rgba(255,255,255,0.28)" strokeWidth="1.5" fill="none" />
+
+              <path d="M 170 182 Q 174 200 178 216" stroke="rgba(0,0,0,0.35)" strokeWidth="3.5" fill="none" />
+              <path d="M 172 182 Q 176 200 180 216" stroke="rgba(255,255,255,0.3)" strokeWidth="1.8" fill="none" />
+
+              <path d="M 230 182 Q 226 200 222 216" stroke="rgba(0,0,0,0.35)" strokeWidth="3.5" fill="none" />
+              <path d="M 228 182 Q 224 200 220 216" stroke="rgba(255,255,255,0.3)" strokeWidth="1.8" fill="none" />
+
+              <path d="M 258 172 Q 252 195 248 216" stroke="rgba(0,0,0,0.35)" strokeWidth="3" fill="none" />
+              <path d="M 256 172 Q 250 195 246 216" stroke="rgba(255,255,255,0.28)" strokeWidth="1.5" fill="none" />
+            </g>
+
+            {/* C. Voluminous Lower Drapery & Folds (Expanding out into rich cloud pouch) */}
+            <g id="balmain-lower-pleats">
+              {/* Center deep drape valley */}
+              <path
+                d="M 195 220 Q 192 270 190 321"
+                stroke="rgba(0,0,0,0.4)"
+                strokeWidth="5"
+                fill="none"
+              />
+              <path
+                d="M 205 220 Q 208 270 210 321"
+                stroke="rgba(0,0,0,0.4)"
+                strokeWidth="5"
+                fill="none"
+              />
+              <path
+                d="M 200 220 Q 200 270 200 322"
+                stroke="rgba(255,255,255,0.22)"
+                strokeWidth="2.5"
+                fill="none"
+              />
+
+              {/* Mid-Left Drape Flounce */}
+              <path
+                d="M 165 218 C 155 250, 145 285, 138 316"
+                stroke="rgba(0,0,0,0.35)"
+                strokeWidth="6"
+                fill="none"
+              />
+              <path
+                d="M 168 218 C 158 250, 148 285, 141 316"
+                stroke="rgba(255,255,255,0.25)"
+                strokeWidth="2.2"
+                fill="none"
+              />
+
+              {/* Far-Left Cloud Pillow Fold */}
+              <path
+                d="M 130 216 C 105 245, 95 275, 92 310"
+                stroke="rgba(0,0,0,0.35)"
+                strokeWidth="5"
+                fill="none"
+              />
+              <path
+                d="M 132 216 C 108 245, 98 275, 95 310"
+                stroke="rgba(255,255,255,0.25)"
+                strokeWidth="2"
+                fill="none"
+              />
+
+              {/* Mid-Right Drape Flounce */}
+              <path
+                d="M 235 218 C 245 250, 255 285, 262 316"
+                stroke="rgba(0,0,0,0.35)"
+                strokeWidth="6"
+                fill="none"
+              />
+              <path
+                d="M 232 218 C 242 250, 252 285, 259 316"
+                stroke="rgba(255,255,255,0.25)"
+                strokeWidth="2.2"
+                fill="none"
+              />
+
+              {/* Far-Right Cloud Pillow Fold */}
+              <path
+                d="M 270 216 C 295 245, 305 275, 308 310"
+                stroke="rgba(0,0,0,0.35)"
+                strokeWidth="5"
+                fill="none"
+              />
+              <path
+                d="M 268 216 C 292 245, 302 275, 305 310"
+                stroke="rgba(255,255,255,0.25)"
+                strokeWidth="2"
+                fill="none"
+              />
+            </g>
+
+            {/* D. Ruched Cinch Belt (Horizontal Band running across the waist) */}
+            <g id="balmain-cinch-belt">
+              {/* Belt shadow on lower body */}
+              <path
+                d="M 126 220 Q 200 227 274 220"
+                fill="none"
+                stroke="rgba(0,0,0,0.4)"
+                strokeWidth="8"
+                filter="blur(1.5px)"
+              />
+              {/* Leather Cinch Cord / Belt */}
+              <path
+                d="M 126 217 Q 200 223 274 217"
+                fill="none"
+                stroke={primaryHex}
+                strokeWidth="6"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 126 217 Q 200 223 274 217"
+                fill="none"
+                stroke="url(#leatherLight)"
+                strokeWidth="6"
+                strokeLinecap="round"
+              />
+              {/* Top and bottom subtle edge stitching on the cinch belt */}
+              <path
+                d="M 128 215 Q 200 221 272 215"
+                fill="none"
+                stroke="rgba(255,255,255,0.3)"
+                strokeWidth="0.8"
+                strokeDasharray="2 2"
+              />
+
+              {/* Ruched gather micro-folds around the center clasp */}
+              <path d="M 165 213 Q 170 217 172 222" stroke="rgba(0,0,0,0.45)" strokeWidth="2" fill="none" />
+              <path d="M 174 214 Q 177 217 178 221" stroke="rgba(0,0,0,0.45)" strokeWidth="2" fill="none" />
+              <path d="M 235 213 Q 230 217 228 222" stroke="rgba(0,0,0,0.45)" strokeWidth="2" fill="none" />
+              <path d="M 226 214 Q 223 217 222 221" stroke="rgba(0,0,0,0.45)" strokeWidth="2" fill="none" />
+
+              {/* Iconic Balmain Center Metallic Bar Clasp */}
+              <g id="balmain-gold-bar" transform="translate(200, 219)">
+                {/* Bar drop shadow */}
+                <rect x="-24" y="-5" width="48" height="12" rx="4" fill="rgba(0,0,0,0.4)" filter="blur(1px)" />
+                {/* Metallic Tube / Ingot Bar */}
+                <rect
+                  x="-23"
+                  y="-6"
+                  width="46"
+                  height="12"
+                  rx="3.5"
+                  fill="url(#hardwareGradient)"
+                  stroke="#111111"
+                  strokeWidth="0.6"
+                />
+                {/* Specular highlight along top of bar */}
+                <line x1="-20" y1="-4" x2="20" y2="-4" stroke="#ffffff" strokeWidth="1.2" strokeOpacity="0.85" />
+                {/* Center luxury engraving groove & Balmain signature badge */}
+                <rect x="-10" y="-2" width="20" height="4" rx="1" fill="#151515" fillOpacity="0.35" />
+                <line x1="-6" y1="0" x2="6" y2="0" stroke="#ffffff" strokeWidth="0.8" strokeOpacity="0.6" />
+                {/* Left and Right hardware retaining collar rings */}
+                <rect x="-22" y="-6.5" width="4" height="13" rx="1.5" fill="url(#hardwareGradient)" stroke="#000" strokeWidth="0.4" />
+                <rect x="18" y="-6.5" width="4" height="13" rx="1.5" fill="url(#hardwareGradient)" stroke="#000" strokeWidth="0.4" />
+              </g>
+            </g>
           </g>
         )}
 
