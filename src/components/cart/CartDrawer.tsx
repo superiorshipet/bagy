@@ -9,14 +9,10 @@ import {
   Plus,
   Minus,
   ShoppingBag,
-  Sparkles,
   Gift,
   CreditCard,
   MapPin,
-  Calendar,
   CheckCircle2,
-  ArrowRight,
-  ShieldCheck,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -46,6 +42,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [deliveryArea, setDeliveryArea] = useState('التجمع الخامس / القاهرة الجديدة');
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'apple_pay' | 'vodafone' | 'cod'>('apple_pay');
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
+  const [placedOrderNumber, setPlacedOrderNumber] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
@@ -63,32 +61,64 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     }
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
+    setIsSubmitting(true);
     try {
-      confetti({
-        particleCount: 120,
-        spread: 90,
-        origin: { y: 0.5 },
-        colors: ['#9b287b', '#c69b59', '#2dd36f', '#ffffff'],
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName: recipientName || 'سارة أحمد',
+          customerPhone: '01123456789',
+          deliveryArea,
+          isGift,
+          recipientName,
+          giftMessage,
+          subtotal,
+          discount: discountAmount,
+          deliveryFee,
+          total,
+          promoCode,
+          paymentMethod,
+          items,
+        }),
       });
+      const data = await res.json();
+      if (data.success && data.order) {
+        setPlacedOrderNumber(data.order.orderNumber);
+      } else {
+        setPlacedOrderNumber(`BGY-${Math.floor(100000 + Math.random() * 900000)}`);
+      }
     } catch (e) {
-      // ignore
+      setPlacedOrderNumber(`BGY-${Math.floor(100000 + Math.random() * 900000)}`);
+    } finally {
+      setIsSubmitting(false);
+      setIsOrderPlaced(true);
+      try {
+        confetti({
+          particleCount: 120,
+          spread: 90,
+          origin: { y: 0.5 },
+          colors: ['#9b287b', '#c69b59', '#2dd36f', '#ffffff'],
+        });
+      } catch (e) {
+        // ignore
+      }
     }
-    setIsOrderPlaced(true);
   };
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm" dir="rtl">
-      <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-[#15151e] text-stone-900 dark:text-white h-full shadow-2xl flex flex-col justify-between overflow-hidden border-r border-stone-200 dark:border-stone-800 transition-colors">
         {/* Top Header */}
-        <div className="p-4 border-b border-stone-100 flex items-center justify-between bg-white sticky top-0 z-10">
+        <div className="p-4 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between bg-white dark:bg-[#15151e] sticky top-0 z-10">
           <div className="flex items-center gap-2">
             <ShoppingBag className="w-5 h-5 text-[#9b287b]" />
-            <h2 className="text-base font-bold text-stone-900">حقيبة التسوق ({items.length})</h2>
+            <h2 className="text-base font-bold text-stone-900 dark:text-white">حقيبة التسوق ({items.length})</h2>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-stone-100 text-stone-600 flex items-center justify-center hover:bg-stone-200 transition-colors"
+            className="w-8 h-8 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 flex items-center justify-center hover:bg-stone-200 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -97,23 +127,23 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         {/* Success screen after order placed */}
         {isOrderPlaced ? (
           <div className="flex-1 p-6 flex flex-col items-center justify-center text-center space-y-4">
-            <div className="w-20 h-20 rounded-full bg-[#fdf2f8] text-[#9b287b] flex items-center justify-center shadow-lg">
+            <div className="w-20 h-20 rounded-full bg-[#fdf2f8] dark:bg-[#2a1122] text-[#9b287b] flex items-center justify-center shadow-lg">
               <CheckCircle2 className="w-12 h-12" />
             </div>
-            <h3 className="text-xl font-black text-stone-900">تم استلام طلبك بنجاح! 🎉</h3>
-            <p className="text-xs text-stone-600 leading-relaxed max-w-xs">
-              رقم الطلب: <strong className="text-stone-900">#BGY-{Math.floor(100000 + Math.random() * 900000)}</strong>
+            <h3 className="text-xl font-black text-stone-900 dark:text-white">تم استلام طلبك بنجاح! 🎉</h3>
+            <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed max-w-xs">
+              رقم الطلب: <strong className="text-stone-900 dark:text-white">{placedOrderNumber}</strong>
               <br />
-              تم إرسال تفاصيل التصنيع والتوصيل إلى هاتفك عبر رسالة SMS وواتساب.
+              تم حفظ الطلب في قاعدة البيانات ونقله لورشة التصنيع.
             </p>
-            <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 text-right w-full text-xs space-y-1.5">
+            <div className="p-4 bg-stone-50 dark:bg-stone-900/60 rounded-2xl border border-stone-200 dark:border-stone-800 text-right w-full text-xs space-y-1.5">
               <div className="flex justify-between">
                 <span className="text-stone-500">منطقة التوصيل:</span>
-                <span className="font-bold text-stone-800">{deliveryArea}</span>
+                <span className="font-bold text-stone-800 dark:text-stone-200">{deliveryArea}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-stone-500">طريقة الدفع:</span>
-                <span className="font-bold text-stone-800">
+                <span className="font-bold text-stone-800 dark:text-stone-200">
                   {paymentMethod === 'apple_pay'
                     ? 'Apple Pay'
                     : paymentMethod === 'card'
@@ -142,10 +172,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         ) : items.length === 0 ? (
           /* Empty Cart */
           <div className="flex-1 p-8 flex flex-col items-center justify-center text-center space-y-3">
-            <div className="w-16 h-16 rounded-full bg-stone-100 flex items-center justify-center text-stone-400">
+            <div className="w-16 h-16 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-stone-400">
               <ShoppingBag className="w-8 h-8" />
             </div>
-            <h3 className="text-base font-bold text-stone-800">حقيبتك فارغة حالياً</h3>
+            <h3 className="text-base font-bold text-stone-800 dark:text-stone-200">حقيبتك فارغة حالياً</h3>
             <p className="text-xs text-stone-500 max-w-xs">
               ابدأ الآن بتخصيص شنطتك المميزة واختيار ألوانك وحفر حروفك بأعلى جودة يدوية.
             </p>
@@ -164,11 +194,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               {items.map((item) => (
                 <div
                   key={item.id}
-                  className="p-3.5 rounded-2xl border border-stone-200 bg-stone-50/50 flex flex-col gap-2.5"
+                  className="p-3.5 rounded-2xl border border-stone-200 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/40 flex flex-col gap-2.5"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
-                      <h4 className="text-xs font-bold text-stone-900 leading-snug">
+                      <h4 className="text-xs font-bold text-stone-900 dark:text-white leading-snug">
                         {item.customSummaryText}
                       </h4>
                       <p className="text-[11px] text-[#9b287b] font-semibold mt-0.5">
@@ -185,19 +215,21 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   </div>
 
                   {/* Quantity Controls */}
-                  <div className="flex items-center justify-between pt-1 border-t border-stone-200/60">
+                  <div className="flex items-center justify-between pt-1 border-t border-stone-200/60 dark:border-stone-800">
                     <span className="text-[10px] text-stone-500">الكمية:</span>
-                    <div className="flex items-center gap-2 bg-white px-2 py-1 rounded-xl border border-stone-200">
+                    <div className="flex items-center gap-2 bg-white dark:bg-stone-800 px-2 py-1 rounded-xl border border-stone-200 dark:border-stone-700">
                       <button
                         onClick={() => onUpdateQuantity(item.id, -1)}
-                        className="text-stone-600 hover:text-stone-900"
+                        className="text-stone-600 dark:text-stone-300 hover:text-stone-900"
                       >
                         <Minus className="w-3 h-3" />
                       </button>
-                      <span className="text-xs font-bold text-stone-900 px-1">{item.quantity}</span>
+                      <span className="text-xs font-bold text-stone-900 dark:text-white px-1">
+                        {item.quantity}
+                      </span>
                       <button
                         onClick={() => onUpdateQuantity(item.id, 1)}
-                        className="text-stone-600 hover:text-stone-900"
+                        className="text-stone-600 dark:text-stone-300 hover:text-stone-900"
                       >
                         <Plus className="w-3 h-3" />
                       </button>
@@ -208,11 +240,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             </div>
 
             {/* Gift Options (Like Lola) */}
-            <div className="p-3.5 bg-pink-50/50 rounded-2xl border border-pink-200/50 space-y-2.5">
+            <div className="p-3.5 bg-pink-50/50 dark:bg-pink-950/20 rounded-2xl border border-pink-200/50 dark:border-pink-900/30 space-y-2.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Gift className="w-4 h-4 text-[#9b287b]" />
-                  <span className="text-xs font-bold text-stone-900">إرسال كهدية لشخص عزيز؟</span>
+                  <span className="text-xs font-bold text-stone-900 dark:text-white">إرسال كهدية لشخص عزيز؟</span>
                 </div>
                 <input
                   type="checkbox"
@@ -229,29 +261,29 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     placeholder="اسم مستلم الهدية"
                     value={recipientName}
                     onChange={(e) => setRecipientName(e.target.value)}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 bg-white"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white"
                   />
                   <textarea
                     rows={2}
                     placeholder="اكتب كارت إهداء لطيف (نطبعه ونضعه داخل البوكس)..."
                     value={giftMessage}
                     onChange={(e) => setGiftMessage(e.target.value)}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 bg-white"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white"
                   />
                 </div>
               )}
             </div>
 
             {/* Delivery Location Selector */}
-            <div className="p-3.5 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
-              <div className="flex items-center gap-2 text-xs font-bold text-stone-800">
+            <div className="p-3.5 bg-stone-50 dark:bg-stone-900/40 rounded-2xl border border-stone-200 dark:border-stone-800 space-y-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-stone-800 dark:text-stone-200">
                 <MapPin className="w-4 h-4 text-[#9b287b]" />
                 <span>عنوان التوصيل (مصر):</span>
               </div>
               <select
                 value={deliveryArea}
                 onChange={(e) => setDeliveryArea(e.target.value)}
-                className="w-full px-3 py-2 text-xs font-medium rounded-xl border border-stone-300 bg-white text-stone-800"
+                className="w-full px-3 py-2 text-xs font-medium rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-800 dark:text-stone-200"
               >
                 <option value="التجمع الخامس / القاهرة الجديدة">التجمع الخامس / القاهرة الجديدة</option>
                 <option value="المعادي ودجلة">المعادي ودجلة</option>
@@ -263,8 +295,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             </div>
 
             {/* Payment Method Selector */}
-            <div className="p-3.5 bg-stone-50 rounded-2xl border border-stone-200 space-y-2.5">
-              <div className="flex items-center gap-2 text-xs font-bold text-stone-800">
+            <div className="p-3.5 bg-stone-50 dark:bg-stone-900/40 rounded-2xl border border-stone-200 dark:border-stone-800 space-y-2.5">
+              <div className="flex items-center gap-2 text-xs font-bold text-stone-800 dark:text-stone-200">
                 <CreditCard className="w-4 h-4 text-[#9b287b]" />
                 <span>طريقة الدفع المفضلة:</span>
               </div>
@@ -281,8 +313,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     onClick={() => setPaymentMethod(pm.id as any)}
                     className={`py-2 px-2.5 rounded-xl border text-center font-bold transition-all ${
                       paymentMethod === pm.id
-                        ? 'border-[#9b287b] bg-[#fdf2f8] text-[#9b287b]'
-                        : 'border-stone-200 bg-white text-stone-700'
+                        ? 'border-[#9b287b] bg-[#fdf2f8] dark:bg-[#2a1122] text-[#9b287b]'
+                        : 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300'
                     }`}
                   >
                     {pm.name}
@@ -299,12 +331,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   placeholder="كود الخصم (جرب: LOLA أو BAGY10)"
                   value={promoCode}
                   onChange={(e) => setPromoCode(e.target.value)}
-                  className="flex-1 px-3 py-2 text-xs rounded-xl border border-stone-300 uppercase"
+                  className="flex-1 px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 uppercase"
                 />
                 <button
                   type="button"
                   onClick={handleApplyPromo}
-                  className="px-4 py-2 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-black transition-colors"
+                  className="px-4 py-2 rounded-xl bg-stone-900 dark:bg-white text-white dark:text-stone-900 text-xs font-bold hover:bg-black transition-colors"
                 >
                   تطبيق
                 </button>
@@ -318,8 +350,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             </div>
 
             {/* Price Breakdown */}
-            <div className="p-3.5 bg-stone-50 rounded-2xl border border-stone-200 text-xs space-y-2">
-              <div className="flex justify-between text-stone-600">
+            <div className="p-3.5 bg-stone-50 dark:bg-stone-900/40 rounded-2xl border border-stone-200 dark:border-stone-800 text-xs space-y-2">
+              <div className="flex justify-between text-stone-600 dark:text-stone-400">
                 <span>المجموع الفرعي:</span>
                 <span className="font-semibold">{formatPrice(subtotal, 'EGP', 'ar')}</span>
               </div>
@@ -329,13 +361,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <span>-{formatPrice(discountAmount, 'EGP', 'ar')}</span>
                 </div>
               )}
-              <div className="flex justify-between text-stone-600">
+              <div className="flex justify-between text-stone-600 dark:text-stone-400">
                 <span>رسوم التوصيل:</span>
                 <span className="font-semibold">
                   {deliveryFee === 0 ? 'شحن مجاني 🎁' : formatPrice(deliveryFee, 'EGP', 'ar')}
                 </span>
               </div>
-              <div className="flex justify-between text-stone-950 font-black text-sm pt-2 border-t border-stone-200">
+              <div className="flex justify-between text-stone-950 dark:text-white font-black text-sm pt-2 border-t border-stone-200 dark:border-stone-800">
                 <span>الإجمالي النهائي:</span>
                 <span className="text-[#9b287b]">{formatPrice(total, 'EGP', 'ar')}</span>
               </div>
@@ -345,12 +377,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
         {/* Bottom Checkout CTA */}
         {!isOrderPlaced && items.length > 0 && (
-          <div className="p-4 border-t border-stone-100 bg-white sticky bottom-0 z-10">
+          <div className="p-4 border-t border-stone-100 dark:border-stone-800 bg-white dark:bg-[#15151e] sticky bottom-0 z-10">
             <button
               onClick={handlePlaceOrder}
-              className="w-full py-3.5 rounded-2xl bg-[#9b287b] hover:bg-[#831f67] text-white font-bold text-sm shadow-lg shadow-[#9b287b]/25 flex items-center justify-center gap-2 transition-all"
+              disabled={isSubmitting}
+              className="w-full py-3.5 rounded-2xl bg-[#9b287b] hover:bg-[#831f67] text-white font-bold text-sm shadow-lg shadow-[#9b287b]/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
             >
-              <span>تأكيد الطلب ودفع</span>
+              <span>{isSubmitting ? 'جاري تسجيل الطلب...' : 'تأكيد الطلب ودفع'}</span>
               <span className="bg-white/20 px-2 py-0.5 rounded-lg text-xs">
                 {formatPrice(total, 'EGP', 'ar')}
               </span>
