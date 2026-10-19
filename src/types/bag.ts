@@ -82,6 +82,8 @@ export interface CustomBagConfiguration {
   accentColorId: string;
   hardware: 'gold' | 'silver' | 'brass' | 'black';
   strapId: string;
+  handleColorId?: string;
+  handleColorHex?: string;
   monogram: MonogramConfig;
   selectedAddonIds: string[];
 }

@@ -117,6 +117,23 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Create order notification for customer
+    if (newOrder.userId) {
+      try {
+        await prisma.notification.create({
+          data: {
+            userId: newOrder.userId,
+            title: `تم استلام طلبك ${newOrder.orderNumber} بنجاح 🎉`,
+            message: `شكراً لثقتك في BAGY! طلبك قيد المراجعة وسنبدأ في تصنيعه يدوياً بعناية.`,
+            type: 'order',
+            orderId: newOrder.id,
+          },
+        });
+      } catch (ne) {
+        console.error('Failed to create notification on order create:', ne);
+      }
+    }
+
     return NextResponse.json({ success: true, order: newOrder });
   } catch (error: any) {
     console.error('Error creating order:', error);
@@ -127,7 +144,12 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
-    const { orderId, status } = body;
+    const { orderId, action } = body;
+    let status = body.status;
+
+    if (action === 'cancel') {
+      status = OrderStatus.CANCELLED;
+    }
 
     if (!orderId || !status) {
       return NextResponse.json({ error: 'Missing orderId or status' }, { status: 400 });
@@ -137,6 +159,48 @@ export async function PATCH(req: NextRequest) {
       where: { id: orderId },
       data: { status: status as OrderStatus },
     });
+
+    // Send notification to customer for status changes
+    if (updated.userId) {
+      let notifTitle = '';
+      let notifMessage = '';
+
+      if (status === 'CANCELLED') {
+        notifTitle = `تم إلغاء الطلب ${updated.orderNumber}`;
+        notifMessage = `تم إلغاء طلبك بنجاح. إذا كان لديك استفسار يمكنك التواصل مع خدمة عملاء باجي.`;
+      } else if (status === 'IN_PRODUCTION') {
+        notifTitle = `بدء التفصيل لطلبك ${updated.orderNumber} 🧵`;
+        notifMessage = `شنطتك دخلت الآن خط الخياطة والتطريز اليدوي بعناية ودقة فائقة!`;
+      } else if (status === 'QUALITY_CHECK') {
+        notifTitle = `فحص الجودة لطلبك ${updated.orderNumber} 🔍`;
+        notifMessage = `تخضع شنطتك الآن لفحص الجودة الدقيق للتأكد من مطابقة جميع التفاصيل.`;
+      } else if (status === 'SHIPPED') {
+        notifTitle = `طلبك في الطريق إليك ${updated.orderNumber} 🚚`;
+        notifMessage = `تم تسليم شنطتك لمندوب الشحن وهي الآن في طريقها إلى عنوانك.`;
+      } else if (status === 'DELIVERED') {
+        notifTitle = `تم تسليم طلبك ${updated.orderNumber} بنجاح ✨`;
+        notifMessage = `مبروك استلام شنطتك الفاخرة من BAGY! نأمل أن تنال إعجابك وتكون تجربة لا تُنسى.`;
+      } else if (status === 'CONFIRMED') {
+        notifTitle = `تم تأكيد طلبك ${updated.orderNumber} ✓`;
+        notifMessage = `تم تأكيد طلبك وجاري تجهيز الخامات للبدء في خط الإنتاج.`;
+      }
+
+      if (notifTitle) {
+        try {
+          await prisma.notification.create({
+            data: {
+              userId: updated.userId,
+              title: notifTitle,
+              message: notifMessage,
+              type: 'order',
+              orderId: updated.id,
+            },
+          });
+        } catch (ne) {
+          console.error('Failed to create status notification:', ne);
+        }
+      }
+    }
 
     return NextResponse.json({ success: true, order: updated });
   } catch (error: any) {

@@ -38,6 +38,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'settings'>('orders');
   const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
 
   // Fetch user profile and orders from API
   useEffect(() => {
@@ -59,6 +60,34 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         .finally(() => setLoading(false));
     }
   }, [isOpen, authUser]);
+
+  const handleCancelOrder = async (orderId: string) => {
+    if (!confirm('هل أنت متأكد من رغبتك في إلغاء هذا الطلب؟')) return;
+    setCancellingOrderId(orderId);
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, action: 'cancel' }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setProfileData((prev: any) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            orders: (prev.orders || []).map((o: any) =>
+              o.id === orderId ? { ...o, status: 'CANCELLED' } : o
+            ),
+          };
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setCancellingOrderId(null);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -237,7 +266,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                                 <span className="text-stone-400">×{item.quantity}</span>
                               </div>
                               <span className="font-semibold text-stone-700 dark:text-stone-300">
-                                {formatPrice(item.unitPrice * item.quantity, 'EGP', 'ar')}
+                                {formatPrice(item.unitPrice * item.quantity, currency, 'ar')}
                               </span>
                             </div>
                           ))}
@@ -253,16 +282,29 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                           </div>
                         )}
 
-                        {/* Order Footer & Price */}
-                        <div className="flex items-center justify-between pt-1 text-xs">
+                        {/* Order Footer & Actions */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stone-200/60 dark:border-stone-800 text-xs">
                           <span className="text-stone-400">
                             منطقة التوصيل: <strong className="text-stone-700 dark:text-stone-300">{order.deliveryArea}</strong>
                           </span>
-                          <div>
-                            <span className="text-stone-400 text-[11px]">الإجمالي: </span>
-                            <span className="font-black text-[#9b287b] dark:text-[#be3999] text-sm">
-                              {formatPrice(order.total, 'EGP', 'ar')}
-                            </span>
+                          <div className="flex items-center gap-3">
+                            <div>
+                              <span className="text-stone-400 text-[11px]">الإجمالي: </span>
+                              <span className="font-black text-[#9b287b] dark:text-[#be3999] text-sm">
+                                {formatPrice(order.total, currency, 'ar')}
+                              </span>
+                            </div>
+
+                            {order.status !== 'CANCELLED' && order.status !== 'DELIVERED' && (
+                              <button
+                                type="button"
+                                disabled={cancellingOrderId === order.id}
+                                onClick={() => handleCancelOrder(order.id)}
+                                className="px-2.5 py-1 text-[11px] font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-900/40 transition-colors disabled:opacity-50"
+                              >
+                                {cancellingOrderId === order.id ? 'جاري الإلغاء...' : 'إلغاء الطلب'}
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -359,9 +401,11 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   onChange={(e) => setCurrency(e.target.value as any)}
                   className="px-3 py-1.5 text-xs font-bold rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white"
                 >
-                  <option value="EGP">EGP - ج.م</option>
-                  <option value="SAR">SAR - ر.س</option>
-                  <option value="USD">USD - $</option>
+                  <option value="EGP">EGP - الجنيه المصري (ج.م)</option>
+                  <option value="SAR">SAR - الريال السعودي (ر.س)</option>
+                  <option value="USD">USD - الدولار الأمريكي ($)</option>
+                  <option value="AED">AED - الدرهم الإماراتي (د.إ)</option>
+                  <option value="EUR">EUR - اليورو (€)</option>
                 </select>
               </div>
 

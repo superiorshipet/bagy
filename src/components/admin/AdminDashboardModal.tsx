@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { formatPrice } from '@/lib/utils';
+import { useAppSettings } from '@/context/ThemeContext';
 import {
   X,
   LayoutDashboard,
@@ -23,6 +24,8 @@ import {
   ShieldCheck,
   User,
   AlertTriangle,
+  Bell,
+  Send,
 } from 'lucide-react';
 
 interface AdminDashboardModalProps {
@@ -38,15 +41,28 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   onProductsUpdated,
   onCategoriesUpdated,
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'categories' | 'users' | 'promos'>('overview');
+  const { currency } = useAppSettings();
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'categories' | 'users' | 'promos' | 'notifications'>('overview');
   const [stats, setStats] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Notification form state
+  const [newNotif, setNewNotif] = useState({
+    title: '',
+    message: '',
+    type: 'alert',
+    userId: 'all',
+  });
+  const [isSendingNotif, setIsSendingNotif] = useState(false);
+  const [notifSuccessMsg, setNotifSuccessMsg] = useState('');
+  const [deletingNotifId, setDeletingNotifId] = useState<string | null>(null);
 
   // New product form state
   const [newProduct, setNewProduct] = useState({
@@ -102,14 +118,16 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       fetch('/api/admin/users').then((res) => res.json()),
       fetch('/api/categories').then((res) => res.json()),
       fetch('/api/promos').then((res) => res.json()),
+      fetch('/api/notifications').then((res) => res.json()),
     ])
-      .then(([statsRes, ordersRes, productsRes, usersRes, catRes, promosRes]) => {
+      .then(([statsRes, ordersRes, productsRes, usersRes, catRes, promosRes, notifsRes]) => {
         if (statsRes.success) setStats(statsRes.stats);
         if (ordersRes.success) setOrders(ordersRes.orders);
         if (productsRes.success) setProducts(productsRes.products);
         if (usersRes.success) setUsers(usersRes.users);
         if (catRes.success) setCategories(catRes.categories);
         if (promosRes.success) setPromos(promosRes.promos);
+        if (notifsRes?.success) setNotifications(notifsRes.notifications);
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
@@ -421,6 +439,57 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     }
   };
 
+  const handleSendNotification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newNotif.title || !newNotif.message) {
+      alert('يرجى ملء عنوان الإشعار ونص الرسالة');
+      return;
+    }
+    setIsSendingNotif(true);
+    setNotifSuccessMsg('');
+    try {
+      const res = await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newNotif),
+      });
+      const data = await res.json();
+      if (data.success && data.notification) {
+        setNotifications((prev) => [data.notification, ...prev]);
+        setNewNotif({ title: '', message: '', type: 'alert', userId: 'all' });
+        setNotifSuccessMsg('تم إرسال الإشعار بنجاح لجميع العملاء المستهدفين! 🚀');
+        setTimeout(() => setNotifSuccessMsg(''), 4500);
+      } else {
+        alert(data.error || 'حدث خطأ أثناء إرسال الإشعار');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('فشل الاتصال بالخادم لإرسال الإشعار');
+    } finally {
+      setIsSendingNotif(false);
+    }
+  };
+
+  const handleDeleteNotification = async (notifId: string) => {
+    if (!confirm('هل تريد حذف هذا الإشعار نهائياً من سجل المتجر؟')) return;
+    setDeletingNotifId(notifId);
+    try {
+      const res = await fetch(`/api/notifications?id=${notifId}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (data.success) {
+        setNotifications((prev) => prev.filter((n) => n.id !== notifId));
+      } else {
+        alert('حدث خطأ أثناء حذف الإشعار');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDeletingNotifId(null);
+    }
+  };
+
   const filteredOrders = orders.filter((order) => {
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     const matchesSearch =
@@ -542,6 +611,18 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             <Tag className="w-4 h-4" />
             أكواد الخصم والعروض ({promos.length})
           </button>
+
+          <button
+            onClick={() => setActiveTab('notifications')}
+            className={`py-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap ${
+              activeTab === 'notifications'
+                ? 'border-[#9b287b] text-[#9b287b] dark:text-[#be3999]'
+                : 'border-transparent text-stone-500 hover:text-stone-800 dark:text-stone-400'
+            }`}
+          >
+            <Bell className="w-4 h-4" />
+            مركز الإشعارات والتنبيهات ({notifications.length})
+          </button>
         </div>
 
         {/* Content Body */}
@@ -557,7 +638,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     <DollarSign className="w-4 h-4" />
                   </div>
                   <div className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white">
-                    {formatPrice(stats?.totalRevenue || 0, 'EGP', 'ar')}
+                    {formatPrice(stats?.totalRevenue || 0, currency, 'ar')}
                   </div>
                   <span className="text-[10px] text-stone-500">من جميع الطلبات المؤكدة</span>
                 </div>
@@ -615,7 +696,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
                         <div className="flex items-center gap-3">
                           <span className="font-bold text-xs text-[#9b287b]">
-                            {formatPrice(order.total, 'EGP', 'ar')}
+                            {formatPrice(order.total, currency, 'ar')}
                           </span>
                           <span className="text-[10px] bg-stone-100 dark:bg-stone-800 px-2.5 py-1 rounded-full font-bold">
                             {order.status}
@@ -710,7 +791,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         <div key={item.id} className="space-y-1">
                           <div className="flex justify-between font-bold text-stone-900 dark:text-white">
                             <span>• {item.summaryText}</span>
-                            <span>{formatPrice(item.unitPrice * item.quantity, 'EGP', 'ar')}</span>
+                            <span>{formatPrice(item.unitPrice * item.quantity, currency, 'ar')}</span>
                           </div>
                           {item.customization && (
                             <div className="text-[11px] text-stone-500 grid grid-cols-2 sm:grid-cols-4 gap-1 pr-3">
@@ -888,7 +969,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                           </h4>
                           <span className="text-[10px] text-stone-400 block truncate">{p.nameEn}</span>
                           <span className="text-xs font-black text-[#9b287b] dark:text-[#be3999] block mt-0.5">
-                            {formatPrice(p.price, 'EGP', 'ar')}
+                            {formatPrice(p.price, currency, 'ar')}
                           </span>
                         </div>
                       </div>
@@ -1082,7 +1163,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                             <span className="text-xs text-stone-400 block truncate">{c.nameEn}</span>
                             <div className="mt-1 flex items-center justify-between">
                               <span className="text-xs font-black text-[#9b287b] dark:text-[#be3999]">
-                                تبدأ من {formatPrice(c.basePrice, 'EGP', 'ar')}
+                                تبدأ من {formatPrice(c.basePrice, currency, 'ar')}
                               </span>
                               <span className="text-[10px] font-bold text-stone-500 bg-stone-100 dark:bg-stone-800 px-2 py-0.5 rounded-full">
                                 {productCount} موديل
@@ -1359,6 +1440,194 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         <div className="pt-2 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between text-[11px] text-stone-400">
                           <span>الاستخدام: {promo.usedCount || 0} / {promo.maxUsage || '∞'}</span>
                           <span>{new Date(promo.createdAt).toLocaleDateString('ar-EG')}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 7: NOTIFICATIONS & ALERTS CENTER */}
+          {activeTab === 'notifications' && (
+            <div className="space-y-6">
+              {/* Send Notification Card */}
+              <div className="p-5 sm:p-6 rounded-3xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900/40 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-[#fdf2f8] dark:bg-[#2e1327] text-[#9b287b] dark:text-[#f472b6] flex items-center justify-center">
+                      <Send className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-stone-900 dark:text-white">
+                        إرسال إشعار أو تنبيه جديد للعملاء
+                      </h3>
+                      <p className="text-xs text-stone-400">
+                        إرسال رسائل فورية وتنبيهات مخصصة تظهر في شريط التنبيهات لدى العميل
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {notifSuccessMsg && (
+                  <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-2xl text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                    {notifSuccessMsg}
+                  </div>
+                )}
+
+                <form onSubmit={handleSendNotification} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {/* Target Audience */}
+                    <div>
+                      <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                        الجمهور المستهدف (المستلم):
+                      </label>
+                      <select
+                        value={newNotif.userId}
+                        onChange={(e) => setNewNotif({ ...newNotif, userId: e.target.value })}
+                        className="w-full px-3.5 py-2.5 text-xs font-bold rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white focus:ring-2 focus:ring-[#9b287b]"
+                      >
+                        <option value="all">📢 إشعار عام لجميع العملاء (Broadcast to All)</option>
+                        {users.map((u) => (
+                          <option key={u.id} value={u.id}>
+                            👤 {u.name} ({u.phone || u.email})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Notification Type */}
+                    <div>
+                      <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                        نوع وتصنيف التنبيه:
+                      </label>
+                      <select
+                        value={newNotif.type}
+                        onChange={(e) => setNewNotif({ ...newNotif, type: e.target.value })}
+                        className="w-full px-3.5 py-2.5 text-xs font-bold rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white focus:ring-2 focus:ring-[#9b287b]"
+                      >
+                        <option value="alert">📢 تنبيه عام / رسالة من صاحب المتجر</option>
+                        <option value="promo">🏷️ عرض ترويجي / كود خصم جديد</option>
+                        <option value="order">🧵 إشعار خاص بالطلبات والتصنيع</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Title */}
+                  <div>
+                    <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                      عنوان الإشعار:
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="مثال: خصم 20% لفترة محدودة على حقائب الكلاتش!"
+                      value={newNotif.title}
+                      onChange={(e) => setNewNotif({ ...newNotif, title: e.target.value })}
+                      className="w-full px-3.5 py-2.5 text-xs font-bold rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white focus:ring-2 focus:ring-[#9b287b]"
+                    />
+                  </div>
+
+                  {/* Message */}
+                  <div>
+                    <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                      نص الرسالة والتفاصيل:
+                    </label>
+                    <textarea
+                      required
+                      rows={3}
+                      placeholder="اكتب رسالتك وتفاصيل التنبيه التي ستصل لحساب العميل..."
+                      value={newNotif.message}
+                      onChange={(e) => setNewNotif({ ...newNotif, message: e.target.value })}
+                      className="w-full px-3.5 py-2.5 text-xs font-bold rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white focus:ring-2 focus:ring-[#9b287b]"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSendingNotif}
+                    className="w-full py-3 rounded-2xl bg-gradient-to-r from-[#9b287b] to-[#7f1b62] hover:opacity-95 text-white font-black text-xs shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>{isSendingNotif ? 'جاري إرسال الإشعار...' : 'إرسال الإشعار فوراً للعملاء'}</span>
+                  </button>
+                </form>
+              </div>
+
+              {/* Notification Logs List */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black text-stone-900 dark:text-white flex items-center gap-2">
+                    <Bell className="w-4 h-4 text-[#9b287b]" />
+                    سجل الإشعارات والتنبيهات المباشرة ({notifications.length})
+                  </h3>
+                  <button
+                    onClick={loadData}
+                    className="text-xs font-bold text-[#9b287b] hover:underline flex items-center gap-1"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    تحديث القائمة
+                  </button>
+                </div>
+
+                {notifications.length === 0 ? (
+                  <div className="p-8 text-center text-xs text-stone-400 border border-dashed border-stone-200 dark:border-stone-800 rounded-2xl">
+                    لا توجد إشعارات مسجلة حالياً.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {notifications.map((notif) => (
+                      <div
+                        key={notif.id}
+                        className="p-4 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900/50 shadow-sm space-y-2.5 hover:border-[#9b287b]/40 transition-all flex flex-col justify-between"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-base">
+                                {notif.type === 'order'
+                                  ? '🧵'
+                                  : notif.type === 'promo'
+                                  ? '🏷️'
+                                  : '📢'}
+                              </span>
+                              <h4 className="text-xs font-bold text-stone-900 dark:text-white">
+                                {notif.title}
+                              </h4>
+                            </div>
+                            <span className="text-[10px] bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-bold px-2 py-0.5 rounded-full inline-block">
+                              {notif.userId
+                                ? `موجّه للعميل: ${notif.user?.name || notif.userId}`
+                                : '📢 إشعار عام (لكل العملاء)'}
+                            </span>
+                          </div>
+
+                          <button
+                            onClick={() => handleDeleteNotification(notif.id)}
+                            disabled={deletingNotifId === notif.id}
+                            className="p-1.5 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                            title="حذف الإشعار"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed bg-stone-50/60 dark:bg-stone-950/40 p-2.5 rounded-xl border border-stone-100 dark:border-stone-800/80">
+                          {notif.message}
+                        </p>
+
+                        <div className="flex items-center justify-between text-[10px] text-stone-400 pt-1 border-t border-stone-100 dark:border-stone-800">
+                          <span>
+                            {new Date(notif.createdAt).toLocaleDateString('ar-EG', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                              hour: 'numeric',
+                              minute: 'numeric',
+                            })}
+                          </span>
+                          <span>{notif.isRead ? 'تمت القراءة ✓' : 'لم يُقرأ بعد ⏳'}</span>
                         </div>
                       </div>
                     ))}

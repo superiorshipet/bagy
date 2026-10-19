@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { CartItem } from '@/types/bag';
 import { formatPrice } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
+import { useAppSettings } from '@/context/ThemeContext';
 import {
   X,
   Trash2,
@@ -36,6 +37,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onClearCart,
 }) => {
   const { user, openAuthModal } = useAuth();
+  const { currency } = useAppSettings();
 
   const [promoCode, setPromoCode] = useState('');
   const [discountPercent, setDiscountPercent] = useState(0);
@@ -196,7 +198,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-stone-500">المبلغ الإجمالي:</span>
-                <span className="font-bold text-[#9b287b]">{formatPrice(total, 'EGP', 'ar')}</span>
+                <span className="font-bold text-[#9b287b]">{formatPrice(total, currency, 'ar')}</span>
               </div>
             </div>
             <button
@@ -270,7 +272,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           {item.customSummaryText}
                         </h4>
                         <p className="text-[11px] text-[#9b287b] font-semibold mt-0.5">
-                          {formatPrice(item.calculatedPrice, 'EGP', 'ar')}
+                          {formatPrice(item.calculatedPrice, currency, 'ar')}
                         </p>
                       </div>
                     </div>
@@ -434,23 +436,23 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             <div className="p-3.5 bg-stone-50 dark:bg-stone-900/40 rounded-2xl border border-stone-200 dark:border-stone-800 text-xs space-y-2">
               <div className="flex justify-between text-stone-600 dark:text-stone-400">
                 <span>المجموع الفرعي:</span>
-                <span className="font-semibold">{formatPrice(subtotal, 'EGP', 'ar')}</span>
+                <span className="font-semibold">{formatPrice(subtotal, currency, 'ar')}</span>
               </div>
               {discountPercent > 0 && (
                 <div className="flex justify-between text-green-600 font-bold">
                   <span>الخصم ({discountPercent}%):</span>
-                  <span>-{formatPrice(discountAmount, 'EGP', 'ar')}</span>
+                  <span>-{formatPrice(discountAmount, currency, 'ar')}</span>
                 </div>
               )}
               <div className="flex justify-between text-stone-600 dark:text-stone-400">
                 <span>رسوم التوصيل:</span>
                 <span className="font-semibold">
-                  {deliveryFee === 0 ? 'شحن مجاني 🎁' : formatPrice(deliveryFee, 'EGP', 'ar')}
+                  {deliveryFee === 0 ? 'شحن مجاني 🎁' : formatPrice(deliveryFee, currency, 'ar')}
                 </span>
               </div>
               <div className="flex justify-between text-stone-950 dark:text-white font-black text-sm pt-2 border-t border-stone-200 dark:border-stone-800">
                 <span>الإجمالي النهائي:</span>
-                <span className="text-[#9b287b]">{formatPrice(total, 'EGP', 'ar')}</span>
+                <span className="text-[#9b287b]">{formatPrice(total, currency, 'ar')}</span>
               </div>
             </div>
           </div>
@@ -473,7 +475,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 <>
                   <span>{isSubmitting ? 'جاري تسجيل الطلب...' : 'تأكيد الطلب ودفع'}</span>
                   <span className="bg-white/20 px-2 py-0.5 rounded-lg text-xs">
-                    {formatPrice(total, 'EGP', 'ar')}
+                    {formatPrice(total, currency, 'ar')}
                   </span>
                 </>
               )}

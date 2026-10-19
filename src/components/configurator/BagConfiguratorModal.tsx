@@ -19,6 +19,7 @@ import {
 } from '@/data/bagOptions';
 import { BagCanvasPreview } from './BagCanvasPreview';
 import { formatPrice } from '@/lib/utils';
+import { useAppSettings } from '@/context/ThemeContext';
 import {
   X,
   ChevronLeft,
@@ -65,6 +66,7 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
   initialProduct,
   categories,
 }) => {
+  const { currency } = useAppSettings();
   const effectiveCategories = (categories && categories.length > 0) ? categories : BAG_TYPES;
   const [currentStep, setCurrentStep] = useState<number>(1);
 
@@ -256,7 +258,7 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                           </span>
                         </div>
                         <span className="text-[11px] text-stone-500 block mt-0.5">
-                          السعر الأساسي للموديل: {formatPrice(initialProduct.price, 'EGP', 'ar')}
+                          السعر الأساسي للموديل: {formatPrice(initialProduct.price, currency, 'ar')}
                         </span>
                       </div>
                     </div>
@@ -291,7 +293,7 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                             <h4 className="text-sm font-bold text-stone-900 dark:text-white">{type.nameAr}</h4>
                             <p className="text-xs text-stone-500 mt-0.5 line-clamp-1">{type.descriptionAr || type.nameEn}</p>
                             <p className="text-xs font-semibold text-[#9b287b] dark:text-[#be3999] mt-2">
-                              يبدأ من {formatPrice(type.basePrice || 1850, 'EGP', 'ar')}
+                              يبدأ من {formatPrice(type.basePrice || 1850, currency, 'ar')}
                             </p>
                           </div>
                         </button>
@@ -332,7 +334,7 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                             </div>
                           </div>
                           <div className={`text-xs font-semibold ${isSelected ? 'text-[#9b287b] dark:text-[#f472b6]' : 'text-stone-700 dark:text-stone-300'}`}>
-                            {size.priceDelta > 0 ? `+${formatPrice(size.priceDelta, 'EGP', 'ar')}` : 'ضمن السعر الأساسي'}
+                            {size.priceDelta > 0 ? `+${formatPrice(size.priceDelta, currency, 'ar')}` : 'ضمن السعر الأساسي'}
                           </div>
                         </button>
                       );
@@ -372,7 +374,7 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                             </div>
                           </div>
                           <div className={`text-xs font-semibold ${isSelected ? 'text-[#9b287b] dark:text-[#f472b6]' : 'text-stone-700 dark:text-stone-300'}`}>
-                            {mat.priceDelta > 0 ? `+${formatPrice(mat.priceDelta, 'EGP', 'ar')}` : 'مشمول'}
+                            {mat.priceDelta > 0 ? `+${formatPrice(mat.priceDelta, currency, 'ar')}` : 'مشمول'}
                           </div>
                         </button>
                       );
@@ -596,7 +598,7 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                           <div>
                             <h4 className="text-xs font-bold text-stone-900 dark:text-white">{hw.nameAr}</h4>
                             <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
-                              {hw.priceDelta > 0 ? `+${formatPrice(hw.priceDelta, 'EGP', 'ar')}` : 'مشمول'}
+                              {hw.priceDelta > 0 ? `+${formatPrice(hw.priceDelta, currency, 'ar')}` : 'مشمول'}
                             </p>
                           </div>
                         </button>
@@ -606,39 +608,103 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                 </div>
               )}
 
-              {/* Step 6: Strap */}
+              {/* Step 6: Strap & Handle */}
               {currentStep === 6 && (
-                <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-stone-800 dark:text-stone-200">اختار نوع وشكل حزام الشنطة:</h3>
-                  <div className="space-y-2.5">
-                    {STRAPS.map((strap) => {
-                      const isSelected = config.strapId === strap.id;
-                      return (
-                        <button
-                          key={strap.id}
-                          onClick={() => setConfig({ ...config, strapId: strap.id })}
-                          className={`w-full p-3.5 rounded-2xl border text-right transition-all flex items-center justify-between ${
-                            isSelected
-                              ? 'border-[#9b287b] dark:border-[#be3999] bg-[#fdf2f8] dark:bg-[#2e1327] ring-2 ring-[#9b287b]/20 shadow-sm'
-                              : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900/60 hover:border-stone-300 dark:hover:border-stone-700'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`w-6 h-6 rounded-full border flex items-center justify-center ${
-                                isSelected ? 'border-[#9b287b] bg-[#9b287b] text-white' : 'border-stone-300 dark:border-stone-700'
-                              }`}
-                            >
-                              {isSelected && <Check className="w-3.5 h-3.5" />}
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-stone-800 dark:text-stone-200 mb-2">اختار نوع وشكل حزام الشنطة:</h3>
+                    <div className="space-y-2.5">
+                      {STRAPS.map((strap) => {
+                        const isSelected = config.strapId === strap.id;
+                        return (
+                          <button
+                            key={strap.id}
+                            onClick={() => setConfig({ ...config, strapId: strap.id })}
+                            className={`w-full p-3.5 rounded-2xl border text-right transition-all flex items-center justify-between ${
+                              isSelected
+                                ? 'border-[#9b287b] dark:border-[#be3999] bg-[#fdf2f8] dark:bg-[#2e1327] ring-2 ring-[#9b287b]/20 shadow-sm'
+                                : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900/60 hover:border-stone-300 dark:hover:border-stone-700'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-6 h-6 rounded-full border flex items-center justify-center ${
+                                  isSelected ? 'border-[#9b287b] bg-[#9b287b] text-white' : 'border-stone-300 dark:border-stone-700'
+                                }`}
+                              >
+                                {isSelected && <Check className="w-3.5 h-3.5" />}
+                              </div>
+                              <h4 className="text-sm font-bold text-stone-900 dark:text-white">{strap.nameAr}</h4>
                             </div>
-                            <h4 className="text-sm font-bold text-stone-900 dark:text-white">{strap.nameAr}</h4>
-                          </div>
-                          <div className={`text-xs font-semibold ${isSelected ? 'text-[#9b287b] dark:text-[#f472b6]' : 'text-stone-700 dark:text-stone-300'}`}>
-                            {strap.priceDelta > 0 ? `+${formatPrice(strap.priceDelta, 'EGP', 'ar')}` : 'مشمول'}
-                          </div>
+                            <div className={`text-xs font-semibold ${isSelected ? 'text-[#9b287b] dark:text-[#f472b6]' : 'text-stone-700 dark:text-stone-300'}`}>
+                              {strap.priceDelta > 0 ? `+${formatPrice(strap.priceDelta, currency, 'ar')}` : 'مشمول'}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Handle & Strap Color Customizer */}
+                  <div className="pt-3.5 border-t border-stone-200 dark:border-stone-800 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-xs font-bold text-stone-900 dark:text-white flex items-center gap-1.5">
+                          <span>🎨 تخصيص لون يد الشنطة / المقبض</span>
+                          {(config.handleColorId || config.handleColorHex) && (
+                            <span className="text-[10px] bg-[#9b287b] text-white px-2 py-0.5 rounded-full font-bold">
+                              مخصص
+                            </span>
+                          )}
+                        </h4>
+                        <p className="text-[11px] text-stone-500 dark:text-stone-400">يمكنك اختيار لون مميز لليد أو تركه متطابقاً مع لون الشنطة الأساسي</p>
+                      </div>
+                      {(config.handleColorId || config.handleColorHex) && (
+                        <button
+                          type="button"
+                          onClick={() => setConfig({ ...config, handleColorId: undefined, handleColorHex: undefined })}
+                          className="text-[11px] font-bold text-[#9b287b] dark:text-[#f472b6] hover:underline"
+                        >
+                          نفس لون الشنطة
                         </button>
-                      );
-                    })}
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-6 gap-2">
+                      {COLORS.map((col) => {
+                        const isHandleActive =
+                          config.handleColorId === col.id ||
+                          (!config.handleColorId && !config.handleColorHex && config.primaryColorId === col.id);
+                        return (
+                          <button
+                            key={col.id}
+                            type="button"
+                            onClick={() =>
+                              setConfig({
+                                ...config,
+                                handleColorId: col.id,
+                                handleColorHex: col.hex,
+                              })
+                            }
+                            className={`h-9 rounded-xl border flex items-center justify-center transition-all ${
+                              isHandleActive
+                                ? 'ring-2 ring-[#9b287b] ring-offset-1 scale-105 shadow-sm'
+                                : 'border-black/10 hover:scale-105'
+                            }`}
+                            style={{ backgroundColor: col.hex }}
+                            title={col.nameAr}
+                          >
+                            {isHandleActive && (
+                              <Check
+                                className={`w-3.5 h-3.5 ${
+                                  ['sand_beige', 'pearl_white', 'rose_powder'].includes(col.id) ? 'text-stone-900' : 'text-white'
+                                }`}
+                              />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               )}
@@ -649,7 +715,7 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                   <div className="flex items-center justify-between p-3.5 bg-stone-50 dark:bg-stone-900/60 rounded-2xl border border-stone-200 dark:border-stone-800">
                     <div>
                       <h4 className="text-sm font-bold text-stone-900 dark:text-white">تفعيل حفر اسمك أو حروفك الشخصية؟</h4>
-                      <p className="text-xs text-stone-500 dark:text-stone-400">حفر حراري دائم على واجهة الشنطة (+150 ج.م)</p>
+                      <p className="text-xs text-stone-500 dark:text-stone-400">حفر حراري دائم على واجهة الشنطة (+{formatPrice(150, currency, 'ar')})</p>
                     </div>
                     <input
                       type="checkbox"
@@ -668,12 +734,11 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                     <div className="space-y-3 p-4 bg-[#fdf2f8] dark:bg-[#2e1327] rounded-2xl border border-[#9b287b]/20 dark:border-[#be3999]/30">
                       <div>
                         <label className="text-xs font-bold text-stone-800 dark:text-stone-200 block mb-1">
-                          اكتب الحروف أو الاسم (حتى 6 حروف بالإنجليزية):
+                          اكتب الحروف، الاسم، أو العبارة التي ترغب بحفرها (بدون حد أقصى):
                         </label>
                         <input
                           type="text"
-                          maxLength={6}
-                          placeholder="e.g. LOLA or S.A"
+                          placeholder="مثال: LOLA أو SARAH AHMED أو أي اسم/عبارة تحبها"
                           value={config.monogram.text}
                           onChange={(e) =>
                             setConfig({
@@ -681,7 +746,7 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                               monogram: { ...config.monogram, text: e.target.value.toUpperCase() },
                             })
                           }
-                          className="w-full px-4 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white font-bold uppercase tracking-widest text-center text-lg focus:outline-none focus:ring-2 focus:ring-[#9b287b]"
+                          className="w-full px-4 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white font-bold uppercase tracking-wider text-center text-base sm:text-lg focus:outline-none focus:ring-2 focus:ring-[#9b287b]"
                         />
                       </div>
 
@@ -791,7 +856,7 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                             </div>
                           </div>
                           <span className="text-xs font-bold text-[#9b287b] dark:text-[#f472b6]">
-                            +{formatPrice(addon.price, 'EGP', 'ar')}
+                            +{formatPrice(addon.price, currency, 'ar')}
                           </span>
                         </button>
                       );
@@ -814,7 +879,7 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
               <div>
                 <span className="text-[10px] sm:text-[11px] text-stone-400 block">السعر الإجمالي للتفصيل</span>
                 <span className="text-base sm:text-lg font-black text-stone-950 dark:text-white">
-                  {formatPrice(totalPrice, 'EGP', 'ar')}
+                  {formatPrice(totalPrice, currency, 'ar')}
                 </span>
               </div>
 

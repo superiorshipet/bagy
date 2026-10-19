@@ -11,6 +11,7 @@ import { BagCanvasPreview } from '@/components/configurator/BagCanvasPreview';
 import { BAG_TYPES, FEATURED_PRODUCTS, COLORS } from '@/data/bagOptions';
 import { BagCategory, CartItem, CustomBagConfiguration } from '@/types/bag';
 import { formatPrice } from '@/lib/utils';
+import { useAppSettings } from '@/context/ThemeContext';
 import confetti from 'canvas-confetti';
 import {
   Sparkles,
@@ -26,6 +27,7 @@ import {
 } from 'lucide-react';
 
 export default function HomePage() {
+  const { currency } = useAppSettings();
   const [activeTab, setActiveTab] = useState<NavTab>('home');
   const [isConfiguratorOpen, setIsConfiguratorOpen] = useState(false);
   const [selectedBagTypeForConfig, setSelectedBagTypeForConfig] = useState<BagCategory>('tote');
@@ -266,7 +268,7 @@ export default function HomePage() {
                   <div className="mt-3.5 flex items-center justify-between text-xs sm:text-sm text-white/90 px-1 font-bold">
                     <span>{activeCategoryObj?.nameAr}</span>
                     <span className="text-amber-300 font-extrabold text-sm sm:text-base">
-                      {formatPrice(activeCategoryObj?.basePrice || 1850, 'EGP', 'ar')}
+                      {formatPrice(activeCategoryObj?.basePrice || 1850, currency, 'ar')}
                     </span>
                   </div>
                 </div>
@@ -533,7 +535,7 @@ export default function HomePage() {
                         {prod.nameAr}
                       </h3>
                       <p className="text-sm sm:text-lg font-black text-[#9b287b] dark:text-[#be3999]">
-                        {formatPrice(prod.price, 'EGP', 'ar')}
+                        {formatPrice(prod.price, currency, 'ar')}
                       </p>
                     </div>
 

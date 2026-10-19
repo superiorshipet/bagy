@@ -25,6 +25,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
   const currentStrap = STRAPS.find((s) => s.id === config.strapId) || STRAPS[0];
 
   const primaryHex = config.customColorHex || (config.primaryColorId?.startsWith('#') ? config.primaryColorId : currentColor.hex);
+  const handleHex = config.handleColorHex || (config.handleColorId ? COLORS.find((c) => c.id === config.handleColorId)?.hex : null) || primaryHex;
   const colorDisplayName = config.customColorName || (config.customColorHex ? `مخصص (${config.customColorHex})` : currentColor.nameAr);
   const hardwareColor = currentHardware.color;
 
@@ -62,8 +63,26 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
       : 275;
 
   const textLength = config.monogram.text.trim().length;
-  const monogramFontSize = textLength <= 2 ? 14 : textLength <= 4 ? 12 : 10.5;
-  const letterSpacing = config.monogram.font === 'script' ? '2px' : '4px';
+  const monogramFontSize =
+    textLength <= 2
+      ? 14
+      : textLength <= 4
+      ? 12
+      : textLength <= 7
+      ? 10
+      : textLength <= 12
+      ? 8
+      : textLength <= 18
+      ? 6.5
+      : Math.max(4.5, 14 - textLength * 0.42);
+  const letterSpacing =
+    textLength > 14
+      ? '0.2px'
+      : textLength > 8
+      ? '1px'
+      : config.monogram.font === 'script'
+      ? '2px'
+      : '4px';
   const fontFamily =
     config.monogram.font === 'serif'
       ? 'var(--font-playfair), "Playfair Display", Georgia, "Times New Roman", serif'
@@ -293,7 +312,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
                 <path
                   d="M 140 160 C 140 60, 260 60, 260 160"
                   fill="none"
-                  stroke={primaryHex}
+                  stroke={handleHex}
                   strokeWidth="16"
                   strokeLinecap="round"
                 />
@@ -359,7 +378,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
                 <path
                   d="M 130 180 C 130 80, 270 80, 270 180"
                   fill="none"
-                  stroke={primaryHex}
+                  stroke={handleHex}
                   strokeWidth="14"
                   strokeLinecap="round"
                 />
@@ -420,15 +439,15 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
                   strokeLinecap="round"
                 />
                 {/* Leather connector tabs */}
-                <rect x="108" y="172" width="14" height="20" rx="3" fill={primaryHex} stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
-                <rect x="278" y="172" width="14" height="20" rx="3" fill={primaryHex} stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
+                <rect x="108" y="172" width="14" height="20" rx="3" fill={handleHex} stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
+                <rect x="278" y="172" width="14" height="20" rx="3" fill={handleHex} stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
               </g>
             ) : (
               <g>
                 <path
                   d="M 115 190 C 115 50, 285 50, 285 190"
                   fill="none"
-                  stroke={primaryHex}
+                  stroke={handleHex}
                   strokeWidth="10"
                   strokeLinecap="round"
                 />
@@ -464,8 +483,8 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
                   strokeLinecap="round"
                 />
                 {/* Leather ends connecting to clutch */}
-                <rect x="98" y="102" width="14" height="20" rx="3" fill={primaryHex} stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
-                <rect x="288" y="102" width="14" height="20" rx="3" fill={primaryHex} stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
+                <rect x="98" y="102" width="14" height="20" rx="3" fill={handleHex} stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
+                <rect x="288" y="102" width="14" height="20" rx="3" fill={handleHex} stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
                 {/* Hardware rings and clips */}
                 <circle cx="105" cy="118" r="5" fill="url(#hardwareGradient)" stroke="#000" strokeWidth="0.5" />
                 <circle cx="295" cy="118" r="5" fill="url(#hardwareGradient)" stroke="#000" strokeWidth="0.5" />
@@ -506,7 +525,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
                 <path
                   d="M 90 135 C 45 135, 40 190, 75 220 C 88 232, 92 215, 90 165"
                   fill="none"
-                  stroke={primaryHex}
+                  stroke={handleHex}
                   strokeWidth="10"
                   strokeLinecap="round"
                 />
@@ -528,7 +547,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
             <path
               d="M 170 140 C 170 100, 230 100, 230 140"
               fill="none"
-              stroke={primaryHex}
+              stroke={handleHex}
               strokeWidth="12"
               strokeLinecap="round"
             />
@@ -608,7 +627,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
                 <path
                   d="M 122 170 C 110 50, 290 50, 278 170"
                   fill="none"
-                  stroke={primaryHex}
+                  stroke={handleHex}
                   strokeWidth="22"
                   strokeLinecap="round"
                 />
@@ -644,7 +663,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
                   <line x1="114" y1="117" x2="126" y2="117" stroke="#111" strokeWidth="2" />
                   <path
                     d="M 118 126 L 114 158 Q 112 165 108 165 Q 104 165 106 156 L 112 126 Z"
-                    fill={primaryHex}
+                    fill={handleHex}
                     stroke="rgba(0,0,0,0.2)"
                     strokeWidth="0.5"
                   />
@@ -676,8 +695,8 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
                   strokeWidth="18"
                   strokeLinecap="round"
                 />
-                <rect x="109" y="156" width="14" height="20" rx="3" fill={primaryHex} stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
-                <rect x="277" y="156" width="14" height="20" rx="3" fill={primaryHex} stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
+                <rect x="109" y="156" width="14" height="20" rx="3" fill={handleHex} stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
+                <rect x="277" y="156" width="14" height="20" rx="3" fill={handleHex} stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
               </g>
             ) : config.strapId === 'chunky_chain' ? (
               <g>
@@ -711,7 +730,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
                 <path
                   d="M 116 172 C 112 50, 288 50, 284 172"
                   fill="none"
-                  stroke={primaryHex}
+                  stroke={handleHex}
                   strokeWidth="14"
                   strokeLinecap="round"
                 />

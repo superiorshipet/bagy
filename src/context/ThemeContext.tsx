@@ -2,9 +2,9 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'light' | 'dark';
-type Currency = 'EGP' | 'SAR' | 'USD';
-type Locale = 'ar' | 'en';
+export type Theme = 'light' | 'dark';
+export type Currency = 'EGP' | 'SAR' | 'USD' | 'AED' | 'EUR';
+export type Locale = 'ar' | 'en';
 
 interface AppSettingsContextType {
   theme: Theme;
@@ -21,7 +21,7 @@ const AppSettingsContext = createContext<AppSettingsContextType | undefined>(und
 
 export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>('light');
-  const [currency, setCurrency] = useState<Currency>('EGP');
+  const [currency, setCurrencyState] = useState<Currency>('EGP');
   const [locale, setLocale] = useState<Locale>('ar');
   const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(true);
 
@@ -37,10 +37,22 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
         document.documentElement.classList.remove('dark');
         document.body?.classList.remove('dark');
       }
+
+      const savedCurrency = localStorage.getItem('bagy_currency') as Currency | null;
+      if (savedCurrency && ['EGP', 'SAR', 'USD', 'AED', 'EUR'].includes(savedCurrency)) {
+        setCurrencyState(savedCurrency);
+      }
     } catch (e) {
       // ignore
     }
   }, []);
+
+  const setCurrency = (c: Currency) => {
+    setCurrencyState(c);
+    try {
+      localStorage.setItem('bagy_currency', c);
+    } catch (e) {}
+  };
 
   const toggleTheme = () => {
     const nextTheme = theme === 'light' ? 'dark' : 'light';

@@ -19,7 +19,8 @@ interface AuthContextType {
   isAuthModalOpen: boolean;
   openAuthModal: (redirectAction?: () => void) => void;
   closeAuthModal: () => void;
-  loginWithPhone: (phone: string, name?: string) => Promise<boolean>;
+  loginWithPhone: (phone: string, password: string, name?: string) => Promise<{ success: boolean; error?: string }>;
+  signUpWithPhone: (phone: string, password: string, name?: string) => Promise<{ success: boolean; error?: string }>;
   loginAsAdmin: (password: string) => Promise<boolean>;
   logout: () => void;
   pendingAction: (() => void) | null;
@@ -56,12 +57,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setPendingAction(null);
   };
 
-  const loginWithPhone = async (phone: string, name?: string): Promise<boolean> => {
+  const loginWithPhone = async (phone: string, password: string, name?: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, name }),
+        body: JSON.stringify({ phone, password, name }),
       });
       const data = await res.json();
       if (data.success && data.user) {
@@ -72,12 +73,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           pendingAction();
           setPendingAction(null);
         }
-        return true;
+        return { success: true };
       }
-      return false;
-    } catch (e) {
-      console.error(e);
-      return false;
+      return { success: false, error: data.error || 'فشل تسجيل الدخول' };
+    } catch (e: any) {
+      return { success: false, error: e.message || 'خطأ في الاتصال بالخادم' };
+    }
+  };
+
+  const signUpWithPhone = async (phone: string, password: string, name?: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'signup', phone, password, name }),
+      });
+      const data = await res.json();
+      if (data.success && data.user) {
+        setUser(data.user);
+        localStorage.setItem('bagy_user', JSON.stringify(data.user));
+        setIsAuthModalOpen(false);
+        if (pendingAction) {
+          pendingAction();
+          setPendingAction(null);
+        }
+        return { success: true };
+      }
+      return { success: false, error: data.error || 'فشل إنشاء الحساب' };
+    } catch (e: any) {
+      return { success: false, error: e.message || 'خطأ في الاتصال بالخادم' };
     }
   };
 
@@ -121,6 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         openAuthModal,
         closeAuthModal,
         loginWithPhone,
+        signUpWithPhone,
         loginAsAdmin,
         logout,
         pendingAction,

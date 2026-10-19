@@ -5,10 +5,11 @@ import { useAuth } from '@/context/AuthContext';
 import { X, ChevronLeft, ArrowRight, ShieldCheck, Lock, Smartphone, User, Sparkles } from 'lucide-react';
 
 export const AuthModal: React.FC = () => {
-  const { isAuthModalOpen, closeAuthModal, loginWithPhone, loginAsAdmin } = useAuth();
+  const { isAuthModalOpen, closeAuthModal, loginWithPhone, signUpWithPhone, loginAsAdmin } = useAuth();
   const [authMode, setAuthMode] = useState<'customer_phone' | 'admin_login' | 'signup'>('customer_phone');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [customerName, setCustomerName] = useState('');
+  const [password, setPassword] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -21,13 +22,37 @@ export const AuthModal: React.FC = () => {
       setErrorMessage('يرجى إدخال رقم هاتف صحيح');
       return;
     }
+    if (!password) {
+      setErrorMessage('يرجى إدخال كلمة السر الخاصة بحسابك');
+      return;
+    }
 
     setIsLoading(true);
     setErrorMessage('');
-    const success = await loginWithPhone(phoneNumber.trim(), customerName.trim() || undefined);
+    const res = await loginWithPhone(phoneNumber.trim(), password);
     setIsLoading(false);
-    if (!success) {
-      setErrorMessage('حدث خطأ أثناء تسجيل الدخول، يرجى المحاولة مرة أخرى');
+    if (!res.success) {
+      setErrorMessage(res.error || 'فشل تسجيل الدخول، تأكد من رقم الهاتف وكلمة السر');
+    }
+  };
+
+  const handleSignUpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!phoneNumber || phoneNumber.trim().length < 9) {
+      setErrorMessage('يرجى إدخال رقم هاتف صحيح');
+      return;
+    }
+    if (!password || password.length < 4) {
+      setErrorMessage('يرجى كتابة كلمة سر لا تقل عن 4 خانات');
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage('');
+    const res = await signUpWithPhone(phoneNumber.trim(), password, customerName.trim() || undefined);
+    setIsLoading(false);
+    if (!res.success) {
+      setErrorMessage(res.error || 'فشل إنشاء الحساب، يرجى المحاولة مرة أخرى');
     }
   };
 
@@ -91,7 +116,7 @@ export const AuthModal: React.FC = () => {
               <p className="text-xs text-stone-500 mt-1">Please enter your mobile to continue</p>
             </div>
 
-            <form onSubmit={handlePhoneSubmit} className="space-y-4">
+            <form onSubmit={handlePhoneSubmit} className="space-y-3.5">
               {/* Phone Input with Egypt Flag +20 */}
               <div className="relative flex items-center bg-white rounded-2xl border border-pink-200 px-4 py-3 shadow-inner focus-within:ring-2 focus-within:ring-[#9b287b]">
                 <div className="flex items-center gap-2 pr-3 border-r border-stone-200 flex-shrink-0" dir="ltr">
@@ -110,11 +135,27 @@ export const AuthModal: React.FC = () => {
                 />
               </div>
 
+              {/* Password Input */}
+              <div className="relative flex items-center bg-white rounded-2xl border border-pink-200 px-4 py-3 shadow-inner focus-within:ring-2 focus-within:ring-[#9b287b]">
+                <Lock className="w-4 h-4 text-stone-400 mr-2 flex-shrink-0" />
+                <input
+                  type="password"
+                  required
+                  placeholder="كلمة السر (Password)"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full text-sm font-bold text-stone-900 bg-transparent focus:outline-none"
+                />
+              </div>
+
               {errorMessage && <p className="text-xs text-red-500 font-bold">{errorMessage}</p>}
 
               <button
                 type="button"
-                onClick={() => setAuthMode('signup')}
+                onClick={() => {
+                  setErrorMessage('');
+                  setAuthMode('signup');
+                }}
                 className="text-xs font-bold text-[#9b287b] hover:underline block"
               >
                 New to BAGY? Sign up instead 👜
@@ -125,7 +166,7 @@ export const AuthModal: React.FC = () => {
                 disabled={isLoading}
                 className="w-full py-4 rounded-2xl bg-[#9b287b] hover:bg-[#831f67] text-white font-black text-sm shadow-lg shadow-[#9b287b]/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
               >
-                <span>{isLoading ? 'جاري التحقق...' : 'Continue'}</span>
+                <span>{isLoading ? 'جاري التحقق...' : 'تسجيل الدخول'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
@@ -133,7 +174,10 @@ export const AuthModal: React.FC = () => {
             <p className="text-xs text-stone-400">
               Don't have an account?{' '}
               <button
-                onClick={() => setAuthMode('signup')}
+                onClick={() => {
+                  setErrorMessage('');
+                  setAuthMode('signup');
+                }}
                 className="text-[#9b287b] font-bold hover:underline"
               >
                 Sign up
@@ -147,10 +191,10 @@ export const AuthModal: React.FC = () => {
           <div className="flex-1 flex flex-col justify-center text-center space-y-5">
             <div>
               <h2 className="text-2xl font-black text-stone-900">Sign Up</h2>
-              <p className="text-xs text-stone-500 mt-0.5">أنشئ حسابك لحفظ شنطك ومتابعة الطلبات</p>
+              <p className="text-xs text-stone-500 mt-0.5">أنشئ حسابك برقم الهاتف وكلمة السر</p>
             </div>
 
-            <form onSubmit={handlePhoneSubmit} className="space-y-3.5">
+            <form onSubmit={handleSignUpSubmit} className="space-y-3">
               <input
                 type="text"
                 required
@@ -176,6 +220,19 @@ export const AuthModal: React.FC = () => {
                 />
               </div>
 
+              {/* Choose Password */}
+              <div className="relative flex items-center bg-white rounded-2xl border border-pink-200 px-4 py-3 shadow-inner focus-within:ring-2 focus-within:ring-[#9b287b]">
+                <Lock className="w-4 h-4 text-stone-400 mr-2 flex-shrink-0" />
+                <input
+                  type="password"
+                  required
+                  placeholder="اختر كلمة سر لحسابك (4 خانات فأكثر)"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full text-sm font-bold text-stone-900 bg-transparent focus:outline-none"
+                />
+              </div>
+
               {errorMessage && <p className="text-xs text-red-500 font-bold">{errorMessage}</p>}
 
               <button
@@ -189,7 +246,10 @@ export const AuthModal: React.FC = () => {
             </form>
 
             <button
-              onClick={() => setAuthMode('customer_phone')}
+              onClick={() => {
+                setErrorMessage('');
+                setAuthMode('customer_phone');
+              }}
               className="text-xs font-bold text-stone-600 hover:text-[#9b287b]"
             >
               لديك حساب بالفعل؟ تسجيل الدخول
