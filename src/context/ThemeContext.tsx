@@ -26,19 +26,36 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(true);
 
   useEffect(() => {
-    // Check saved theme or system preference
-    const savedTheme = localStorage.getItem('bagy_theme') as Theme | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    try {
+      const savedTheme = localStorage.getItem('bagy_theme') as Theme | null;
+      if (savedTheme === 'dark') {
+        setTheme('dark');
+        document.documentElement.classList.add('dark');
+        document.body?.classList.add('dark');
+      } else {
+        setTheme('light');
+        document.documentElement.classList.remove('dark');
+        document.body?.classList.remove('dark');
+      }
+    } catch (e) {
+      // ignore
     }
   }, []);
 
   const toggleTheme = () => {
     const nextTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(nextTheme);
-    localStorage.setItem('bagy_theme', nextTheme);
-    document.documentElement.classList.toggle('dark', nextTheme === 'dark');
+    try {
+      localStorage.setItem('bagy_theme', nextTheme);
+    } catch (e) {}
+
+    if (nextTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.body?.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.body?.classList.remove('dark');
+    }
   };
 
   const toggleLocale = () => {

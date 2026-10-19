@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #fbf9f6;
   --foreground: #1c1917;
@@ -15,22 +17,6 @@
   --border: #e7e2d9;
   --accent: #2c2523;
   --radius: 1rem;
-}
-
-html.dark, body.dark {
-  --background: #0d0d12;
-  --foreground: #f4f4f7;
-  --card: #15151e;
-  --card-foreground: #ffffff;
-  --primary: #be3999;
-  --primary-hover: #a52b82;
-  --primary-light: #281223;
-  --gold: #d4af6a;
-  --gold-light: #241d13;
-  --muted: #1c1c28;
-  --muted-foreground: #a1a1aa;
-  --border: #2b2b3d;
-  --accent: #f4f4f7;
 }
 
 @theme inline {
@@ -56,7 +42,7 @@ body {
   overflow-x: hidden;
   user-select: none;
   min-height: 100vh;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* Hide scrollbar for clean horizontal story sliders like Lola */
@@ -76,4 +62,83 @@ body {
   position: relative;
   display: flex;
   flex-direction: column;
+}
+
+/* ========================================= */
+/* LUXURY NIGHT / DARK THEME SYSTEM RULES    */
+/* ========================================= */
+html.dark,
+body.dark,
+.dark {
+  --background: #0c0c10;
+  --foreground: #f3f3f6;
+  --card: #14141d;
+  --card-foreground: #ffffff;
+  --primary: #be3999;
+  --primary-hover: #a52b82;
+  --primary-light: #281223;
+  --gold: #d4af6a;
+  --muted: #1c1c28;
+  --muted-foreground: #9ca3af;
+  --border: #262638;
+  background-color: #0c0c10 !important;
+  color: #f3f3f6 !important;
+}
+
+.dark body {
+  background-color: #0c0c10 !important;
+  color: #f3f3f6 !important;
+}
+
+.dark .app-container {
+  background-color: #0c0c10 !important;
+  color: #f3f3f6 !important;
+}
+
+.dark header {
+  background-color: rgba(18, 18, 26, 0.95) !important;
+  border-color: #262638 !important;
+}
+
+.dark .bg-white {
+  background-color: #14141d !important;
+  color: #f3f3f6 !important;
+}
+
+.dark .bg-stone-50,
+.dark .bg-stone-100 {
+  background-color: #1c1c28 !important;
+}
+
+.dark .text-stone-900,
+.dark .text-stone-800,
+.dark .text-stone-950 {
+  color: #f3f3f6 !important;
+}
+
+.dark .text-stone-700,
+.dark .text-stone-600 {
+  color: #d1d1db !important;
+}
+
+.dark .text-stone-500,
+.dark .text-stone-400 {
+  color: #9898a6 !important;
+}
+
+.dark .border-stone-200,
+.dark .border-stone-200\/80,
+.dark .border-stone-200\/60,
+.dark .border-stone-100 {
+  border-color: #262638 !important;
+}
+
+.dark select,
+.dark input[type="text"],
+.dark input[type="number"],
+.dark input[type="url"],
+.dark textarea {
+  background-color: #1a1a26 !important;
+  color: #ffffff !important;
+  border-color: #323248 !important;
 }
