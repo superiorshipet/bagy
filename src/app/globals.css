@@ -36,9 +36,10 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Cairo', 'Almarai', sans-serif;
+  font-family: 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow-x: hidden;
   user-select: none;
+  min-height: 100vh;
 }
 
 /* Hide scrollbar for clean horizontal story sliders like Lola */
@@ -50,20 +51,12 @@ body {
   scrollbar-width: none;
 }
 
-/* Mobile viewport simulator styles */
+/* Full Width & Responsive Layout */
 .app-container {
-  max-width: 480px;
-  margin: 0 auto;
+  width: 100%;
   min-height: 100vh;
-  background-color: #ffffff;
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.06);
+  background-color: var(--background);
   position: relative;
   display: flex;
   flex-direction: column;
-}
-
-@media (min-width: 768px) {
-  body {
-    background-color: #f1ede7;
-  }
 }
