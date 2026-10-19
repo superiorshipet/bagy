@@ -7,6 +7,7 @@ import { BagConfiguratorModal } from '@/components/configurator/BagConfiguratorM
 import { CartDrawer } from '@/components/cart/CartDrawer';
 import { UserProfileModal } from '@/components/profile/UserProfileModal';
 import { AdminDashboardModal } from '@/components/admin/AdminDashboardModal';
+import { GiftServiceModal } from '@/components/gifts/GiftServiceModal';
 import { BagCanvasPreview } from '@/components/configurator/BagCanvasPreview';
 import { BAG_TYPES, FEATURED_PRODUCTS, COLORS } from '@/data/bagOptions';
 import { BagCategory, CartItem, CustomBagConfiguration } from '@/types/bag';
@@ -35,6 +36,7 @@ export default function HomePage() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [likedProductIds, setLikedProductIds] = useState<string[]>([]);
@@ -208,6 +210,9 @@ export default function HomePage() {
             setIsConfiguratorOpen(true);
           } else if (tab === 'orders') {
             setIsProfileOpen(true);
+          } else if (tab === 'gifts') {
+            setIsGiftModalOpen(true);
+            document.getElementById('gifts-section')?.scrollIntoView({ behavior: 'smooth' });
           }
         }}
         onOpenCustomize={() => setIsConfiguratorOpen(true)}
@@ -566,7 +571,7 @@ export default function HomePage() {
         </section>
 
         {/* 6. Gifting & Luxury Experience Banner */}
-        <section>
+        <section id="gifts-section">
           <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-amber-50 via-orange-50 to-pink-50 dark:from-amber-950/20 dark:via-orange-950/20 dark:to-pink-950/20 border border-amber-200/60 dark:border-amber-900/40 flex flex-col sm:flex-row items-center gap-6">
             <div className="w-16 h-16 rounded-3xl bg-amber-500/10 text-amber-800 dark:text-amber-300 flex items-center justify-center flex-shrink-0 text-3xl shadow-sm">
               🎁
@@ -577,12 +582,24 @@ export default function HomePage() {
                 نوصل الشنطة في بوكس فاخر مغناطيسي مع شريطة ستان وكارت يحمل كلماتك الخاصة مباشرة لصاحب الهدية أينما كان في مصر مع إخفاء الفاتورة تماماً.
               </p>
             </div>
-            <button
-              onClick={() => handleOpenConfiguratorWithBag('crossbody')}
-              className="px-6 py-3 rounded-2xl bg-[#9b287b] text-white text-xs font-bold hover:bg-[#831f67] shadow-md transition-all flex-shrink-0"
-            >
-              تفصيل شنطة كهدية
-            </button>
+            <div className="flex items-center gap-2.5 flex-shrink-0 w-full sm:w-auto">
+              <button
+                onClick={() => setIsGiftModalOpen(true)}
+                className="flex-1 sm:flex-none px-4 py-3 rounded-2xl bg-white dark:bg-stone-800 text-stone-800 dark:text-white border border-stone-200 dark:border-stone-700 text-xs font-bold hover:bg-stone-50 dark:hover:bg-stone-750 transition-all shadow-sm"
+              >
+                تفاصيل التغليف الملكي
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedBagTypeForConfig('crossbody');
+                  setSelectedProductForConfig(null);
+                  setIsConfiguratorOpen(true);
+                }}
+                className="flex-1 sm:flex-none px-6 py-3 rounded-2xl bg-[#9b287b] text-white text-xs font-bold hover:bg-[#831f67] shadow-md transition-all"
+              >
+                تفصيل شنطة كهدية
+              </button>
+            </div>
           </div>
         </section>
 
@@ -625,6 +642,9 @@ export default function HomePage() {
             setIsConfiguratorOpen(true);
           } else if (tab === 'orders') {
             setIsProfileOpen(true);
+          } else if (tab === 'gifts') {
+            setIsGiftModalOpen(true);
+            document.getElementById('gifts-section')?.scrollIntoView({ behavior: 'smooth' });
           }
         }}
         onOpenCustomize={() => setIsConfiguratorOpen(true)}
@@ -667,6 +687,17 @@ export default function HomePage() {
         onClose={() => setIsAdminOpen(false)}
         onProductsUpdated={fetchProducts}
         onCategoriesUpdated={fetchCategories}
+      />
+
+      {/* 13. Luxury Gifting Experience Modal */}
+      <GiftServiceModal
+        isOpen={isGiftModalOpen}
+        onClose={() => setIsGiftModalOpen(false)}
+        onStartGiftBag={() => {
+          setSelectedBagTypeForConfig('crossbody');
+          setSelectedProductForConfig(null);
+          setIsConfiguratorOpen(true);
+        }}
       />
     </div>
   );
