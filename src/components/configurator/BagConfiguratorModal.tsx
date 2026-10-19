@@ -67,9 +67,6 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
 }) => {
   const effectiveCategories = (categories && categories.length > 0) ? categories : BAG_TYPES;
   const [currentStep, setCurrentStep] = useState<number>(1);
-  const [previewMode, setPreviewMode] = useState<'photo' | 'interactive'>(
-    initialProduct?.image ? 'photo' : 'interactive'
-  );
 
   // Configuration state
   const [config, setConfig] = useState<CustomBagConfiguration>({
@@ -90,14 +87,11 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
     selectedAddonIds: [],
   });
 
-  // Keep bagType and previewMode updated if modal opens with different initialProduct or initialBagType
+  // Keep bagType updated if modal opens with different initialProduct or initialBagType
   React.useEffect(() => {
     if (initialProduct) {
       if (initialProduct.category) {
         setConfig((prev) => ({ ...prev, bagType: initialProduct.category }));
-      }
-      if (initialProduct.image) {
-        setPreviewMode('photo');
       }
     } else if (initialBagType) {
       setConfig((prev) => ({ ...prev, bagType: initialBagType }));
@@ -222,69 +216,16 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
           {/* Column 1: Live Canvas / Real Photo Preview */}
           <div className="md:col-span-6 lg:col-span-5 bg-gradient-to-b from-stone-50 to-stone-100/60 dark:from-[#191924] dark:to-[#12121a] p-2.5 sm:p-6 flex flex-col justify-center items-center border-b md:border-b-0 md:border-l border-stone-200 dark:border-stone-800">
             <div className="w-full max-w-[240px] sm:max-w-sm">
-              {/* Preview Mode Switcher (if product has custom image) */}
-              {initialProduct?.image ? (
-                <div className="flex items-center justify-center gap-1.5 p-1 bg-stone-200/70 dark:bg-stone-800 rounded-xl mb-2 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => setPreviewMode('photo')}
-                    className={`px-3 py-1 rounded-lg font-bold transition-all ${
-                      previewMode === 'photo'
-                        ? 'bg-white dark:bg-stone-700 text-[#9b287b] dark:text-[#be3999] shadow-sm'
-                        : 'text-stone-500 hover:text-stone-800 dark:text-stone-300'
-                    }`}
-                  >
-                    صورة الشنطة 📷
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPreviewMode('interactive')}
-                    className={`px-3 py-1 rounded-lg font-bold transition-all ${
-                      previewMode === 'interactive'
-                        ? 'bg-white dark:bg-stone-700 text-[#9b287b] dark:text-[#be3999] shadow-sm'
-                        : 'text-stone-500 hover:text-stone-800 dark:text-stone-300'
-                    }`}
-                  >
-                    معاينة 3D تفاعلية ✨
-                  </button>
-                </div>
-              ) : (
-                <div className="mb-1 sm:mb-2 text-center">
-                  <span className="text-[10px] sm:text-[11px] font-bold text-[#9b287b] dark:text-[#be3999] bg-[#fdf2f8] dark:bg-[#281223] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full border border-[#9b287b]/20 inline-block">
-                    معاينة حية فورية
-                  </span>
-                </div>
-              )}
+              <div className="mb-1 sm:mb-2 text-center">
+                <span className="text-[10px] sm:text-[11px] font-bold text-[#9b287b] dark:text-[#be3999] bg-[#fdf2f8] dark:bg-[#281223] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full border border-[#9b287b]/20 inline-block">
+                  معاينة حية تفاعلية للشنطة
+                </span>
+              </div>
 
-              {previewMode === 'photo' && initialProduct?.image ? (
-                <div className="relative w-full aspect-[4/3] rounded-2xl sm:rounded-3xl overflow-hidden shadow-inner border border-stone-200 dark:border-stone-700 bg-stone-100 dark:bg-stone-900 group">
-                  <img
-                    src={initialProduct.image}
-                    alt={initialProduct.nameAr}
-                    className="w-full h-full object-cover"
-                  />
-                  {/* Monogram Overlay Badge */}
-                  {config.monogram.enabled && config.monogram.text.trim() && (
-                    <div className="absolute inset-x-0 bottom-4 flex justify-center">
-                      <div className="px-3 py-1 rounded-xl bg-black/80 backdrop-blur-md border border-amber-400/70 shadow-xl flex items-center gap-1.5 animate-pulse">
-                        <Sparkles className="w-3 h-3 text-amber-300" />
-                        <span className="text-amber-300 font-serif font-black tracking-widest text-[11px] uppercase">
-                          حفر: {config.monogram.text.trim().toUpperCase()}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                  {/* Model Tag */}
-                  <div className="absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-full bg-black/60 backdrop-blur-sm text-[10px] font-bold text-white border border-white/20">
-                    {initialProduct.nameAr}
-                  </div>
-                </div>
-              ) : (
-                <BagCanvasPreview
-                  config={config}
-                  imageUrl={initialProduct?.image || effectiveCategories.find((c) => (c.slug || c.id) === config.bagType)?.image}
-                />
-              )}
+              <BagCanvasPreview
+                config={config}
+                imageUrl={initialProduct?.image || effectiveCategories.find((c) => (c.slug || c.id) === config.bagType)?.image}
+              />
 
               <div className="mt-1.5 sm:mt-3 text-center text-[10px] sm:text-xs text-stone-400 hidden sm:block">
                 <span>تتحدث الأبعاد والألوان وحفر الاسم تلقائياً مع كل خطوة</span>

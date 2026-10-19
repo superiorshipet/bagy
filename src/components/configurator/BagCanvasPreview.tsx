@@ -17,7 +17,6 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
   viewAngle = 'front',
   imageUrl,
 }) => {
-  const [displayMode, setDisplayMode] = React.useState<'3d' | 'photo'>('3d');
   const currentType = BAG_TYPES.find((t) => t.id === config.bagType) || BAG_TYPES[0];
   const currentMaterial = MATERIALS.find((m) => m.id === config.materialId) || MATERIALS[0];
   const currentColor = COLORS.find((c) => c.id === config.primaryColorId) || COLORS[0];
@@ -29,8 +28,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
   const colorDisplayName = config.customColorName || (config.customColorHex ? `مخصص (${config.customColorHex})` : currentColor.nameAr);
   const hardwareColor = currentHardware.color;
 
-  const isLegacySilhouette = ['tote', 'shoulder', 'crossbody', 'mini', 'clutch', 'backpack'].includes(config.bagType);
-  const isCrescentOrCustom = !isLegacySilhouette || config.bagType === 'crescent' || config.bagType === 'hobo' || config.bagType === 'ava' || config.bagType === 'belt' || config.bagType === 'u';
+  const isCrescent = config.bagType === 'crescent' || config.bagType === 'hobo' || config.bagType === 'ava';
 
   // Determine scale based on size
   const scaleMap = {
@@ -51,7 +49,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
       ? 278
       : config.bagType === 'shoulder'
       ? 252
-      : isCrescentOrCustom
+      : isCrescent
       ? 270
       : 275;
 
@@ -71,31 +69,88 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(255,255,255,0.85)_0%,rgba(240,235,225,0.3)_60%,transparent_100%)] pointer-events-none" />
       <div className="absolute bottom-4 w-4/5 h-8 bg-black/10 rounded-[100%] blur-xl pointer-events-none" />
 
-      {/* Dynamic Bag SVG or Photo Mode */}
-      {imageUrl && displayMode === 'photo' ? (
-        <div className="relative w-full h-full max-h-[360px] flex items-center justify-center z-10 p-2 sm:p-4">
-          <img
-            src={imageUrl}
-            alt={colorDisplayName}
-            className="w-full h-full max-h-[310px] object-contain drop-shadow-2xl transition-transform duration-300 hover:scale-105"
-          />
-          {/* Real-time tint color indicator pill on photo */}
-          <div className="absolute bottom-2 inset-x-0 flex justify-center pointer-events-none">
-            <div className="px-3 py-1 rounded-full bg-black/75 backdrop-blur-md text-white text-[11px] font-bold flex items-center gap-1.5 border border-white/20 shadow-lg">
-              <span className="w-2.5 h-2.5 rounded-full border border-white/80" style={{ backgroundColor: primaryHex }} />
-              <span>لون الجلد المطلوب: {colorDisplayName}</span>
-            </div>
-          </div>
-          {/* Personalized Monogram Overlay Badge if enabled */}
-          {config.monogram.enabled && textLength > 0 && (
-            <div className="absolute top-10 inset-x-0 flex justify-center pointer-events-none">
-              <div className="px-3.5 py-1 rounded-xl bg-black/85 backdrop-blur-md border border-amber-400/80 shadow-2xl flex items-center gap-1.5 animate-pulse">
-                <span className="text-amber-300 font-serif font-black tracking-widest text-[11px] uppercase">
-                  حفر: {config.monogram.text.trim().toUpperCase()}
-                </span>
+      {/* Dynamic Bag Image Canvas (The exact bag the user uploaded/chose) vs Vector SVG fallback */}
+      {imageUrl ? (
+        <div
+          className="relative w-full h-full max-h-[360px] flex items-center justify-center z-10 p-2 sm:p-4 transition-transform duration-500 ease-out"
+          style={{ transform: `scale(${sizeScale})` }}
+        >
+          <div className="relative max-w-full max-h-[310px] flex items-center justify-center">
+            {/* 1. Base Bag Photo (The user's exact uploaded/linked bag) */}
+            <img
+              src={imageUrl}
+              alt={colorDisplayName}
+              className="max-h-[300px] w-auto max-w-full object-contain drop-shadow-2xl rounded-2xl transition-all duration-300 select-none"
+            />
+
+            {/* 2. Real-Time Dynamic Leather Color Tint Overlay */}
+            {/* Shifts the image's leather color smoothly while preserving natural shadows & highlights */}
+            <div
+              className="absolute inset-0 rounded-2xl pointer-events-none transition-all duration-500"
+              style={{
+                backgroundColor: primaryHex,
+                mixBlendMode: 'color',
+                opacity: 0.65,
+              }}
+            />
+            {/* Shadow & Depth Multiplier for realistic leather shading */}
+            <div
+              className="absolute inset-0 rounded-2xl pointer-events-none transition-all duration-500"
+              style={{
+                backgroundColor: primaryHex,
+                mixBlendMode: 'multiply',
+                opacity: config.primaryColorId === 'onyx_black' ? 0.35 : 0.14,
+              }}
+            />
+
+            {/* 3. Texture overlay if Saffiano or Croc selected */}
+            {currentMaterial.texture === 'crosshatch' && (
+              <div
+                className="absolute inset-0 rounded-2xl pointer-events-none opacity-20"
+                style={{
+                  backgroundImage: 'radial-gradient(rgba(0,0,0,0.5) 1px, transparent 0)',
+                  backgroundSize: '4px 4px',
+                  mixBlendMode: 'overlay',
+                }}
+              />
+            )}
+            {currentMaterial.texture === 'croc' && (
+              <div
+                className="absolute inset-0 rounded-2xl pointer-events-none opacity-25"
+                style={{
+                  backgroundImage: 'radial-gradient(rgba(0,0,0,0.7) 2px, transparent 0)',
+                  backgroundSize: '18px 14px',
+                  mixBlendMode: 'overlay',
+                }}
+              />
+            )}
+
+            {/* 4. Luxury Monogram Hot Stamping directly on the bag image */}
+            {config.monogram.enabled && textLength > 0 && (
+              <div className="absolute inset-x-0 bottom-8 sm:bottom-10 flex justify-center pointer-events-none">
+                <div
+                  className={`px-3.5 py-1.5 rounded-lg border backdrop-blur-md shadow-2xl transition-all duration-300 flex items-center gap-1.5 ${
+                    config.monogram.style === 'gold_foil'
+                      ? 'bg-black/75 border-[#d4af37] text-[#ffe082] shadow-[0_0_15px_rgba(212,175,55,0.45)]'
+                      : config.monogram.style === 'silver_foil'
+                      ? 'bg-black/75 border-slate-300 text-slate-100 shadow-[0_0_15px_rgba(255,255,255,0.35)]'
+                      : 'bg-black/60 border-black/40 text-stone-200'
+                  }`}
+                >
+                  <span
+                    style={{
+                      fontFamily: fontFamily,
+                      letterSpacing: letterSpacing,
+                      fontSize: `${monogramFontSize + 1}px`,
+                    }}
+                    className="font-black uppercase drop-shadow-md"
+                  >
+                    {config.monogram.text.toUpperCase()}
+                  </span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       ) : (
         <svg
@@ -451,7 +506,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
           </g>
         )}
 
-        {isCrescentOrCustom && (
+        {isCrescent && (
           <g id="crescent-strap" className="transition-all duration-300">
             {config.strapId === 'woven_guitar' ? (
               <g>
@@ -707,7 +762,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
           </g>
         )}
 
-        {isCrescentOrCustom && (
+        {isCrescent && (
           <g id="crescent-body" className="transition-all duration-300">
             {/* Main Crescent / Hobo Half-Moon Silhouette */}
             <path
@@ -908,34 +963,6 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
           </g>
         )}
       </svg>
-      )}
-
-      {/* 3D vs Photo Mode Switcher Pill (if imageUrl provided) */}
-      {imageUrl && (
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 bg-white/95 dark:bg-[#1a1a26]/95 backdrop-blur-md p-1 rounded-full text-[10px] sm:text-xs font-bold shadow-md border border-stone-200/80 dark:border-stone-700">
-          <button
-            type="button"
-            onClick={() => setDisplayMode('3d')}
-            className={`px-3 py-1 rounded-full transition-all ${
-              displayMode === '3d'
-                ? 'bg-[#9b287b] text-white shadow-xs'
-                : 'text-stone-600 dark:text-stone-300 hover:text-stone-900'
-            }`}
-          >
-            مجسم 3D ✨
-          </button>
-          <button
-            type="button"
-            onClick={() => setDisplayMode('photo')}
-            className={`px-3 py-1 rounded-full transition-all ${
-              displayMode === 'photo'
-                ? 'bg-[#9b287b] text-white shadow-xs'
-                : 'text-stone-600 dark:text-stone-300 hover:text-stone-900'
-            }`}
-          >
-            صورة الموديل 📷
-          </button>
-        </div>
       )}
 
       {/* Floating Info Badges */}
