@@ -1,0 +1,21 @@
+[Unit]
+Description=Bagy Next.js Application
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/var/www/bagy
+Environment=NODE_ENV=production
+Environment=PORT=3000
+EnvironmentFile=/var/www/bagy/.env
+ExecStart=/usr/bin/npm run start -- -p 3000
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
