@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
 import { formatPrice } from '@/lib/utils';
 import {
@@ -18,18 +16,31 @@ import {
   TrendingUp,
   Tag,
   Search,
+  Users,
+  Trash2,
+  Edit,
+  Save,
+  ShieldCheck,
+  User,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface AdminDashboardModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onProductsUpdated?: () => void;
 }
 
-export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({ isOpen, onClose }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'promos'>('overview');
+export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
+  isOpen,
+  onClose,
+  onProductsUpdated,
+}) => {
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'users' | 'promos'>('overview');
   const [stats, setStats] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -41,9 +52,18 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({ isOpen
     category: 'tote',
     price: 1950,
     image: '',
+    isBestSeller: false,
   });
   const [isSubmittingProduct, setIsSubmittingProduct] = useState(false);
   const [productSuccessMsg, setProductSuccessMsg] = useState('');
+
+  // Editing product state
+  const [editingProduct, setEditingProduct] = useState<any | null>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+
+  // Deletion feedback states
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [notificationMsg, setNotificationMsg] = useState('');
 
   const loadData = () => {
     setLoading(true);
@@ -51,11 +71,13 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({ isOpen
       fetch('/api/admin/stats').then((res) => res.json()),
       fetch('/api/orders').then((res) => res.json()),
       fetch('/api/products').then((res) => res.json()),
+      fetch('/api/admin/users').then((res) => res.json()),
     ])
-      .then(([statsRes, ordersRes, productsRes]) => {
+      .then(([statsRes, ordersRes, productsRes, usersRes]) => {
         if (statsRes.success) setStats(statsRes.stats);
         if (ordersRes.success) setOrders(ordersRes.orders);
         if (productsRes.success) setProducts(productsRes.products);
+        if (usersRes.success) setUsers(usersRes.users);
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
@@ -104,6 +126,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({ isOpen
       });
       const data = await res.json();
       if (data.success) {
+        if (onProductsUpdated) onProductsUpdated();
         setProducts([data.product, ...products]);
         setProductSuccessMsg('✓ تم إضافة الموديل الجديد بنجاح إلى قاعدة البيانات!');
         setNewProduct({
@@ -112,6 +135,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({ isOpen
           category: 'tote',
           price: 1950,
           image: '',
+          isBestSeller: false,
         });
         setTimeout(() => setProductSuccessMsg(''), 4000);
       }
@@ -119,6 +143,90 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({ isOpen
       console.error(e);
     } finally {
       setIsSubmittingProduct(false);
+    }
+  };
+
+  // Handle Delete Product
+  const handleDeleteProduct = async (productId: string, productName: string) => {
+    if (!window.confirm(`هل أنت متأكد من حذف الموديل "${productName}" نهائياً من المتجر وقاعدة البيانات؟`)) {
+      return;
+    }
+    setDeletingId(productId);
+    try {
+      const res = await fetch(`/api/products?id=${productId}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (data.success) {
+        setProducts((prev) => prev.filter((p) => p.id !== productId));
+        if (onProductsUpdated) onProductsUpdated();
+        setNotificationMsg(`✓ تم حذف الموديل "${productName}" بنجاح.`);
+        setTimeout(() => setNotificationMsg(''), 4000);
+      } else {
+        alert(data.error || 'حدث خطأ أثناء حذف الموديل');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('فشل الاتصال بالخادم لحذف الموديل');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  // Handle Save Edit Product
+  const handleSaveEditProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+    setIsSavingEdit(true);
+    try {
+      const res = await fetch('/api/products', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingProduct),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setProducts((prev) =>
+          prev.map((p) => (p.id === data.product.id ? data.product : p))
+        );
+        if (onProductsUpdated) onProductsUpdated();
+        setEditingProduct(null);
+        setNotificationMsg(`✓ تم تحديث بيانات الموديل "${data.product.nameAr}" بنجاح!`);
+        setTimeout(() => setNotificationMsg(''), 4000);
+      } else {
+        alert(data.error || 'حدث خطأ أثناء تحديث الموديل');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('فشل الاتصال بالخادم لحفظ التعديلات');
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
+  // Handle Delete User
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    if (!window.confirm(`هل أنت متأكد من مسح حساب المستخدم "${userName}" نهائياً من قاعدة البيانات؟`)) {
+      return;
+    }
+    setDeletingId(userId);
+    try {
+      const res = await fetch(`/api/admin/users?id=${userId}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUsers((prev) => prev.filter((u) => u.id !== userId));
+        setNotificationMsg(`✓ تم مسح المستخدم "${userName}" بنجاح.`);
+        setTimeout(() => setNotificationMsg(''), 4000);
+      } else {
+        alert(data.error || 'حدث خطأ أثناء مسح المستخدم');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('فشل الاتصال بالخادم لمسح المستخدم');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -205,7 +313,19 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({ isOpen
             }`}
           >
             <Package className="w-4 h-4" />
-            الموديلات والمخزون ({products.length})
+            الموديلات والشنط ({products.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('users')}
+            className={`py-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap ${
+              activeTab === 'users'
+                ? 'border-[#9b287b] text-[#9b287b] dark:text-[#be3999]'
+                : 'border-transparent text-stone-500 hover:text-stone-800 dark:text-stone-400'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            المستخدمين والعملاء ({users.length})
           </button>
 
           <button
@@ -517,20 +637,63 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({ isOpen
                 </form>
               </div>
 
-              {/* Products Grid in DB */}
+              {/* Products Grid in DB with Edit & Delete actions */}
               <div className="space-y-3">
-                <h3 className="text-sm font-bold text-stone-900 dark:text-white">الموديلات المتاحة حالياً ({products.length})</h3>
+                <h3 className="text-sm font-bold text-stone-900 dark:text-white">
+                  الموديلات والشنط المعروضة بالمتجر ({products.length})
+                </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {products.map((p) => (
                     <div
                       key={p.id}
-                      className="p-3 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900/40 flex items-center gap-3"
+                      className="p-3.5 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900/40 flex flex-col justify-between gap-3 hover:shadow-md transition-shadow"
                     >
-                      <img src={p.image} alt={p.nameAr} className="w-14 h-14 rounded-xl object-cover bg-stone-100" />
-                      <div className="flex-1 overflow-hidden">
-                        <h4 className="text-xs font-bold text-stone-900 dark:text-white truncate">{p.nameAr}</h4>
-                        <span className="text-[10px] text-stone-400 block">{p.nameEn}</span>
-                        <span className="text-xs font-black text-[#9b287b]">{formatPrice(p.price, 'EGP', 'ar')}</span>
+                      <div className="flex items-start gap-3">
+                        <img
+                          src={p.image}
+                          alt={p.nameAr}
+                          className="w-16 h-16 rounded-xl object-cover bg-stone-100 dark:bg-stone-800 flex-shrink-0 border border-stone-200 dark:border-stone-700"
+                        />
+                        <div className="flex-1 overflow-hidden min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[10px] font-bold text-[#9b287b] dark:text-[#be3999] bg-[#fdf2f8] dark:bg-[#281223] px-2 py-0.5 rounded-md">
+                              {p.category}
+                            </span>
+                            {p.isBestSeller && (
+                              <span className="text-[10px] font-black bg-amber-500 text-stone-950 px-2 py-0.5 rounded-md">
+                                الأكثر مبيعاً ⭐
+                              </span>
+                            )}
+                          </div>
+                          <h4 className="text-xs font-bold text-stone-900 dark:text-white truncate mt-1">
+                            {p.nameAr}
+                          </h4>
+                          <span className="text-[10px] text-stone-400 block truncate">{p.nameEn}</span>
+                          <span className="text-xs font-black text-[#9b287b] dark:text-[#be3999] block mt-0.5">
+                            {formatPrice(p.price, 'EGP', 'ar')}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Edit & Delete Action Buttons */}
+                      <div className="flex items-center gap-2 pt-2 border-t border-stone-100 dark:border-stone-800">
+                        <button
+                          onClick={() => setEditingProduct(p)}
+                          className="flex-1 py-1.5 px-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-xs font-bold transition-colors flex items-center justify-center gap-1"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                          <span>تعديل</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteProduct(p.id, p.nameAr)}
+                          disabled={deletingId === p.id}
+                          className="py-1.5 px-3 rounded-xl bg-red-50 dark:bg-red-950/30 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 text-xs font-bold transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
+                          title="حذف هذا الموديل نهائياً"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>حذف</span>
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -539,7 +702,90 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({ isOpen
             </div>
           )}
 
-          {/* TAB 4: PROMO CODES */}
+          {/* TAB 4: USERS MANAGEMENT (إدارة المستخدمين والعملاء) */}
+          {activeTab === 'users' && (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-base font-bold text-stone-900 dark:text-white flex items-center gap-2">
+                    <Users className="w-5 h-5 text-[#9b287b]" />
+                    سجل المستخدمين والعملاء المسجلين ({users.length})
+                  </h3>
+                  <p className="text-xs text-stone-500">
+                    يمكنك استعراض بيانات العملاء وحذف أي حساب عند الحاجة
+                  </p>
+                </div>
+              </div>
+
+              {notificationMsg && (
+                <div className="p-3 bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-300 rounded-xl text-xs font-bold">
+                  {notificationMsg}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {users.map((u) => {
+                  const isMainAdmin = u.email === 'admin@bagy.eg';
+                  return (
+                    <div
+                      key={u.id}
+                      className="p-4 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900/40 flex items-center justify-between gap-3 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-[#9b287b] to-[#c69b59] text-white flex items-center justify-center font-black text-sm flex-shrink-0 shadow-sm">
+                          {u.name?.charAt(0) || 'ع'}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white truncate">
+                              {u.name}
+                            </h4>
+                            {u.role === 'ADMIN' ? (
+                              <span className="text-[10px] font-black bg-amber-500 text-stone-950 px-2 py-0.5 rounded-full flex-shrink-0">
+                                مدير (Admin)
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-bold bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 px-2 py-0.5 rounded-full flex-shrink-0">
+                                عميل
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-stone-500 truncate mt-0.5">
+                            {u.phone ? `هاتف: ${u.phone}` : u.email}
+                          </p>
+                          <div className="flex items-center gap-3 text-[10px] text-stone-400 mt-1">
+                            <span>📦 عدد الطلبات: {u._count?.orders || 0}</span>
+                            <span>📍 العناوين: {u._count?.addresses || 0}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Delete User Button */}
+                      <div>
+                        {isMainAdmin ? (
+                          <span className="text-[10px] font-bold text-stone-400 bg-stone-100 dark:bg-stone-800 px-2.5 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 block text-center">
+                            حساب محمي 🛡️
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => handleDeleteUser(u.id, u.name)}
+                            disabled={deletingId === u.id}
+                            className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 border border-red-200 dark:border-red-900/50 text-xs font-bold transition-all flex items-center gap-1.5 disabled:opacity-50"
+                            title="مسح هذا المستخدم نهائياً"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">مسح</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 5: PROMO CODES */}
           {activeTab === 'promos' && (
             <div className="space-y-4">
               <h3 className="text-sm font-bold text-stone-900 dark:text-white">أكواد الخصم المفعلة في النظام</h3>
@@ -563,6 +809,136 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({ isOpen
             </div>
           )}
         </div>
+
+        {/* Edit Product Modal Overlay */}
+        {editingProduct && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="bg-white dark:bg-[#15151e] rounded-3xl p-6 w-full max-w-lg border border-stone-200 dark:border-stone-800 shadow-2xl space-y-4" dir="rtl">
+              <div className="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
+                <h3 className="text-base font-bold text-stone-900 dark:text-white flex items-center gap-2">
+                  <Edit className="w-4 h-4 text-[#9b287b]" />
+                  تعديل بيانات الموديل: {editingProduct.nameAr}
+                </h3>
+                <button
+                  onClick={() => setEditingProduct(null)}
+                  className="w-8 h-8 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 flex items-center justify-center hover:bg-stone-200 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveEditProduct} className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                      اسم الموديل (عربي):
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editingProduct.nameAr}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, nameAr: e.target.value })}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                      الاسم بالإنجليزية:
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editingProduct.nameEn}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, nameEn: e.target.value })}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                      الفئة / القصة:
+                    </label>
+                    <select
+                      value={editingProduct.category}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white"
+                    >
+                      <option value="tote">توت باج (Tote)</option>
+                      <option value="crossbody">كروس بودي (Crossbody)</option>
+                      <option value="shoulder">شولدر باج (Shoulder)</option>
+                      <option value="mini">ميني باج (Mini)</option>
+                      <option value="backpack">باك باك (Backpack)</option>
+                      <option value="clutch">كلاتش (Clutch)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                      السعر الأساسي (ج.م):
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      value={editingProduct.price}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                    رابط صورة الشنطة:
+                  </label>
+                  <input
+                    type="url"
+                    value={editingProduct.image}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white"
+                  />
+                  {editingProduct.image && (
+                    <div className="mt-2 flex items-center gap-3 p-2 bg-stone-50 dark:bg-stone-800 rounded-xl">
+                      <img src={editingProduct.image} alt="معاينة" className="w-12 h-12 rounded-lg object-cover" />
+                      <span className="text-[11px] text-stone-500">معاينة الصورة المختارة</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 pt-1">
+                  <input
+                    type="checkbox"
+                    id="editBestSeller"
+                    checked={Boolean(editingProduct.isBestSeller)}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, isBestSeller: e.target.checked })}
+                    className="w-4 h-4 accent-[#9b287b] rounded"
+                  />
+                  <label htmlFor="editBestSeller" className="text-xs font-bold text-stone-700 dark:text-stone-300 cursor-pointer">
+                    تمييز كـ "الأكثر مبيعاً ⭐"
+                  </label>
+                </div>
+
+                <div className="flex items-center gap-2 pt-3 border-t border-stone-100 dark:border-stone-800">
+                  <button
+                    type="button"
+                    onClick={() => setEditingProduct(null)}
+                    className="flex-1 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-300 text-xs font-bold hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+                  >
+                    إلغاء
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSavingEdit}
+                    className="flex-1 py-2.5 rounded-xl bg-[#9b287b] hover:bg-[#831f67] text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>{isSavingEdit ? 'جاري الحفظ...' : 'حفظ التعديلات'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -27,6 +27,7 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState<NavTab>('home');
   const [isConfiguratorOpen, setIsConfiguratorOpen] = useState(false);
   const [selectedBagTypeForConfig, setSelectedBagTypeForConfig] = useState<BagCategory>('tote');
+  const [selectedProductForConfig, setSelectedProductForConfig] = useState<any>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
@@ -35,8 +36,7 @@ export default function HomePage() {
   const [likedProductIds, setLikedProductIds] = useState<string[]>([]);
   const [dbProducts, setDbProducts] = useState<any[]>(FEATURED_PRODUCTS);
 
-  // Fetch live products from PostgreSQL API
-  useEffect(() => {
+  const fetchProducts = () => {
     fetch('/api/products')
       .then((res) => res.json())
       .then((data) => {
@@ -45,6 +45,11 @@ export default function HomePage() {
         }
       })
       .catch((e) => console.log('Using local fallback products', e));
+  };
+
+  // Fetch live products from PostgreSQL API
+  useEffect(() => {
+    fetchProducts();
   }, []);
 
   // Interactive Live Preview on Home Page
@@ -104,7 +109,16 @@ export default function HomePage() {
   };
 
   const handleOpenConfiguratorWithBag = (bagType: BagCategory) => {
+    setSelectedProductForConfig(null);
     setSelectedBagTypeForConfig(bagType);
+    setIsConfiguratorOpen(true);
+  };
+
+  const handleOpenConfiguratorWithProduct = (product: any) => {
+    setSelectedProductForConfig(product);
+    if (product.category && BAG_TYPES.some((t) => t.id === product.category)) {
+      setSelectedBagTypeForConfig(product.category);
+    }
     setIsConfiguratorOpen(true);
   };
 
@@ -458,7 +472,7 @@ export default function HomePage() {
 
                     <div className="pt-1 flex flex-col gap-2">
                       <button
-                        onClick={() => handleOpenConfiguratorWithBag(prod.category)}
+                        onClick={() => handleOpenConfiguratorWithProduct(prod)}
                         className="w-full py-2.5 sm:py-3 rounded-xl sm:rounded-2xl bg-[#fdf2f8] dark:bg-[#281223] text-[#9b287b] dark:text-[#be3999] text-xs sm:text-sm font-bold hover:bg-[#fae8f3] transition-colors flex items-center justify-center gap-1.5"
                       >
                         <Sparkles className="w-3.5 h-3.5" />
@@ -541,8 +555,12 @@ export default function HomePage() {
       {/* 9. Interactive Configurator Wizard Modal */}
       <BagConfiguratorModal
         isOpen={isConfiguratorOpen}
-        onClose={() => setIsConfiguratorOpen(false)}
+        onClose={() => {
+          setIsConfiguratorOpen(false);
+          setSelectedProductForConfig(null);
+        }}
         initialBagType={selectedBagTypeForConfig}
+        initialProduct={selectedProductForConfig}
         onAddToCart={handleAddToCart}
       />
 
@@ -567,6 +585,7 @@ export default function HomePage() {
       <AdminDashboardModal
         isOpen={isAdminOpen}
         onClose={() => setIsAdminOpen(false)}
+        onProductsUpdated={fetchProducts}
       />
     </div>
   );

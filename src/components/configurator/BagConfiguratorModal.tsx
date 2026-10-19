@@ -41,6 +41,7 @@ interface BagConfiguratorModalProps {
   onClose: () => void;
   onAddToCart: (item: CartItem) => void;
   initialBagType?: BagCategory;
+  initialProduct?: any;
   locale?: 'ar' | 'en';
 }
 
@@ -60,12 +61,16 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
   onClose,
   onAddToCart,
   initialBagType = 'tote',
+  initialProduct,
 }) => {
   const [currentStep, setCurrentStep] = useState<number>(1);
+  const [previewMode, setPreviewMode] = useState<'photo' | 'interactive'>(
+    initialProduct?.image ? 'photo' : 'interactive'
+  );
 
   // Configuration state
   const [config, setConfig] = useState<CustomBagConfiguration>({
-    bagType: initialBagType,
+    bagType: (initialProduct?.category as BagCategory) || initialBagType,
     size: 'small',
     materialId: 'smooth_calfskin',
     primaryColorId: 'onyx_black',
@@ -82,12 +87,19 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
     selectedAddonIds: [],
   });
 
-  // Keep bagType updated if modal opens with different initialBagType
+  // Keep bagType and previewMode updated if modal opens with different initialProduct or initialBagType
   React.useEffect(() => {
-    if (initialBagType) {
+    if (initialProduct) {
+      if (initialProduct.category && BAG_TYPES.some((t) => t.id === initialProduct.category)) {
+        setConfig((prev) => ({ ...prev, bagType: initialProduct.category }));
+      }
+      if (initialProduct.image) {
+        setPreviewMode('photo');
+      }
+    } else if (initialBagType) {
       setConfig((prev) => ({ ...prev, bagType: initialBagType }));
     }
-  }, [initialBagType]);
+  }, [initialProduct, initialBagType]);
 
   // Calculate live total price
   const totalPrice = useMemo(() => {
@@ -97,7 +109,8 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
     const hwObj = HARDWARE_OPTIONS.find((h) => h.id === config.hardware) || HARDWARE_OPTIONS[0];
     const strapObj = STRAPS.find((s) => s.id === config.strapId) || STRAPS[0];
 
-    let sum = bagTypeObj.basePrice + sizeObj.priceDelta + matObj.priceDelta + hwObj.priceDelta + strapObj.priceDelta;
+    const basePrice = initialProduct?.price || bagTypeObj.basePrice;
+    let sum = basePrice + sizeObj.priceDelta + matObj.priceDelta + hwObj.priceDelta + strapObj.priceDelta;
 
     if (config.monogram.enabled && config.monogram.text.trim()) {
       sum += 150; // Custom monogramming fee
@@ -109,7 +122,7 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
     });
 
     return sum;
-  }, [config]);
+  }, [config, initialProduct]);
 
   if (!isOpen) return null;
 
@@ -134,10 +147,12 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
 
       const cartItem: CartItem = {
         id: `custom_${Date.now()}`,
+        product: initialProduct,
+        previewDataUrl: initialProduct?.image,
         configuration: config,
         calculatedPrice: totalPrice,
         quantity: 1,
-        customSummaryText: `${bagTypeObj?.nameAr || 'شنطة مخصصة'} - ${colorObj?.nameAr || ''} ${
+        customSummaryText: `${initialProduct?.nameAr || bagTypeObj?.nameAr || 'شنطة مخصصة'} - ${colorObj?.nameAr || ''} ${
           config.monogram.enabled && config.monogram.text ? `(حفر: ${config.monogram.text})` : ''
         }`,
       };
@@ -198,15 +213,70 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
 
         {/* Responsive Body: 2 Columns on Desktop, Single Column on Mobile */}
         <div className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-12">
-          {/* Column 1: Live Canvas Preview (Compact on mobile, Sticky on desktop) */}
+          {/* Column 1: Live Canvas / Real Photo Preview */}
           <div className="md:col-span-6 lg:col-span-5 bg-gradient-to-b from-stone-50 to-stone-100/60 dark:from-[#191924] dark:to-[#12121a] p-2.5 sm:p-6 flex flex-col justify-center items-center border-b md:border-b-0 md:border-l border-stone-200 dark:border-stone-800">
-            <div className="w-full max-w-[220px] sm:max-w-sm">
-              <div className="mb-1 sm:mb-2 text-center">
-                <span className="text-[10px] sm:text-[11px] font-bold text-[#9b287b] dark:text-[#be3999] bg-[#fdf2f8] dark:bg-[#281223] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full border border-[#9b287b]/20 inline-block">
-                  معاينة حية فورية
-                </span>
-              </div>
-              <BagCanvasPreview config={config} />
+            <div className="w-full max-w-[240px] sm:max-w-sm">
+              {/* Preview Mode Switcher (if product has custom image) */}
+              {initialProduct?.image ? (
+                <div className="flex items-center justify-center gap-1.5 p-1 bg-stone-200/70 dark:bg-stone-800 rounded-xl mb-2 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewMode('photo')}
+                    className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                      previewMode === 'photo'
+                        ? 'bg-white dark:bg-stone-700 text-[#9b287b] dark:text-[#be3999] shadow-sm'
+                        : 'text-stone-500 hover:text-stone-800 dark:text-stone-300'
+                    }`}
+                  >
+                    صورة الشنطة 📷
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewMode('interactive')}
+                    className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                      previewMode === 'interactive'
+                        ? 'bg-white dark:bg-stone-700 text-[#9b287b] dark:text-[#be3999] shadow-sm'
+                        : 'text-stone-500 hover:text-stone-800 dark:text-stone-300'
+                    }`}
+                  >
+                    معاينة 3D تفاعلية ✨
+                  </button>
+                </div>
+              ) : (
+                <div className="mb-1 sm:mb-2 text-center">
+                  <span className="text-[10px] sm:text-[11px] font-bold text-[#9b287b] dark:text-[#be3999] bg-[#fdf2f8] dark:bg-[#281223] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full border border-[#9b287b]/20 inline-block">
+                    معاينة حية فورية
+                  </span>
+                </div>
+              )}
+
+              {previewMode === 'photo' && initialProduct?.image ? (
+                <div className="relative w-full aspect-[4/3] rounded-2xl sm:rounded-3xl overflow-hidden shadow-inner border border-stone-200 dark:border-stone-700 bg-stone-100 dark:bg-stone-900 group">
+                  <img
+                    src={initialProduct.image}
+                    alt={initialProduct.nameAr}
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Monogram Overlay Badge */}
+                  {config.monogram.enabled && config.monogram.text.trim() && (
+                    <div className="absolute inset-x-0 bottom-4 flex justify-center">
+                      <div className="px-3 py-1 rounded-xl bg-black/80 backdrop-blur-md border border-amber-400/70 shadow-xl flex items-center gap-1.5 animate-pulse">
+                        <Sparkles className="w-3 h-3 text-amber-300" />
+                        <span className="text-amber-300 font-serif font-black tracking-widest text-[11px] uppercase">
+                          حفر: {config.monogram.text.trim().toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  {/* Model Tag */}
+                  <div className="absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-full bg-black/60 backdrop-blur-sm text-[10px] font-bold text-white border border-white/20">
+                    {initialProduct.nameAr}
+                  </div>
+                </div>
+              ) : (
+                <BagCanvasPreview config={config} />
+              )}
+
               <div className="mt-1.5 sm:mt-3 text-center text-[10px] sm:text-xs text-stone-400 hidden sm:block">
                 <span>تتحدث الأبعاد والألوان وحفر الاسم تلقائياً مع كل خطوة</span>
               </div>
@@ -219,7 +289,32 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
               {/* Step 1: Bag Type / Silhouette */}
               {currentStep === 1 && (
                 <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-stone-800">اختار شكل وقصة الشنطة الأساسية:</h3>
+                  {initialProduct && (
+                    <div className="p-3 bg-gradient-to-r from-[#fdf2f8] to-purple-50 dark:from-[#281223] dark:to-purple-950/30 rounded-2xl border border-[#9b287b]/30 flex items-center gap-3">
+                      <img
+                        src={initialProduct.image}
+                        alt={initialProduct.nameAr}
+                        className="w-12 h-12 rounded-xl object-cover border border-[#9b287b]/40 flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-[#9b287b] dark:text-[#be3999] bg-white dark:bg-stone-800 px-2 py-0.5 rounded-full">
+                            الموديل المختار
+                          </span>
+                          <span className="text-xs font-bold text-stone-900 dark:text-white truncate">
+                            {initialProduct.nameAr}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-stone-500 block mt-0.5">
+                          السعر الأساسي للموديل: {formatPrice(initialProduct.price, 'EGP', 'ar')}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <h3 className="text-sm font-bold text-stone-800 dark:text-stone-200">
+                    {initialProduct ? 'أو يمكنك تغيير القصة الأساسية:' : 'اختار شكل وقصة الشنطة الأساسية:'}
+                  </h3>
                   <div className="grid grid-cols-2 gap-3">
                     {BAG_TYPES.map((type) => {
                       const isSelected = config.bagType === type.id;

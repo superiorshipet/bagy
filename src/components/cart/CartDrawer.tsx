@@ -227,18 +227,27 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   className="p-3.5 rounded-2xl border border-stone-200 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/40 flex flex-col gap-2.5"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1">
-                      <h4 className="text-xs font-bold text-stone-900 dark:text-white leading-snug">
-                        {item.customSummaryText}
-                      </h4>
-                      <p className="text-[11px] text-[#9b287b] font-semibold mt-0.5">
-                        {formatPrice(item.calculatedPrice, 'EGP', 'ar')}
-                      </p>
+                    <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                      {(item.previewDataUrl || item.product?.image) && (
+                        <img
+                          src={item.previewDataUrl || item.product?.image}
+                          alt={item.customSummaryText}
+                          className="w-12 h-12 rounded-xl object-cover border border-stone-200 dark:border-stone-700 flex-shrink-0 bg-stone-100"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-xs font-bold text-stone-900 dark:text-white leading-snug line-clamp-2">
+                          {item.customSummaryText}
+                        </h4>
+                        <p className="text-[11px] text-[#9b287b] font-semibold mt-0.5">
+                          {formatPrice(item.calculatedPrice, 'EGP', 'ar')}
+                        </p>
+                      </div>
                     </div>
 
                     <button
                       onClick={() => onRemoveItem(item.id)}
-                      className="text-stone-400 hover:text-red-500 transition-colors p-1"
+                      className="text-stone-400 hover:text-red-500 transition-colors p-1 flex-shrink-0"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
