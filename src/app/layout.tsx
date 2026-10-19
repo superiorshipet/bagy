@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { ClientProviders } from "@/components/providers/ClientProviders";
 
 export const metadata: Metadata = {
   title: "BAGY | تفصيل وتخصيص الشنط والحقائب الفاخرة أونلاين",
@@ -36,8 +37,8 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full bg-[#f1ede7] text-stone-900 selection:bg-[#9b287b] selection:text-white">
-        {children}
+      <body className="min-h-full bg-background text-foreground transition-colors selection:bg-[#9b287b] selection:text-white">
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   );
