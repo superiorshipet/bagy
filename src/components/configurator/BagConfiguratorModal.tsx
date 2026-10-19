@@ -213,31 +213,31 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
           ))}
         </div>
 
-        {/* Responsive Body: 2 Columns on Desktop, Single Column on Mobile */}
-        <div className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-12">
-          {/* Column 1: Live Canvas / Real Photo Preview */}
-          <div className="md:col-span-6 lg:col-span-5 bg-gradient-to-b from-stone-50 to-stone-100/60 dark:from-[#191924] dark:to-[#12121a] p-2.5 sm:p-6 flex flex-col justify-center items-center border-b md:border-b-0 md:border-l border-stone-200 dark:border-stone-800">
-            <div className="w-full max-w-[240px] sm:max-w-sm">
-              <div className="mb-1 sm:mb-2 text-center">
-                <span className="text-[10px] sm:text-[11px] font-bold text-[#9b287b] dark:text-[#be3999] bg-[#fdf2f8] dark:bg-[#281223] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full border border-[#9b287b]/20 inline-block">
-                  معاينة حية تفاعلية للشنطة
-                </span>
-              </div>
+        {/* Responsive Body: 2 Columns on Desktop, Single Smooth Scroll on Mobile */}
+        <div className="flex-1 min-h-0 overflow-y-auto md:overflow-hidden bg-white dark:bg-[#15151e]">
+          <div className="flex flex-col md:grid md:grid-cols-12 md:h-full">
+            {/* Column 1: Live Canvas / Real Photo Preview */}
+            <div className="md:col-span-5 lg:col-span-5 bg-gradient-to-b from-stone-50 to-stone-100/60 dark:from-[#191924] dark:to-[#12121a] p-3 sm:p-6 flex flex-col justify-center items-center border-b md:border-b-0 md:border-l border-stone-200 dark:border-stone-800 md:h-full md:overflow-y-auto flex-shrink-0">
+              <div className="w-full max-w-[260px] sm:max-w-sm">
+                <div className="mb-1.5 sm:mb-2 text-center">
+                  <span className="text-[10px] sm:text-[11px] font-bold text-[#9b287b] dark:text-[#be3999] bg-[#fdf2f8] dark:bg-[#281223] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full border border-[#9b287b]/20 inline-block">
+                    معاينة حية تفاعلية للشنطة
+                  </span>
+                </div>
 
-              <BagCanvasPreview
-                config={config}
-                imageUrl={initialProduct?.image || effectiveCategories.find((c) => (c.slug || c.id) === config.bagType)?.image}
-              />
+                <BagCanvasPreview
+                  config={config}
+                  imageUrl={initialProduct?.image || effectiveCategories.find((c) => (c.slug || c.id) === config.bagType)?.image}
+                />
 
-              <div className="mt-1.5 sm:mt-3 text-center text-[10px] sm:text-xs text-stone-400 hidden sm:block">
-                <span>تتحدث الأبعاد والألوان وحفر الاسم تلقائياً مع كل خطوة</span>
+                <div className="mt-1.5 sm:mt-3 text-center text-[10px] sm:text-xs text-stone-400 hidden sm:block">
+                  <span>تتحدث الأبعاد والألوان وحفر الاسم تلقائياً مع كل خطوة</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Column 2: Step Wizard Controls */}
-          <div className="md:col-span-6 lg:col-span-7 flex flex-col h-full overflow-hidden bg-white dark:bg-[#15151e]">
-            <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-4 sm:py-5 space-y-4 sm:space-y-5 no-scrollbar">
+            {/* Column 2: Step Wizard Controls */}
+            <div className="md:col-span-7 lg:col-span-7 md:h-full md:overflow-y-auto px-4 sm:px-8 py-4 sm:py-6 space-y-4 sm:space-y-5 bg-white dark:bg-[#15151e] no-scrollbar">
               {/* Step 1: Bag Type / Silhouette */}
               {currentStep === 1 && (
                 <div className="space-y-3">
@@ -873,45 +873,56 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                 </div>
               )}
             </div>
+          </div>
+        </div>
 
-            {/* Sticky Bottom Actions Bar */}
-            <div className="p-3 sm:p-4 border-t border-stone-100 dark:border-stone-800 bg-white dark:bg-[#15151e] flex items-center justify-between gap-2 sm:gap-3 sticky bottom-0 z-20 pb-safe">
-              <div>
-                <span className="text-[10px] sm:text-[11px] text-stone-400 block">السعر الإجمالي للتفصيل</span>
-                <span className="text-base sm:text-lg font-black text-stone-950 dark:text-white">
-                  {formatPrice(totalPrice, currency, 'ar')}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                {currentStep > 1 && (
-                  <button
-                    onClick={handleBack}
-                    className="px-3 sm:px-4 py-2.5 sm:py-3 rounded-2xl border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 text-xs font-bold hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors flex items-center gap-1"
-                  >
-                    <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    <span>السابق</span>
-                  </button>
-                )}
-
-                <button
-                  onClick={handleNext}
-                  className="px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl bg-[#9b287b] hover:bg-[#831f67] text-white text-xs sm:text-sm font-bold transition-all shadow-lg shadow-[#9b287b]/25 flex items-center gap-1.5"
-                >
-                  {currentStep === STEPS.length ? (
-                    <>
-                      <ShoppingBag className="w-4 h-4" />
-                      أضف للحقيبة الآن
-                    </>
-                  ) : (
-                    <>
-                      التالي
-                      <ChevronLeft className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              </div>
+        {/* Global Modal Bottom Actions Bar (Full width across entire modal, ALWAYS pinned to bottom) */}
+        <div className="flex-shrink-0 px-4 sm:px-8 py-3.5 sm:py-4 border-t border-stone-200 dark:border-stone-800 bg-white/95 dark:bg-[#15151e]/95 backdrop-blur-md flex items-center justify-between gap-3 shadow-[0_-4px_25px_rgba(0,0,0,0.08)] z-30 pb-safe">
+          {/* Price & Summary on the Right (in RTL) */}
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] sm:text-xs text-stone-400 dark:text-stone-500 font-medium truncate">
+              السعر الإجمالي للتفصيل
+            </span>
+            <div className="flex items-baseline gap-1.5 sm:gap-2">
+              <span className="text-lg sm:text-2xl font-black text-[#9b287b] dark:text-[#f472b6]">
+                {formatPrice(totalPrice, currency, 'ar')}
+              </span>
+              <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold hidden sm:inline">
+                ✨ تفصيل يدوي فاخر
+              </span>
             </div>
+          </div>
+
+          {/* Navigation Buttons on the Left (in RTL) */}
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            {currentStep > 1 && (
+              <button
+                type="button"
+                onClick={handleBack}
+                className="px-3.5 sm:px-5 py-2.5 sm:py-3 rounded-2xl border-2 border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 text-xs sm:text-sm font-bold hover:bg-stone-100 dark:hover:bg-stone-700 hover:border-stone-300 dark:hover:border-stone-600 transition-all flex items-center gap-1.5 active:scale-95 shadow-sm"
+              >
+                <ChevronRight className="w-4 h-4" />
+                <span>السابق</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={handleNext}
+              className="px-5 sm:px-8 py-2.5 sm:py-3 rounded-2xl bg-gradient-to-r from-[#9b287b] to-[#b82e91] hover:from-[#831f67] hover:to-[#9b287b] text-white text-xs sm:text-sm font-black transition-all shadow-lg shadow-[#9b287b]/30 hover:shadow-[#9b287b]/45 flex items-center gap-2 active:scale-95 justify-center min-w-[125px] sm:min-w-[160px]"
+            >
+              {currentStep === STEPS.length ? (
+                <>
+                  <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>أضف للحقيبة الآن</span>
+                </>
+              ) : (
+                <>
+                  <span>التالي</span>
+                  <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
