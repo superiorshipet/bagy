@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  IN_PRODUCTION
+  QUALITY_CHECK
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model User {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  phone     String?
+  role      Role      @default(CUSTOMER)
+  avatar    String?
+  addresses Address[]
+  orders    Order[]
+  reviews   Review[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label     String   @default("المنزل")
+  city      String   @default("القاهرة")
+  area      String
+  street    String
+  building  String?
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Product {
+  id             String      @id @default(cuid())
+  nameEn         String
+  nameAr         String
+  category       String // tote, crossbody, shoulder, mini, backpack, clutch
+  price          Float
+  salePrice      Float?
+  descriptionEn  String?
+  descriptionAr  String?
+  image          String
+  rating         Float       @default(5.0)
+  reviewCount    Int         @default(0)
+  isCustomizable Boolean     @default(true)
+  isBestSeller   Boolean     @default(false)
+  isNewArrival   Boolean     @default(false)
+  isActive       Boolean     @default(true)
+  stock          Int         @default(50)
+  orderItems     OrderItem[]
+  reviews        Review[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+model Customization {
+  id              String      @id @default(cuid())
+  bagType         String
+  size            String
+  materialId      String
+  primaryColor    String
+  accentColor     String?
+  hardware        String
+  strapId         String
+  monogramEnabled Boolean     @default(false)
+  monogramText    String?
+  monogramStyle   String?
+  monogramFont    String?
+  addons          Json?
+  calculatedPrice Float
+  orderItems      OrderItem[]
+  createdAt       DateTime    @default(now())
+}
+
+model Order {
+  id             String      @id @default(cuid())
+  orderNumber    String      @unique
+  userId         String?
+  user           User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  customerName   String
+  customerPhone  String
+  deliveryArea   String
+  fullAddress    String?
+  notes          String?
+  isGift         Boolean     @default(false)
+  recipientName  String?
+  giftMessage    String?
+  subtotal       Float
+  discount       Float       @default(0)
+  deliveryFee    Float       @default(0)
+  total          Float
+  promoCode      String?
+  paymentMethod  String      @default("apple_pay")
+  status         OrderStatus @default(PENDING)
+  items          OrderItem[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+model OrderItem {
+  id              String         @id @default(cuid())
+  orderId         String
+  order           Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId       String?
+  product         Product?       @relation(fields: [productId], references: [id], onDelete: SetNull)
+  customizationId String?
+  customization   Customization? @relation(fields: [customizationId], references: [id], onDelete: SetNull)
+  quantity        Int            @default(1)
+  unitPrice       Float
+  summaryText     String
+}
+
+model PromoCode {
+  id              String    @id @default(cuid())
+  code            String    @unique
+  discountPercent Int
+  maxUsage        Int       @default(100)
+  usedCount       Int       @default(0)
+  isActive        Boolean   @default(true)
+  expiresAt       DateTime?
+  createdAt       DateTime  @default(now())
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int      @default(5)
+  comment   String
+  createdAt DateTime @default(now())
+}
+
+model AdminLog {
+  id         String   @id @default(cuid())
+  action     String
+  details    String
+  adminEmail String
+  createdAt  DateTime @default(now())
+}
