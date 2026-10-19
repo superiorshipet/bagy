@@ -513,9 +513,6 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 <h2 className="text-base sm:text-lg font-black text-stone-900 dark:text-white">
                   لوحة تحكم إدارة المتجر (Admin Control Panel)
                 </h2>
-                <span className="text-[10px] bg-green-100 text-green-800 dark:bg-green-950/60 dark:text-green-400 font-bold px-2 py-0.5 rounded-full">
-                  Live PostgreSQL 🟢
-                </span>
               </div>
               <p className="text-xs text-stone-400">إدارة الطلبات، خط الإنتاج، المنتجات، وأكواد الخصم</p>
             </div>
@@ -1418,9 +1415,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                               <span className="font-mono font-black text-base text-stone-900 dark:text-white tracking-wider bg-stone-100 dark:bg-stone-800 px-2.5 py-1 rounded-xl">
                                 {promo.code}
                               </span>
-                              <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-400 font-bold px-2 py-0.5 rounded-full">
-                                {promo.isActive ? 'مفعل 🟢' : 'معطل 🔴'}
-                              </span>
+                              {!promo.isActive && (
+                                <span className="text-[10px] bg-stone-100 dark:bg-stone-800 text-stone-500 font-bold px-2 py-0.5 rounded-full">
+                                  معطل
+                                </span>
+                              )}
                             </div>
                             <div className="text-sm font-extrabold text-[#9b287b] dark:text-[#be3999]">
                               خصم {promo.discountPercent}% على كامل السلة

@@ -338,7 +338,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                       <div className="flex items-center gap-2">
                         <h4 className="text-xs font-bold text-stone-900 dark:text-white">{addr.label}</h4>
                         {addr.isDefault && (
-                          <span className="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-bold">
+                          <span className="text-[10px] bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 px-2 py-0.5 rounded-full font-bold">
                             العنوان الافتراضي
                           </span>
                         )}
