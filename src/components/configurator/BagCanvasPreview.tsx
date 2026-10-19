@@ -35,6 +35,28 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
   };
   const sizeScale = scaleMap[config.size] || 1;
 
+  // Monogram positioning & typography calculation
+  const monogramY =
+    config.bagType === 'clutch'
+      ? 236
+      : config.bagType === 'tote'
+      ? 242
+      : config.bagType === 'crossbody' || config.bagType === 'mini'
+      ? 278
+      : config.bagType === 'shoulder'
+      ? 252
+      : 275;
+
+  const textLength = config.monogram.text.trim().length;
+  const monogramFontSize = textLength <= 2 ? 14 : textLength <= 4 ? 12 : 10.5;
+  const letterSpacing = config.monogram.font === 'script' ? '2px' : '4px';
+  const fontFamily =
+    config.monogram.font === 'serif'
+      ? 'var(--font-playfair), "Playfair Display", Georgia, "Times New Roman", serif'
+      : config.monogram.font === 'script'
+      ? '"Brush Script MT", "Caveat", "Dancing Script", cursive'
+      : 'var(--font-inter), Inter, system-ui, sans-serif';
+
   return (
     <div className={`relative w-full aspect-[4/3] flex items-center justify-center p-2.5 sm:p-5 bg-gradient-to-b from-[#f9f7f4] to-[#f0ece5] dark:from-[#1b1b26] dark:to-[#12121c] rounded-2xl sm:rounded-3xl overflow-hidden shadow-inner ${className}`}>
       {/* Background Studio Lighting & Pedestal Shadow */}
@@ -75,16 +97,20 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
             <stop offset="100%" stopColor="#1a1a1a" stopOpacity="0.4" />
           </linearGradient>
 
-          {/* Monogram Foil Gradient */}
-          <linearGradient id="goldFoil" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#ffe599" />
-            <stop offset="50%" stopColor="#d4af37" />
-            <stop offset="100%" stopColor="#996515" />
+          {/* Luxury Metallic Foil Gradients for Monogram Hot Stamping */}
+          <linearGradient id="goldFoil" x1="0%" y1="0%" x2="100%" y2="80%">
+            <stop offset="0%" stopColor="#fff8db" />
+            <stop offset="25%" stopColor="#eec75f" />
+            <stop offset="50%" stopColor="#fff0b3" />
+            <stop offset="75%" stopColor="#d4af37" />
+            <stop offset="100%" stopColor="#8c6218" />
           </linearGradient>
-          <linearGradient id="silverFoil" x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id="silverFoil" x1="0%" y1="0%" x2="100%" y2="80%">
             <stop offset="0%" stopColor="#ffffff" />
-            <stop offset="50%" stopColor="#c0c0c0" />
-            <stop offset="100%" stopColor="#7a7a7a" />
+            <stop offset="30%" stopColor="#d1d5db" />
+            <stop offset="60%" stopColor="#ffffff" />
+            <stop offset="85%" stopColor="#9ca3af" />
+            <stop offset="100%" stopColor="#4b5563" />
           </linearGradient>
 
           {/* Bohemian Jacquard Woven Pattern */}
@@ -576,57 +602,91 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
         )}
 
         {/* 3. PERSONALIZED MONOGRAM RENDERING (EMBOSSED / FOIL / TEXT) */}
-        {config.monogram.enabled && config.monogram.text.trim().length > 0 && (
+        {config.monogram.enabled && textLength > 0 && (
           <g id="monogram-text">
-            {/* Subtle shadow for emboss depth */}
-            <text
-              x="200"
-              y={config.bagType === 'tote' ? 246 : config.bagType === 'clutch' ? 232 : config.bagType === 'crossbody' || config.bagType === 'mini' ? 278 : 265}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fontFamily={
-                config.monogram.font === 'serif'
-                  ? 'Playfair Display, Georgia, serif'
-                  : config.monogram.font === 'script'
-                  ? 'Brush Script MT, cursive'
-                  : 'Inter, Arial, sans-serif'
-              }
-              fontWeight="bold"
-              letterSpacing="3px"
-              fontSize="16"
-              fill="rgba(0,0,0,0.4)"
-              dy="1"
-            >
-              {config.monogram.text.toUpperCase()}
-            </text>
-
-            {/* Primary Foil/Emboss */}
-            <text
-              x="200"
-              y={config.bagType === 'tote' ? 245 : config.bagType === 'crossbody' || config.bagType === 'mini' ? 277 : 264}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fontFamily={
-                config.monogram.font === 'serif'
-                  ? 'Playfair Display, Georgia, serif'
-                  : config.monogram.font === 'script'
-                  ? 'Brush Script MT, cursive'
-                  : 'Inter, Arial, sans-serif'
-              }
-              fontWeight="bold"
-              letterSpacing="3px"
-              fontSize="16"
-              fill={
-                config.monogram.style === 'gold_foil'
-                  ? 'url(#goldFoil)'
-                  : config.monogram.style === 'silver_foil'
-                  ? 'url(#silverFoil)'
-                  : 'rgba(255,255,255,0.7)'
-              }
-              filter={config.monogram.style !== 'blind_emboss' ? 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' : undefined}
-            >
-              {config.monogram.text.toUpperCase()}
-            </text>
+            {config.monogram.style === 'blind_emboss' ? (
+              /* Photorealistic heat deboss into leather */
+              <g>
+                {/* Top inner deboss shadow (sunken depth) */}
+                <text
+                  x="200"
+                  y={monogramY}
+                  dy="-0.7"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontFamily={fontFamily}
+                  fontWeight="bold"
+                  letterSpacing={letterSpacing}
+                  fontSize={monogramFontSize}
+                  fill="rgba(0,0,0,0.65)"
+                >
+                  {config.monogram.text.toUpperCase()}
+                </text>
+                {/* Bottom edge highlight reflection */}
+                <text
+                  x="200"
+                  y={monogramY}
+                  dy="0.8"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontFamily={fontFamily}
+                  fontWeight="bold"
+                  letterSpacing={letterSpacing}
+                  fontSize={monogramFontSize}
+                  fill="rgba(255,255,255,0.35)"
+                >
+                  {config.monogram.text.toUpperCase()}
+                </text>
+                {/* Center sunken impression */}
+                <text
+                  x="200"
+                  y={monogramY}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontFamily={fontFamily}
+                  fontWeight="bold"
+                  letterSpacing={letterSpacing}
+                  fontSize={monogramFontSize}
+                  fill="rgba(0,0,0,0.3)"
+                >
+                  {config.monogram.text.toUpperCase()}
+                </text>
+              </g>
+            ) : (
+              /* Hot stamped metallic foil (Gold or Silver) */
+              <g>
+                {/* Micro deboss groove shadow (underneath the foil) */}
+                <text
+                  x="200"
+                  y={monogramY}
+                  dy="0.8"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontFamily={fontFamily}
+                  fontWeight="bold"
+                  letterSpacing={letterSpacing}
+                  fontSize={monogramFontSize}
+                  fill="rgba(0,0,0,0.5)"
+                >
+                  {config.monogram.text.toUpperCase()}
+                </text>
+                {/* Shimmering Metallic Foil Text with subtle specular drop shadow */}
+                <text
+                  x="200"
+                  y={monogramY}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontFamily={fontFamily}
+                  fontWeight="bold"
+                  letterSpacing={letterSpacing}
+                  fontSize={monogramFontSize}
+                  fill={config.monogram.style === 'gold_foil' ? 'url(#goldFoil)' : 'url(#silverFoil)'}
+                  filter="drop-shadow(0 1px 1px rgba(0,0,0,0.4))"
+                >
+                  {config.monogram.text.toUpperCase()}
+                </text>
+              </g>
+            )}
           </g>
         )}
 

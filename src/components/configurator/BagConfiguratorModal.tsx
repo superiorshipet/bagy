@@ -746,8 +746,8 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                         <div className="grid grid-cols-3 gap-2">
                           {[
                             { id: 'gold_foil', name: 'ذهب لامع (Gold)', color: 'text-amber-600 dark:text-amber-400' },
-                            { id: 'silver_foil', name: 'فضي بلاتيني', color: 'text-stone-500 dark:text-stone-300' },
-                            { id: 'blind_emboss', name: 'حفر بارز سادة', color: 'text-stone-700 dark:text-stone-300' },
+                            { id: 'silver_foil', name: 'فضي بلاتيني', color: 'text-stone-600 dark:text-stone-300' },
+                            { id: 'blind_emboss', name: 'حفر بارز سادة', color: 'text-stone-800 dark:text-stone-200' },
                           ].map((style) => (
                             <button
                               key={style.id}
@@ -761,13 +761,46 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                                   },
                                 })
                               }
-                              className={`p-2 rounded-xl text-center text-xs font-bold border transition-all ${
+                              className={`p-2.5 rounded-xl text-center text-xs font-bold border transition-all ${
                                 config.monogram.style === style.id
-                                  ? 'border-[#9b287b] bg-white dark:bg-stone-800 shadow-sm'
-                                  : 'border-transparent bg-white/60 dark:bg-stone-800/40 text-stone-600 dark:text-stone-400'
+                                  ? 'border-[#9b287b] bg-white dark:bg-stone-800 ring-2 ring-[#9b287b]/25 shadow-sm'
+                                  : 'border-transparent bg-white/60 dark:bg-stone-800/40 text-stone-600 dark:text-stone-400 hover:bg-white/90'
                               }`}
                             >
                               <span className={style.color}>{style.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-stone-800 dark:text-stone-200 block mb-1.5">شكل ونوع الخط:</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {[
+                            { id: 'serif', name: 'سيريف ملكي', sample: 'Aa Serif', fontClass: 'font-serif' },
+                            { id: 'sans', name: 'مودرن كلاسيك', sample: 'Aa Sans', fontClass: 'font-sans' },
+                            { id: 'script', name: 'توقيع كاليجرافي', sample: 'Aa Script', fontClass: 'italic' },
+                          ].map((f) => (
+                            <button
+                              key={f.id}
+                              type="button"
+                              onClick={() =>
+                                setConfig({
+                                  ...config,
+                                  monogram: {
+                                    ...config.monogram,
+                                    font: f.id as MonogramConfig['font'],
+                                  },
+                                })
+                              }
+                              className={`p-2 rounded-xl text-center text-xs font-bold border transition-all ${
+                                config.monogram.font === f.id
+                                  ? 'border-[#9b287b] bg-white dark:bg-stone-800 ring-2 ring-[#9b287b]/25 shadow-sm text-[#9b287b] dark:text-[#be3999]'
+                                  : 'border-transparent bg-white/60 dark:bg-stone-800/40 text-stone-600 dark:text-stone-400 hover:bg-white/90'
+                              }`}
+                            >
+                              <div className={f.fontClass}>{f.name}</div>
+                              <span className="text-[10px] opacity-60 block mt-0.5">{f.sample}</span>
                             </button>
                           ))}
                         </div>
