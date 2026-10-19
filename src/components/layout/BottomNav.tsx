@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Home, Compass, Sparkles, Gift, User, ShoppingBag } from 'lucide-react';
+import { Home, Compass, Sparkles, Gift, User } from 'lucide-react';
 
 export type NavTab = 'home' | 'catalog' | 'customize' | 'gifts' | 'orders';
 
@@ -16,10 +16,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   activeTab,
   onChangeTab,
   onOpenCustomize,
-  cartCount,
 }) => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-t border-stone-200/80 px-4 py-2" dir="rtl">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-t border-stone-200/80 px-4 py-2" dir="rtl">
       <div className="max-w-md mx-auto flex items-center justify-around relative">
         {/* Tab 1: Home */}
         <button
