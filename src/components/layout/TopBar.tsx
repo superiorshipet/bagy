@@ -1,9 +1,10 @@
 'use client';
 
 import React from 'react';
-import { MapPin, ShoppingBag, Sparkles, Compass, Gift, Home, Moon, Sun, User, ShieldCheck } from 'lucide-react';
+import { MapPin, ShoppingBag, Sparkles, Compass, Gift, Home, Moon, Sun, User, ShieldCheck, LogIn } from 'lucide-react';
 import { NavTab } from './BottomNav';
 import { useAppSettings } from '@/context/ThemeContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface TopBarProps {
   cartCount: number;
@@ -28,7 +29,24 @@ export const TopBar: React.FC<TopBarProps> = ({
   onOpenProfile,
   onOpenAdmin,
 }) => {
-  const { theme, toggleTheme, locale, toggleLocale } = useAppSettings();
+  const { theme, toggleTheme } = useAppSettings();
+  const { user, isAdmin, openAuthModal } = useAuth();
+
+  const handleAdminClick = () => {
+    if (isAdmin) {
+      if (onOpenAdmin) onOpenAdmin();
+    } else {
+      openAuthModal();
+    }
+  };
+
+  const handleProfileClick = () => {
+    if (user) {
+      if (onOpenProfile) onOpenProfile();
+    } else {
+      openAuthModal();
+    }
+  };
 
   return (
     <header className="sticky top-0 z-30 bg-white/95 dark:bg-[#15151e]/95 backdrop-blur-md border-b border-stone-200/60 dark:border-stone-800 px-4 sm:px-6 lg:px-8 py-3 transition-colors">
@@ -105,17 +123,19 @@ export const TopBar: React.FC<TopBarProps> = ({
 
         {/* Right: Actions (Theme Toggle, Admin Panel, Profile, Cart) */}
         <div className="flex items-center gap-2 sm:gap-2.5">
-          {/* Quick Admin Shortcut */}
-          {onOpenAdmin && (
-            <button
-              onClick={onOpenAdmin}
-              className="px-2.5 py-1.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 text-xs font-bold hover:bg-amber-100 transition-colors flex items-center gap-1 shadow-sm"
-              title="لوحة تحكم الأدمن"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-              <span className="hidden sm:inline">الأدمن</span>
-            </button>
-          )}
+          {/* Admin Control Button */}
+          <button
+            onClick={handleAdminClick}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm ${
+              isAdmin
+                ? 'bg-amber-500 text-stone-950 font-black hover:bg-amber-400'
+                : 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 hover:bg-amber-100'
+            }`}
+            title={isAdmin ? 'لوحة تحكم الأدمن (مفعل)' : 'تسجيل دخول الأدمن'}
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+            <span className="hidden sm:inline">الأدمن</span>
+          </button>
 
           {/* Night / Dark Theme Switcher */}
           <button
@@ -131,14 +151,25 @@ export const TopBar: React.FC<TopBarProps> = ({
             )}
           </button>
 
-          {/* User Profile / History Button */}
-          {onOpenProfile && (
+          {/* User Profile / Login Button */}
+          {user ? (
             <button
-              onClick={onOpenProfile}
-              className="w-9 h-9 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-200 flex items-center justify-center hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
+              onClick={handleProfileClick}
+              className="px-2.5 py-1.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-white flex items-center gap-1.5 hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
               title="الملف الشخصي وسجل الطلبات"
             >
-              <User className="w-4 h-4" />
+              <div className="w-5 h-5 rounded-full bg-[#9b287b] text-white flex items-center justify-center text-[10px] font-black">
+                {user.name.charAt(0)}
+              </div>
+              <span className="text-xs font-bold hidden sm:inline">{user.name.split(' ')[0]}</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => openAuthModal()}
+              className="px-3 py-1.5 rounded-full bg-[#fdf2f8] dark:bg-[#281223] text-[#9b287b] dark:text-[#be3999] hover:bg-[#fae8f3] text-xs font-bold transition-colors flex items-center gap-1"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>دخول</span>
             </button>
           )}
 

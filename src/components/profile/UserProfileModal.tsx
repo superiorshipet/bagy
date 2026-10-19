@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAppSettings } from '@/context/ThemeContext';
+import { useAuth } from '@/context/AuthContext';
 import { formatPrice } from '@/lib/utils';
 import {
   X,
@@ -12,16 +13,11 @@ import {
   Moon,
   Sun,
   Bell,
-  Globe,
-  Clock,
-  CheckCircle2,
   Package,
-  ArrowRight,
-  ShieldCheck,
   CreditCard,
   Edit2,
-  Phone,
-  Mail,
+  LogOut,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface UserProfileModalProps {
@@ -35,8 +31,9 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   onClose,
   onOpenAdmin,
 }) => {
-  const { theme, toggleTheme, locale, toggleLocale, currency, setCurrency, notificationsEnabled, toggleNotifications } =
+  const { theme, toggleTheme, currency, setCurrency, notificationsEnabled, toggleNotifications } =
     useAppSettings();
+  const { user: authUser, logout, isAdmin } = useAuth();
 
   const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'settings'>('orders');
   const [profileData, setProfileData] = useState<any>(null);
@@ -44,9 +41,14 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
   // Fetch user profile and orders from API
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && authUser) {
       setLoading(true);
-      fetch('/api/user/profile')
+      const queryParam = authUser.id
+        ? `userId=${authUser.id}`
+        : authUser.phone
+        ? `phone=${encodeURIComponent(authUser.phone)}`
+        : `email=${encodeURIComponent(authUser.email)}`;
+      fetch(`/api/user/profile?${queryParam}`)
         .then((res) => res.json())
         .then((data) => {
           if (data.success && data.user) {
@@ -56,10 +58,11 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         .catch((err) => console.error(err))
         .finally(() => setLoading(false));
     }
-  }, [isOpen]);
+  }, [isOpen, authUser]);
 
   if (!isOpen) return null;
 
+  const currentUser = profileData || authUser;
   const orders = profileData?.orders || [];
   const addresses = profileData?.addresses || [];
 
@@ -85,23 +88,25 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         <div className="p-5 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between bg-white dark:bg-[#15151e] sticky top-0 z-10">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-[#9b287b] to-[#c69b59] text-white flex items-center justify-center font-black text-base shadow-md">
-              {profileData?.name ? profileData.name.charAt(0) : 'س'}
+              {currentUser?.name ? currentUser.name.charAt(0) : 'ع'}
             </div>
             <div>
               <h2 className="text-base font-bold text-stone-900 dark:text-white flex items-center gap-2">
-                {profileData?.name || 'سارة أحمد'}
-                {profileData?.role === 'ADMIN' && (
+                {currentUser?.name || 'عميل باجي'}
+                {isAdmin && (
                   <span className="text-[10px] font-black bg-amber-500 text-black px-2 py-0.5 rounded-full">
                     مدير النظام (Admin)
                   </span>
                 )}
               </h2>
-              <p className="text-xs text-stone-400 dark:text-stone-400">{profileData?.email || 'sarah.ahmed@example.com'}</p>
+              <p className="text-xs text-stone-400">
+                {currentUser?.phone ? `هاتف: ${currentUser.phone}` : currentUser?.email}
+              </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {onOpenAdmin && (
+            {isAdmin && onOpenAdmin && (
               <button
                 onClick={() => {
                   onClose();
@@ -109,9 +114,20 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 }}
                 className="px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 text-xs font-bold hover:bg-amber-100 transition-colors"
               >
-                لوحة تحكم الأدمن 🛠️
+                لوحة الأدمن 🛠️
               </button>
             )}
+
+            <button
+              onClick={() => {
+                logout();
+                onClose();
+              }}
+              className="p-2 rounded-xl text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+              title="تسجيل الخروج"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
 
             <button
               onClick={onClose}
@@ -163,7 +179,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
         {/* Content Body */}
         <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 no-scrollbar">
-          {/* TAB 1: ORDER HISTORY (سجل العمليات) */}
+          {/* TAB 1: ORDER HISTORY */}
           {activeTab === 'orders' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -176,8 +192,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   <div className="w-14 h-14 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center mx-auto text-stone-400">
                     <ShoppingBag className="w-7 h-7" />
                   </div>
-                  <h4 className="text-sm font-bold text-stone-800 dark:text-stone-200">لا توجد طلبات سابقة</h4>
-                  <p className="text-xs text-stone-400">ابدأ الآن بتفصيل أول شنطة خاصة بك واستمتع بتجربة فريدة.</p>
+                  <h4 className="text-sm font-bold text-stone-800 dark:text-stone-200">لا توجد طلبات سابقة في حسابك</h4>
+                  <p className="text-xs text-stone-400">ابدأ الآن بتفصيل أول شنطة خاصة بك وسجل طلبك لتتابعه هنا.</p>
                 </div>
               ) : (
                 <div className="space-y-3.5">
@@ -367,6 +383,20 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   onChange={toggleNotifications}
                   className="w-5 h-5 accent-[#9b287b] rounded cursor-pointer"
                 />
+              </div>
+
+              {/* Logout Button */}
+              <div className="pt-2">
+                <button
+                  onClick={() => {
+                    logout();
+                    onClose();
+                  }}
+                  className="w-full py-3 rounded-2xl border border-red-200 dark:border-red-900/50 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 text-xs font-bold transition-colors flex items-center justify-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>تسجيل الخروج من الحساب</span>
+                </button>
               </div>
             </div>
           )}

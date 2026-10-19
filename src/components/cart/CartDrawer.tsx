@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { CartItem } from '@/types/bag';
 import { formatPrice } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
 import {
   X,
   Trash2,
@@ -13,6 +14,7 @@ import {
   CreditCard,
   MapPin,
   CheckCircle2,
+  Lock,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -33,6 +35,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onRemoveItem,
   onClearCart,
 }) => {
+  const { user, openAuthModal } = useAuth();
+
   const [promoCode, setPromoCode] = useState('');
   const [discountPercent, setDiscountPercent] = useState(0);
   const [promoError, setPromoError] = useState('');
@@ -62,14 +66,23 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   };
 
   const handlePlaceOrder = async () => {
+    // GATING: Require user login before order can be placed!
+    if (!user) {
+      openAuthModal(() => {
+        // Callback after login if needed
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          customerName: recipientName || 'سارة أحمد',
-          customerPhone: '01123456789',
+          userId: user.id,
+          customerName: user.name || recipientName || 'عميل باجي',
+          customerPhone: user.phone || '01000000000',
           deliveryArea,
           isGift,
           recipientName,
@@ -101,9 +114,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           origin: { y: 0.5 },
           colors: ['#9b287b', '#c69b59', '#2dd36f', '#ffffff'],
         });
-      } catch (e) {
-        // ignore
-      }
+      } catch (e) {}
     }
   };
 
@@ -134,7 +145,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed max-w-xs">
               رقم الطلب: <strong className="text-stone-900 dark:text-white">{placedOrderNumber}</strong>
               <br />
-              تم حفظ الطلب في قاعدة البيانات ونقله لورشة التصنيع.
+              تم حفظ الطلب في حسابك بقاعدة البيانات ونقله لورشة التصنيع.
             </p>
             <div className="p-4 bg-stone-50 dark:bg-stone-900/60 rounded-2xl border border-stone-200 dark:border-stone-800 text-right w-full text-xs space-y-1.5">
               <div className="flex justify-between">
@@ -189,6 +200,25 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         ) : (
           /* Items List & Checkout Sections */
           <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
+            {/* User Login Notice if not logged in (Lola.do Style) */}
+            {!user && (
+              <div className="p-3.5 bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-950/40 dark:to-purple-950/40 rounded-2xl border border-pink-200 dark:border-pink-900/40 flex items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <h4 className="text-xs font-bold text-stone-900 dark:text-white flex items-center gap-1.5">
+                    <Lock className="w-3.5 h-3.5 text-[#9b287b]" />
+                    تسجيل الدخول مطلوب لإتمام الطلب
+                  </h4>
+                  <p className="text-[11px] text-stone-500">سجل برقم هاتفك لربط الطلب وحفظ نقاطك وعناوينك</p>
+                </div>
+                <button
+                  onClick={() => openAuthModal()}
+                  className="px-3 py-1.5 rounded-xl bg-[#9b287b] text-white text-xs font-bold hover:bg-[#831f67] shadow-sm flex-shrink-0"
+                >
+                  دخول
+                </button>
+              </div>
+            )}
+
             {/* Cart Items */}
             <div className="space-y-3">
               {items.map((item) => (
@@ -383,10 +413,19 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               disabled={isSubmitting}
               className="w-full py-3.5 rounded-2xl bg-[#9b287b] hover:bg-[#831f67] text-white font-bold text-sm shadow-lg shadow-[#9b287b]/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
             >
-              <span>{isSubmitting ? 'جاري تسجيل الطلب...' : 'تأكيد الطلب ودفع'}</span>
-              <span className="bg-white/20 px-2 py-0.5 rounded-lg text-xs">
-                {formatPrice(total, 'EGP', 'ar')}
-              </span>
+              {!user ? (
+                <>
+                  <Lock className="w-4 h-4" />
+                  <span>تسجيل الدخول للمتابعة والدفع</span>
+                </>
+              ) : (
+                <>
+                  <span>{isSubmitting ? 'جاري تسجيل الطلب...' : 'تأكيد الطلب ودفع'}</span>
+                  <span className="bg-white/20 px-2 py-0.5 rounded-lg text-xs">
+                    {formatPrice(total, 'EGP', 'ar')}
+                  </span>
+                </>
+              )}
             </button>
           </div>
         )}

@@ -4,10 +4,23 @@ import { prisma } from '@/lib/prisma';
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const email = searchParams.get('email') || 'sarah.ahmed@example.com';
+    const userId = searchParams.get('userId');
+    const phone = searchParams.get('phone');
+    const email = searchParams.get('email');
 
-    let user = await prisma.user.findUnique({
-      where: { email },
+    let whereClause: any = {};
+    if (userId) {
+      whereClause = { id: userId };
+    } else if (phone) {
+      whereClause = { phone };
+    } else if (email) {
+      whereClause = { email };
+    } else {
+      whereClause = { email: 'sarah.ahmed@example.com' };
+    }
+
+    let user = await prisma.user.findFirst({
+      where: whereClause,
       include: {
         addresses: true,
         orders: {
@@ -22,24 +35,6 @@ export async function GET(req: NextRequest) {
         },
       },
     });
-
-    if (!user) {
-      user = await prisma.user.findFirst({
-        include: {
-          addresses: true,
-          orders: {
-            include: {
-              items: {
-                include: {
-                  customization: true,
-                },
-              },
-            },
-            orderBy: { createdAt: 'desc' },
-          },
-        },
-      });
-    }
 
     return NextResponse.json({ success: true, user });
   } catch (error: any) {
