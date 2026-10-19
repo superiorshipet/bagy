@@ -26,7 +26,6 @@ import {
   Sparkles,
   Check,
   ShoppingBag,
-  Info,
   Layers,
   Palette,
   Maximize2,
@@ -61,7 +60,6 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
   onClose,
   onAddToCart,
   initialBagType = 'tote',
-  locale = 'ar',
 }) => {
   const [currentStep, setCurrentStep] = useState<number>(1);
 
@@ -83,6 +81,13 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
     },
     selectedAddonIds: [],
   });
+
+  // Keep bagType updated if modal opens with different initialBagType
+  React.useEffect(() => {
+    if (initialBagType) {
+      setConfig((prev) => ({ ...prev, bagType: initialBagType }));
+    }
+  }, [initialBagType]);
 
   // Calculate live total price
   const totalPrice = useMemo(() => {
@@ -115,8 +120,8 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
       // Add to cart with confetti celebration
       try {
         confetti({
-          particleCount: 80,
-          spread: 70,
+          particleCount: 100,
+          spread: 80,
           origin: { y: 0.6 },
           colors: ['#9b287b', '#c69b59', '#ffffff'],
         });
@@ -151,19 +156,22 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
   const currentStepInfo = STEPS[currentStep - 1];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 overflow-y-auto">
-      <div className="relative w-full max-w-lg bg-white sm:rounded-3xl shadow-2xl flex flex-col h-full sm:h-[94vh] max-h-[900px] overflow-hidden" dir="rtl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 md:p-6 overflow-y-auto">
+      <div
+        className="relative w-full max-w-lg md:max-w-5xl bg-white sm:rounded-3xl shadow-2xl flex flex-col h-full sm:h-[94vh] max-h-[920px] overflow-hidden"
+        dir="rtl"
+      >
         {/* Top Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100 bg-white sticky top-0 z-20">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[#fdf2f8] text-[#9b287b] flex items-center justify-center font-bold text-sm">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100 bg-white sticky top-0 z-20">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-[#fdf2f8] text-[#9b287b] flex items-center justify-center font-bold text-sm">
               {currentStep}/{STEPS.length}
             </div>
             <div>
-              <h2 className="text-base font-bold text-stone-900 leading-tight">
+              <h2 className="text-base sm:text-lg font-bold text-stone-900 leading-tight">
                 {currentStepInfo.titleAr}
               </h2>
-              <p className="text-xs text-stone-500">تفصيل يدوي حسب ذوقك</p>
+              <p className="text-xs text-stone-500">تفصيل يدوي حسب ذوقك واختياراتك</p>
             </div>
           </div>
 
@@ -188,407 +196,422 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
           ))}
         </div>
 
-        {/* Main Content Area */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5 no-scrollbar">
-          {/* Live Preview Display (Always visible at top of wizard like Lola) */}
-          <div className="sticky top-0 z-10 pt-1">
-            <BagCanvasPreview config={config} />
+        {/* Responsive Body: 2 Columns on Desktop, Single Column on Mobile */}
+        <div className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-12">
+          {/* Column 1: Live Canvas Preview (Sticky on desktop) */}
+          <div className="md:col-span-6 lg:col-span-5 bg-gradient-to-b from-stone-50 to-stone-100/60 p-4 sm:p-6 flex flex-col justify-center items-center border-b md:border-b-0 md:border-l border-stone-200">
+            <div className="w-full max-w-sm">
+              <div className="mb-2 text-center">
+                <span className="text-[11px] font-bold text-[#9b287b] bg-[#fdf2f8] px-3 py-1 rounded-full border border-[#9b287b]/20 inline-block">
+                  معاينة حية فورية
+                </span>
+              </div>
+              <BagCanvasPreview config={config} />
+              <div className="mt-3 text-center text-xs text-stone-500">
+                <span>تتحدث الأبعاد والألوان وحفر الاسم تلقائياً مع كل خطوة</span>
+              </div>
+            </div>
           </div>
 
-          {/* Step 1: Bag Type / Silhouette */}
-          {currentStep === 1 && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold text-stone-800">اختار شكل وقصة الشنطة الأساسية:</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {BAG_TYPES.map((type) => {
-                  const isSelected = config.bagType === type.id;
-                  return (
-                    <button
-                      key={type.id}
-                      onClick={() => setConfig({ ...config, bagType: type.id })}
-                      className={`p-3.5 rounded-2xl border text-right transition-all flex flex-col justify-between ${
-                        isSelected
-                          ? 'border-[#9b287b] bg-[#fdf2f8] shadow-sm ring-2 ring-[#9b287b]/20'
-                          : 'border-stone-200 bg-white hover:border-stone-300'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between w-full mb-2">
-                        <span className="text-2xl">{type.icon}</span>
-                        {isSelected && (
-                          <div className="w-5 h-5 rounded-full bg-[#9b287b] text-white flex items-center justify-center">
-                            <Check className="w-3 h-3" />
+          {/* Column 2: Step Wizard Controls */}
+          <div className="md:col-span-6 lg:col-span-7 flex flex-col h-full overflow-hidden">
+            <div className="flex-1 overflow-y-auto px-5 sm:px-8 py-5 space-y-5 no-scrollbar">
+              {/* Step 1: Bag Type / Silhouette */}
+              {currentStep === 1 && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-bold text-stone-800">اختار شكل وقصة الشنطة الأساسية:</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {BAG_TYPES.map((type) => {
+                      const isSelected = config.bagType === type.id;
+                      return (
+                        <button
+                          key={type.id}
+                          onClick={() => setConfig({ ...config, bagType: type.id })}
+                          className={`p-3.5 rounded-2xl border text-right transition-all flex flex-col justify-between ${
+                            isSelected
+                              ? 'border-[#9b287b] bg-[#fdf2f8] shadow-sm ring-2 ring-[#9b287b]/20'
+                              : 'border-stone-200 bg-white hover:border-stone-300'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between w-full mb-2">
+                            <span className="text-2xl">{type.icon}</span>
+                            {isSelected && (
+                              <div className="w-5 h-5 rounded-full bg-[#9b287b] text-white flex items-center justify-center">
+                                <Check className="w-3 h-3" />
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-stone-900">{type.nameAr}</h4>
-                        <p className="text-xs text-stone-500 mt-0.5 line-clamp-1">{type.descriptionAr}</p>
-                        <p className="text-xs font-semibold text-[#9b287b] mt-2">
-                          يبدأ من {formatPrice(type.basePrice, 'EGP', 'ar')}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Step 2: Size */}
-          {currentStep === 2 && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold text-stone-800">اختار الحجم والأبعاد المناسبة لاحتياجك:</h3>
-              <div className="space-y-2.5">
-                {SIZES.map((size) => {
-                  const isSelected = config.size === size.id;
-                  return (
-                    <button
-                      key={size.id}
-                      onClick={() => setConfig({ ...config, size: size.id })}
-                      className={`w-full p-3.5 rounded-2xl border text-right transition-all flex items-center justify-between ${
-                        isSelected
-                          ? 'border-[#9b287b] bg-[#fdf2f8] ring-2 ring-[#9b287b]/20'
-                          : 'border-stone-200 bg-white hover:border-stone-300'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-6 h-6 rounded-full border flex items-center justify-center ${
-                            isSelected ? 'border-[#9b287b] bg-[#9b287b] text-white' : 'border-stone-300'
-                          }`}
-                        >
-                          {isSelected && <Check className="w-3.5 h-3.5" />}
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-bold text-stone-900">{size.nameAr}</h4>
-                          <p className="text-xs text-stone-500">{size.dimensions}</p>
-                        </div>
-                      </div>
-                      <div className="text-xs font-semibold text-stone-700">
-                        {size.priceDelta > 0 ? `+${formatPrice(size.priceDelta, 'EGP', 'ar')}` : 'ضمن السعر الأساسي'}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Step 3: Material */}
-          {currentStep === 3 && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold text-stone-800">اختار خامة الجلد والملمس الخارجي:</h3>
-              <div className="space-y-2.5">
-                {MATERIALS.map((mat) => {
-                  const isSelected = config.materialId === mat.id;
-                  return (
-                    <button
-                      key={mat.id}
-                      onClick={() => setConfig({ ...config, materialId: mat.id })}
-                      className={`w-full p-3.5 rounded-2xl border text-right transition-all flex items-center justify-between ${
-                        isSelected
-                          ? 'border-[#9b287b] bg-[#fdf2f8] ring-2 ring-[#9b287b]/20'
-                          : 'border-stone-200 bg-white hover:border-stone-300'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-6 h-6 rounded-full border flex items-center justify-center ${
-                            isSelected ? 'border-[#9b287b] bg-[#9b287b] text-white' : 'border-stone-300'
-                          }`}
-                        >
-                          {isSelected && <Check className="w-3.5 h-3.5" />}
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-bold text-stone-900">{mat.nameAr}</h4>
-                          <p className="text-xs text-stone-500">{mat.descriptionAr}</p>
-                        </div>
-                      </div>
-                      <div className="text-xs font-semibold text-stone-700">
-                        {mat.priceDelta > 0 ? `+${formatPrice(mat.priceDelta, 'EGP', 'ar')}` : 'مشمول'}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Step 4: Color */}
-          {currentStep === 4 && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold text-stone-800">اختار لون الجلد الخارجي:</h3>
-              <div className="grid grid-cols-2 gap-2.5">
-                {COLORS.map((col) => {
-                  const isSelected = config.primaryColorId === col.id;
-                  return (
-                    <button
-                      key={col.id}
-                      onClick={() => setConfig({ ...config, primaryColorId: col.id })}
-                      className={`p-3 rounded-2xl border text-right transition-all flex items-center gap-3 ${
-                        isSelected
-                          ? 'border-[#9b287b] bg-[#fdf2f8] ring-2 ring-[#9b287b]/20'
-                          : 'border-stone-200 bg-white hover:border-stone-300'
-                      }`}
-                    >
-                      <div
-                        className="w-7 h-7 rounded-full shadow-inner border border-black/10 flex-shrink-0"
-                        style={{ backgroundColor: col.hex }}
-                      />
-                      <div className="overflow-hidden">
-                        <h4 className="text-xs font-bold text-stone-900 truncate">{col.nameAr}</h4>
-                        <span className="text-[10px] text-stone-500 block truncate">{col.nameEn}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Step 5: Hardware */}
-          {currentStep === 5 && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold text-stone-800">اختار طلاء الإكسسوارات والسوستة المعدنية:</h3>
-              <div className="grid grid-cols-2 gap-2.5">
-                {HARDWARE_OPTIONS.map((hw) => {
-                  const isSelected = config.hardware === hw.id;
-                  return (
-                    <button
-                      key={hw.id}
-                      onClick={() => setConfig({ ...config, hardware: hw.id })}
-                      className={`p-3.5 rounded-2xl border text-right transition-all flex flex-col justify-between ${
-                        isSelected
-                          ? 'border-[#9b287b] bg-[#fdf2f8] ring-2 ring-[#9b287b]/20'
-                          : 'border-stone-200 bg-white hover:border-stone-300'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div
-                          className="w-6 h-6 rounded-full shadow-md border border-black/10"
-                          style={{ backgroundColor: hw.color }}
-                        />
-                        {isSelected && <Check className="w-4 h-4 text-[#9b287b]" />}
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-stone-900">{hw.nameAr}</h4>
-                        <p className="text-[11px] text-stone-500 mt-0.5">
-                          {hw.priceDelta > 0 ? `+${formatPrice(hw.priceDelta, 'EGP', 'ar')}` : 'مشمول'}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Step 6: Strap */}
-          {currentStep === 6 && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold text-stone-800">اختار نوع وشكل حزام الشنطة:</h3>
-              <div className="space-y-2.5">
-                {STRAPS.map((strap) => {
-                  const isSelected = config.strapId === strap.id;
-                  return (
-                    <button
-                      key={strap.id}
-                      onClick={() => setConfig({ ...config, strapId: strap.id })}
-                      className={`w-full p-3.5 rounded-2xl border text-right transition-all flex items-center justify-between ${
-                        isSelected
-                          ? 'border-[#9b287b] bg-[#fdf2f8] ring-2 ring-[#9b287b]/20'
-                          : 'border-stone-200 bg-white hover:border-stone-300'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-6 h-6 rounded-full border flex items-center justify-center ${
-                            isSelected ? 'border-[#9b287b] bg-[#9b287b] text-white' : 'border-stone-300'
-                          }`}
-                        >
-                          {isSelected && <Check className="w-3.5 h-3.5" />}
-                        </div>
-                        <h4 className="text-sm font-bold text-stone-900">{strap.nameAr}</h4>
-                      </div>
-                      <div className="text-xs font-semibold text-stone-700">
-                        {strap.priceDelta > 0 ? `+${formatPrice(strap.priceDelta, 'EGP', 'ar')}` : 'مشمول'}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Step 7: Monogram */}
-          {currentStep === 7 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3.5 bg-stone-50 rounded-2xl border border-stone-200">
-                <div>
-                  <h4 className="text-sm font-bold text-stone-900">تفعيل حفر اسمك أو حروفك الشخصية؟</h4>
-                  <p className="text-xs text-stone-500">حفر حراري دائم على واجهة الشنطة (+150 ج.م)</p>
+                          <div>
+                            <h4 className="text-sm font-bold text-stone-900">{type.nameAr}</h4>
+                            <p className="text-xs text-stone-500 mt-0.5 line-clamp-1">{type.descriptionAr}</p>
+                            <p className="text-xs font-semibold text-[#9b287b] mt-2">
+                              يبدأ من {formatPrice(type.basePrice, 'EGP', 'ar')}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-                <input
-                  type="checkbox"
-                  checked={config.monogram.enabled}
-                  onChange={(e) =>
-                    setConfig({
-                      ...config,
-                      monogram: { ...config.monogram, enabled: e.target.checked },
-                    })
-                  }
-                  className="w-5 h-5 accent-[#9b287b] rounded cursor-pointer"
-                />
-              </div>
+              )}
 
-              {config.monogram.enabled && (
-                <div className="space-y-3 p-4 bg-[#fdf2f8] rounded-2xl border border-[#9b287b]/20">
-                  <div>
-                    <label className="text-xs font-bold text-stone-800 block mb-1">
-                      اكتب الحروف أو الاسم (حتى 4 حروف أو اسم قصير بالإنجليزية):
-                    </label>
+              {/* Step 2: Size */}
+              {currentStep === 2 && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-bold text-stone-800">اختار الحجم والأبعاد المناسبة لاحتياجك:</h3>
+                  <div className="space-y-2.5">
+                    {SIZES.map((size) => {
+                      const isSelected = config.size === size.id;
+                      return (
+                        <button
+                          key={size.id}
+                          onClick={() => setConfig({ ...config, size: size.id })}
+                          className={`w-full p-3.5 rounded-2xl border text-right transition-all flex items-center justify-between ${
+                            isSelected
+                              ? 'border-[#9b287b] bg-[#fdf2f8] ring-2 ring-[#9b287b]/20'
+                              : 'border-stone-200 bg-white hover:border-stone-300'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-6 h-6 rounded-full border flex items-center justify-center ${
+                                isSelected ? 'border-[#9b287b] bg-[#9b287b] text-white' : 'border-stone-300'
+                              }`}
+                            >
+                              {isSelected && <Check className="w-3.5 h-3.5" />}
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-bold text-stone-900">{size.nameAr}</h4>
+                              <p className="text-xs text-stone-500">{size.dimensions}</p>
+                            </div>
+                          </div>
+                          <div className="text-xs font-semibold text-stone-700">
+                            {size.priceDelta > 0 ? `+${formatPrice(size.priceDelta, 'EGP', 'ar')}` : 'ضمن السعر الأساسي'}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Material */}
+              {currentStep === 3 && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-bold text-stone-800">اختار خامة الجلد والملمس الخارجي:</h3>
+                  <div className="space-y-2.5">
+                    {MATERIALS.map((mat) => {
+                      const isSelected = config.materialId === mat.id;
+                      return (
+                        <button
+                          key={mat.id}
+                          onClick={() => setConfig({ ...config, materialId: mat.id })}
+                          className={`w-full p-3.5 rounded-2xl border text-right transition-all flex items-center justify-between ${
+                            isSelected
+                              ? 'border-[#9b287b] bg-[#fdf2f8] ring-2 ring-[#9b287b]/20'
+                              : 'border-stone-200 bg-white hover:border-stone-300'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-6 h-6 rounded-full border flex items-center justify-center ${
+                                isSelected ? 'border-[#9b287b] bg-[#9b287b] text-white' : 'border-stone-300'
+                              }`}
+                            >
+                              {isSelected && <Check className="w-3.5 h-3.5" />}
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-bold text-stone-900">{mat.nameAr}</h4>
+                              <p className="text-xs text-stone-500">{mat.descriptionAr}</p>
+                            </div>
+                          </div>
+                          <div className="text-xs font-semibold text-stone-700">
+                            {mat.priceDelta > 0 ? `+${formatPrice(mat.priceDelta, 'EGP', 'ar')}` : 'مشمول'}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Step 4: Color */}
+              {currentStep === 4 && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-bold text-stone-800">اختار لون الجلد الخارجي:</h3>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {COLORS.map((col) => {
+                      const isSelected = config.primaryColorId === col.id;
+                      return (
+                        <button
+                          key={col.id}
+                          onClick={() => setConfig({ ...config, primaryColorId: col.id })}
+                          className={`p-3 rounded-2xl border text-right transition-all flex items-center gap-3 ${
+                            isSelected
+                              ? 'border-[#9b287b] bg-[#fdf2f8] ring-2 ring-[#9b287b]/20'
+                              : 'border-stone-200 bg-white hover:border-stone-300'
+                          }`}
+                        >
+                          <div
+                            className="w-7 h-7 rounded-full shadow-inner border border-black/10 flex-shrink-0"
+                            style={{ backgroundColor: col.hex }}
+                          />
+                          <div className="overflow-hidden">
+                            <h4 className="text-xs font-bold text-stone-900 truncate">{col.nameAr}</h4>
+                            <span className="text-[10px] text-stone-500 block truncate">{col.nameEn}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Step 5: Hardware */}
+              {currentStep === 5 && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-bold text-stone-800">اختار طلاء الإكسسوارات والسوستة المعدنية:</h3>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {HARDWARE_OPTIONS.map((hw) => {
+                      const isSelected = config.hardware === hw.id;
+                      return (
+                        <button
+                          key={hw.id}
+                          onClick={() => setConfig({ ...config, hardware: hw.id })}
+                          className={`p-3.5 rounded-2xl border text-right transition-all flex flex-col justify-between ${
+                            isSelected
+                              ? 'border-[#9b287b] bg-[#fdf2f8] ring-2 ring-[#9b287b]/20'
+                              : 'border-stone-200 bg-white hover:border-stone-300'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div
+                              className="w-6 h-6 rounded-full shadow-md border border-black/10"
+                              style={{ backgroundColor: hw.color }}
+                            />
+                            {isSelected && <Check className="w-4 h-4 text-[#9b287b]" />}
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-bold text-stone-900">{hw.nameAr}</h4>
+                            <p className="text-[11px] text-stone-500 mt-0.5">
+                              {hw.priceDelta > 0 ? `+${formatPrice(hw.priceDelta, 'EGP', 'ar')}` : 'مشمول'}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Step 6: Strap */}
+              {currentStep === 6 && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-bold text-stone-800">اختار نوع وشكل حزام الشنطة:</h3>
+                  <div className="space-y-2.5">
+                    {STRAPS.map((strap) => {
+                      const isSelected = config.strapId === strap.id;
+                      return (
+                        <button
+                          key={strap.id}
+                          onClick={() => setConfig({ ...config, strapId: strap.id })}
+                          className={`w-full p-3.5 rounded-2xl border text-right transition-all flex items-center justify-between ${
+                            isSelected
+                              ? 'border-[#9b287b] bg-[#fdf2f8] ring-2 ring-[#9b287b]/20'
+                              : 'border-stone-200 bg-white hover:border-stone-300'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-6 h-6 rounded-full border flex items-center justify-center ${
+                                isSelected ? 'border-[#9b287b] bg-[#9b287b] text-white' : 'border-stone-300'
+                              }`}
+                            >
+                              {isSelected && <Check className="w-3.5 h-3.5" />}
+                            </div>
+                            <h4 className="text-sm font-bold text-stone-900">{strap.nameAr}</h4>
+                          </div>
+                          <div className="text-xs font-semibold text-stone-700">
+                            {strap.priceDelta > 0 ? `+${formatPrice(strap.priceDelta, 'EGP', 'ar')}` : 'مشمول'}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Step 7: Monogram */}
+              {currentStep === 7 && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3.5 bg-stone-50 rounded-2xl border border-stone-200">
+                    <div>
+                      <h4 className="text-sm font-bold text-stone-900">تفعيل حفر اسمك أو حروفك الشخصية؟</h4>
+                      <p className="text-xs text-stone-500">حفر حراري دائم على واجهة الشنطة (+150 ج.م)</p>
+                    </div>
                     <input
-                      type="text"
-                      maxLength={6}
-                      placeholder="e.g. LOLA or S.A"
-                      value={config.monogram.text}
+                      type="checkbox"
+                      checked={config.monogram.enabled}
                       onChange={(e) =>
                         setConfig({
                           ...config,
-                          monogram: { ...config.monogram, text: e.target.value.toUpperCase() },
+                          monogram: { ...config.monogram, enabled: e.target.checked },
                         })
                       }
-                      className="w-full px-4 py-2.5 rounded-xl border border-stone-300 bg-white text-stone-900 font-bold uppercase tracking-widest text-center text-lg focus:outline-none focus:ring-2 focus:ring-[#9b287b]"
+                      className="w-5 h-5 accent-[#9b287b] rounded cursor-pointer"
                     />
                   </div>
 
-                  <div>
-                    <label className="text-xs font-bold text-stone-800 block mb-1.5">أسلوب ولون الحفر:</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { id: 'gold_foil', name: 'ذهب لامع (Gold)', color: 'text-amber-600' },
-                        { id: 'silver_foil', name: 'فضي بلاتيني', color: 'text-stone-500' },
-                        { id: 'blind_emboss', name: 'حفر بارز سادة', color: 'text-stone-700' },
-                      ].map((style) => (
-                        <button
-                          key={style.id}
-                          type="button"
-                          onClick={() =>
+                  {config.monogram.enabled && (
+                    <div className="space-y-3 p-4 bg-[#fdf2f8] rounded-2xl border border-[#9b287b]/20">
+                      <div>
+                        <label className="text-xs font-bold text-stone-800 block mb-1">
+                          اكتب الحروف أو الاسم (حتى 6 حروف بالإنجليزية):
+                        </label>
+                        <input
+                          type="text"
+                          maxLength={6}
+                          placeholder="e.g. LOLA or S.A"
+                          value={config.monogram.text}
+                          onChange={(e) =>
                             setConfig({
                               ...config,
-                              monogram: {
-                                ...config.monogram,
-                                style: style.id as MonogramConfig['style'],
-                              },
+                              monogram: { ...config.monogram, text: e.target.value.toUpperCase() },
                             })
                           }
-                          className={`p-2 rounded-xl text-center text-xs font-bold border transition-all ${
-                            config.monogram.style === style.id
+                          className="w-full px-4 py-2.5 rounded-xl border border-stone-300 bg-white text-stone-900 font-bold uppercase tracking-widest text-center text-lg focus:outline-none focus:ring-2 focus:ring-[#9b287b]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-stone-800 block mb-1.5">أسلوب ولون الحفر:</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {[
+                            { id: 'gold_foil', name: 'ذهب لامع (Gold)', color: 'text-amber-600' },
+                            { id: 'silver_foil', name: 'فضي بلاتيني', color: 'text-stone-500' },
+                            { id: 'blind_emboss', name: 'حفر بارز سادة', color: 'text-stone-700' },
+                          ].map((style) => (
+                            <button
+                              key={style.id}
+                              type="button"
+                              onClick={() =>
+                                setConfig({
+                                  ...config,
+                                  monogram: {
+                                    ...config.monogram,
+                                    style: style.id as MonogramConfig['style'],
+                                  },
+                                })
+                              }
+                              className={`p-2 rounded-xl text-center text-xs font-bold border transition-all ${
+                                config.monogram.style === style.id
                               ? 'border-[#9b287b] bg-white shadow-sm'
                               : 'border-transparent bg-white/60 text-stone-600'
+                              }`}
+                            >
+                              <span className={style.color}>{style.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Step 8: Add-ons & Gifting */}
+              {currentStep === 8 && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-bold text-stone-800">إضافات وتغليف هدايا فاخر:</h3>
+                  <div className="space-y-2.5">
+                    {ADDONS.map((addon) => {
+                      const isChecked = config.selectedAddonIds.includes(addon.id);
+                      return (
+                        <button
+                          key={addon.id}
+                          type="button"
+                          onClick={() => {
+                            const newIds = isChecked
+                              ? config.selectedAddonIds.filter((id) => id !== addon.id)
+                              : [...config.selectedAddonIds, addon.id];
+                            setConfig({ ...config, selectedAddonIds: newIds });
+                          }}
+                          className={`w-full p-3.5 rounded-2xl border text-right transition-all flex items-center justify-between ${
+                            isChecked
+                              ? 'border-[#9b287b] bg-[#fdf2f8] ring-2 ring-[#9b287b]/20'
+                              : 'border-stone-200 bg-white hover:border-stone-300'
                           }`}
                         >
-                          <span className={style.color}>{style.name}</span>
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-5 h-5 rounded-md border flex items-center justify-center ${
+                                isChecked ? 'border-[#9b287b] bg-[#9b287b] text-white' : 'border-stone-300'
+                              }`}
+                            >
+                              {isChecked && <Check className="w-3.5 h-3.5" />}
+                            </div>
+                            <div>
+                              <h4 className="text-xs font-bold text-stone-900">{addon.nameAr}</h4>
+                              <span className="text-[10px] text-stone-500">{addon.nameEn}</span>
+                            </div>
+                          </div>
+                          <span className="text-xs font-bold text-[#9b287b]">
+                            +{formatPrice(addon.price, 'EGP', 'ar')}
+                          </span>
                         </button>
-                      ))}
-                    </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Delivery Promise badge like Lola */}
+                  <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200/60 flex items-center gap-2.5 text-xs text-amber-900">
+                    <Clock className="w-4 h-4 flex-shrink-0 text-amber-700" />
+                    <span>
+                      شنطتك المخصصة تصنع يدوياً خصيصاً لك وتكون جاهزة للشحن خلال <strong>3 إلى 5 أيام عمل</strong>.
+                    </span>
                   </div>
                 </div>
               )}
             </div>
-          )}
 
-          {/* Step 8: Add-ons & Gifting */}
-          {currentStep === 8 && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold text-stone-800">إضافات وتغليف هدايا فاخر:</h3>
-              <div className="space-y-2.5">
-                {ADDONS.map((addon) => {
-                  const isChecked = config.selectedAddonIds.includes(addon.id);
-                  return (
-                    <button
-                      key={addon.id}
-                      type="button"
-                      onClick={() => {
-                        const newIds = isChecked
-                          ? config.selectedAddonIds.filter((id) => id !== addon.id)
-                          : [...config.selectedAddonIds, addon.id];
-                        setConfig({ ...config, selectedAddonIds: newIds });
-                      }}
-                      className={`w-full p-3.5 rounded-2xl border text-right transition-all flex items-center justify-between ${
-                        isChecked
-                          ? 'border-[#9b287b] bg-[#fdf2f8] ring-2 ring-[#9b287b]/20'
-                          : 'border-stone-200 bg-white hover:border-stone-300'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-5 h-5 rounded-md border flex items-center justify-center ${
-                            isChecked ? 'border-[#9b287b] bg-[#9b287b] text-white' : 'border-stone-300'
-                          }`}
-                        >
-                          {isChecked && <Check className="w-3.5 h-3.5" />}
-                        </div>
-                        <div>
-                          <h4 className="text-xs font-bold text-stone-900">{addon.nameAr}</h4>
-                          <span className="text-[10px] text-stone-500">{addon.nameEn}</span>
-                        </div>
-                      </div>
-                      <span className="text-xs font-bold text-[#9b287b]">
-                        +{formatPrice(addon.price, 'EGP', 'ar')}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Delivery Promise badge like Lola */}
-              <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200/60 flex items-center gap-2.5 text-xs text-amber-900">
-                <Clock className="w-4 h-4 flex-shrink-0 text-amber-700" />
-                <span>
-                  شنطتك المخصصة تصنع يدوياً خصيصاً لك وتكون جاهزة للشحن خلال <strong>3 إلى 5 أيام عمل</strong>.
+            {/* Sticky Bottom Actions Bar */}
+            <div className="p-4 border-t border-stone-100 bg-white flex items-center justify-between gap-3 sticky bottom-0 z-20">
+              <div>
+                <span className="text-[11px] text-stone-400 block">السعر الإجمالي للتفصيل</span>
+                <span className="text-lg font-black text-stone-950">
+                  {formatPrice(totalPrice, 'EGP', 'ar')}
                 </span>
               </div>
+
+              <div className="flex items-center gap-2">
+                {currentStep > 1 && (
+                  <button
+                    onClick={handleBack}
+                    className="px-4 py-3 rounded-2xl border border-stone-200 text-stone-700 text-xs font-bold hover:bg-stone-50 transition-colors flex items-center gap-1"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                    السابق
+                  </button>
+                )}
+
+                <button
+                  onClick={handleNext}
+                  className="px-6 py-3 rounded-2xl bg-[#9b287b] hover:bg-[#831f67] text-white text-xs font-bold transition-all shadow-lg shadow-[#9b287b]/25 flex items-center gap-1.5"
+                >
+                  {currentStep === STEPS.length ? (
+                    <>
+                      <ShoppingBag className="w-4 h-4" />
+                      أضف للحقيبة الآن
+                    </>
+                  ) : (
+                    <>
+                      التالي
+                      <ChevronLeft className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-          )}
-        </div>
-
-        {/* Sticky Bottom Actions Bar (Like Lola's checkout bar) */}
-        <div className="p-4 border-t border-stone-100 bg-white flex items-center justify-between gap-3 sticky bottom-0 z-20">
-          <div>
-            <span className="text-[11px] text-stone-400 block">السعر الإجمالي للتفصيل</span>
-            <span className="text-lg font-black text-stone-950">
-              {formatPrice(totalPrice, 'EGP', 'ar')}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {currentStep > 1 && (
-              <button
-                onClick={handleBack}
-                className="px-4 py-3 rounded-2xl border border-stone-200 text-stone-700 text-xs font-bold hover:bg-stone-50 transition-colors flex items-center gap-1"
-              >
-                <ChevronRight className="w-4 h-4" />
-                السابق
-              </button>
-            )}
-
-            <button
-              onClick={handleNext}
-              className="px-6 py-3 rounded-2xl bg-[#9b287b] hover:bg-[#831f67] text-white text-xs font-bold transition-all shadow-lg shadow-[#9b287b]/25 flex items-center gap-1.5"
-            >
-              {currentStep === STEPS.length ? (
-                <>
-                  <ShoppingBag className="w-4 h-4" />
-                  أضف للحقيبة الآن
-                </>
-              ) : (
-                <>
-                  التالي
-                  <ChevronLeft className="w-4 h-4" />
-                </>
-              )}
-            </button>
           </div>
         </div>
       </div>
