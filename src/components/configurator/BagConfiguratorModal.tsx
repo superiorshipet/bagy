@@ -42,6 +42,7 @@ interface BagConfiguratorModalProps {
   onAddToCart: (item: CartItem) => void;
   initialBagType?: BagCategory;
   initialProduct?: any;
+  categories?: any[];
   locale?: 'ar' | 'en';
 }
 
@@ -62,7 +63,9 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
   onAddToCart,
   initialBagType = 'tote',
   initialProduct,
+  categories,
 }) => {
+  const effectiveCategories = (categories && categories.length > 0) ? categories : BAG_TYPES;
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [previewMode, setPreviewMode] = useState<'photo' | 'interactive'>(
     initialProduct?.image ? 'photo' : 'interactive'
@@ -90,7 +93,7 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
   // Keep bagType and previewMode updated if modal opens with different initialProduct or initialBagType
   React.useEffect(() => {
     if (initialProduct) {
-      if (initialProduct.category && BAG_TYPES.some((t) => t.id === initialProduct.category)) {
+      if (initialProduct.category) {
         setConfig((prev) => ({ ...prev, bagType: initialProduct.category }));
       }
       if (initialProduct.image) {
@@ -103,13 +106,13 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
 
   // Calculate live total price
   const totalPrice = useMemo(() => {
-    const bagTypeObj = BAG_TYPES.find((t) => t.id === config.bagType) || BAG_TYPES[0];
+    const bagTypeObj = effectiveCategories.find((t) => (t.slug || t.id) === config.bagType) || effectiveCategories[0] || BAG_TYPES[0];
     const sizeObj = SIZES.find((s) => s.id === config.size) || SIZES[0];
     const matObj = MATERIALS.find((m) => m.id === config.materialId) || MATERIALS[0];
     const hwObj = HARDWARE_OPTIONS.find((h) => h.id === config.hardware) || HARDWARE_OPTIONS[0];
     const strapObj = STRAPS.find((s) => s.id === config.strapId) || STRAPS[0];
 
-    const basePrice = initialProduct?.price || bagTypeObj.basePrice;
+    const basePrice = initialProduct?.price || bagTypeObj?.basePrice || 1850;
     let sum = basePrice + sizeObj.priceDelta + matObj.priceDelta + hwObj.priceDelta + strapObj.priceDelta;
 
     if (config.monogram.enabled && config.monogram.text.trim()) {
@@ -122,7 +125,7 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
     });
 
     return sum;
-  }, [config, initialProduct]);
+  }, [config, initialProduct, effectiveCategories]);
 
   if (!isOpen) return null;
 
@@ -316,20 +319,21 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                     {initialProduct ? 'أو يمكنك تغيير القصة الأساسية:' : 'اختار شكل وقصة الشنطة الأساسية:'}
                   </h3>
                   <div className="grid grid-cols-2 gap-3">
-                    {BAG_TYPES.map((type) => {
-                      const isSelected = config.bagType === type.id;
+                    {effectiveCategories.map((type) => {
+                      const typeId = type.slug || type.id;
+                      const isSelected = config.bagType === typeId;
                       return (
                         <button
-                          key={type.id}
-                          onClick={() => setConfig({ ...config, bagType: type.id })}
+                          key={typeId}
+                          onClick={() => setConfig({ ...config, bagType: typeId })}
                           className={`p-3.5 rounded-2xl border text-right transition-all flex flex-col justify-between ${
                             isSelected
-                              ? 'border-[#9b287b] bg-[#fdf2f8] shadow-sm ring-2 ring-[#9b287b]/20'
-                              : 'border-stone-200 bg-white hover:border-stone-300'
+                              ? 'border-[#9b287b] bg-[#fdf2f8] dark:bg-[#281223] shadow-sm ring-2 ring-[#9b287b]/20'
+                              : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 hover:border-stone-300'
                           }`}
                         >
                           <div className="flex items-center justify-between w-full mb-2">
-                            <span className="text-2xl">{type.icon}</span>
+                            <span className="text-2xl">{type.icon || '👜'}</span>
                             {isSelected && (
                               <div className="w-5 h-5 rounded-full bg-[#9b287b] text-white flex items-center justify-center">
                                 <Check className="w-3 h-3" />
@@ -337,10 +341,10 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                             )}
                           </div>
                           <div>
-                            <h4 className="text-sm font-bold text-stone-900">{type.nameAr}</h4>
-                            <p className="text-xs text-stone-500 mt-0.5 line-clamp-1">{type.descriptionAr}</p>
-                            <p className="text-xs font-semibold text-[#9b287b] mt-2">
-                              يبدأ من {formatPrice(type.basePrice, 'EGP', 'ar')}
+                            <h4 className="text-sm font-bold text-stone-900 dark:text-white">{type.nameAr}</h4>
+                            <p className="text-xs text-stone-500 mt-0.5 line-clamp-1">{type.descriptionAr || type.nameEn}</p>
+                            <p className="text-xs font-semibold text-[#9b287b] dark:text-[#be3999] mt-2">
+                              يبدأ من {formatPrice(type.basePrice || 1850, 'EGP', 'ar')}
                             </p>
                           </div>
                         </button>

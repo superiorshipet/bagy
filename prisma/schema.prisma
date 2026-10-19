@@ -158,3 +158,18 @@ model AdminLog {
   adminEmail String
   createdAt  DateTime @default(now())
 }
+
+model Category {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  nameAr        String
+  nameEn        String
+  icon          String    @default("👜")
+  basePrice     Float     @default(1850)
+  descriptionAr String?
+  descriptionEn String?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+

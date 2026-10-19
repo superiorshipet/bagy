@@ -1,4 +1,4 @@
-export type BagCategory = 'tote' | 'crossbody' | 'shoulder' | 'mini' | 'backpack' | 'clutch';
+export type BagCategory = 'tote' | 'crossbody' | 'shoulder' | 'mini' | 'backpack' | 'clutch' | (string & {});
 
 export interface BagTypeOption {
   id: BagCategory;

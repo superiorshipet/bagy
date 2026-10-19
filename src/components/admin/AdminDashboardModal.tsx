@@ -29,17 +29,20 @@ interface AdminDashboardModalProps {
   isOpen: boolean;
   onClose: () => void;
   onProductsUpdated?: () => void;
+  onCategoriesUpdated?: () => void;
 }
 
 export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   isOpen,
   onClose,
   onProductsUpdated,
+  onCategoriesUpdated,
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'users' | 'promos'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'categories' | 'users' | 'promos'>('overview');
   const [stats, setStats] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -61,6 +64,21 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
 
+  // Categories management state
+  const [newCategory, setNewCategory] = useState({
+    slug: '',
+    nameAr: '',
+    nameEn: '',
+    icon: '👜',
+    basePrice: 1850,
+    image: '',
+    description: '',
+  });
+  const [isSubmittingCat, setIsSubmittingCat] = useState(false);
+  const [categorySuccessMsg, setCategorySuccessMsg] = useState('');
+  const [editingCategory, setEditingCategory] = useState<any | null>(null);
+  const [isSavingCatEdit, setIsSavingCatEdit] = useState(false);
+
   // Deletion feedback states
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [notificationMsg, setNotificationMsg] = useState('');
@@ -72,12 +90,14 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       fetch('/api/orders').then((res) => res.json()),
       fetch('/api/products').then((res) => res.json()),
       fetch('/api/admin/users').then((res) => res.json()),
+      fetch('/api/categories').then((res) => res.json()),
     ])
-      .then(([statsRes, ordersRes, productsRes, usersRes]) => {
+      .then(([statsRes, ordersRes, productsRes, usersRes, catRes]) => {
         if (statsRes.success) setStats(statsRes.stats);
         if (ordersRes.success) setOrders(ordersRes.orders);
         if (productsRes.success) setProducts(productsRes.products);
         if (usersRes.success) setUsers(usersRes.users);
+        if (catRes.success) setCategories(catRes.categories);
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
@@ -230,6 +250,104 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     }
   };
 
+  // Handle Create Category
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCategory.nameAr || !newCategory.slug) {
+      alert('يرجى إدخال اسم الفئة والكود التعريفي (Slug)');
+      return;
+    }
+    setIsSubmittingCat(true);
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newCategory),
+      });
+      const data = await res.json();
+      if (data.success && data.category) {
+        setCategories((prev) => [data.category, ...prev]);
+        setCategorySuccessMsg(`✓ تم إضافة الفئة "${data.category.nameAr}" بنجاح!`);
+        setNewCategory({
+          slug: '',
+          nameAr: '',
+          nameEn: '',
+          icon: '👜',
+          basePrice: 1850,
+          image: '',
+          description: '',
+        });
+        if (onCategoriesUpdated) onCategoriesUpdated();
+        setTimeout(() => setCategorySuccessMsg(''), 4000);
+      } else {
+        alert(data.error || 'فشل إضافة الفئة الجديدة');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('خطأ في الاتصال بالسيرفر أثناء إضافة الفئة');
+    } finally {
+      setIsSubmittingCat(false);
+    }
+  };
+
+  // Handle Delete Category
+  const handleDeleteCategory = async (catId: string, catName: string) => {
+    if (!window.confirm(`هل أنت متأكد من حذف الفئة "${catName}" نهائياً من قاعدة البيانات؟`)) {
+      return;
+    }
+    setDeletingId(catId);
+    try {
+      const res = await fetch(`/api/categories?id=${catId}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCategories((prev) => prev.filter((c) => c.id !== catId));
+        if (onCategoriesUpdated) onCategoriesUpdated();
+        setNotificationMsg(`✓ تم حذف الفئة "${catName}" بنجاح.`);
+        setTimeout(() => setNotificationMsg(''), 4000);
+      } else {
+        alert(data.error || 'حدث خطأ أثناء حذف الفئة');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('فشل الاتصال بالخادم لحذف الفئة');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  // Handle Save Edit Category
+  const handleSaveEditCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCategory) return;
+    setIsSavingCatEdit(true);
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingCategory),
+      });
+      const data = await res.json();
+      if (data.success && data.category) {
+        setCategories((prev) =>
+          prev.map((c) => (c.id === data.category.id ? data.category : c))
+        );
+        if (onCategoriesUpdated) onCategoriesUpdated();
+        setEditingCategory(null);
+        setNotificationMsg(`✓ تم تحديث الفئة "${data.category.nameAr}" بنجاح!`);
+        setTimeout(() => setNotificationMsg(''), 4000);
+      } else {
+        alert(data.error || 'حدث خطأ أثناء تعديل الفئة');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('فشل الاتصال بالخادم لحفظ تعديلات الفئة');
+    } finally {
+      setIsSavingCatEdit(false);
+    }
+  };
+
   const filteredOrders = orders.filter((order) => {
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     const matchesSearch =
@@ -314,6 +432,18 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           >
             <Package className="w-4 h-4" />
             الموديلات والشنط ({products.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('categories')}
+            className={`py-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap ${
+              activeTab === 'categories'
+                ? 'border-[#9b287b] text-[#9b287b] dark:text-[#be3999]'
+                : 'border-transparent text-stone-500 hover:text-stone-800 dark:text-stone-400'
+            }`}
+          >
+            <Tag className="w-4 h-4" />
+            الفئات والقصات ({categories.length})
           </button>
 
           <button
@@ -590,12 +720,22 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
                       className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800"
                     >
-                      <option value="tote">توت باج (Tote)</option>
-                      <option value="crossbody">كروس بودي (Crossbody)</option>
-                      <option value="shoulder">شولدر باج (Shoulder)</option>
-                      <option value="mini">ميني باج (Mini)</option>
-                      <option value="backpack">باك باك (Backpack)</option>
-                      <option value="clutch">كلاتش (Clutch)</option>
+                      {categories.length > 0 ? (
+                        categories.map((cat) => (
+                          <option key={cat.slug} value={cat.slug}>
+                            {cat.icon || '👜'} {cat.nameAr} ({cat.nameEn})
+                          </option>
+                        ))
+                      ) : (
+                        <>
+                          <option value="tote">👜 توت باج (Tote)</option>
+                          <option value="crossbody">👝 كروس بودي (Crossbody)</option>
+                          <option value="shoulder">👛 شولدر باج (Shoulder)</option>
+                          <option value="mini">🎒 ميني باج (Mini)</option>
+                          <option value="backpack">🎒 باك باك (Backpack)</option>
+                          <option value="clutch">👝 كلاتش (Clutch)</option>
+                        </>
+                      )}
                     </select>
                   </div>
 
@@ -656,9 +796,14 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         />
                         <div className="flex-1 overflow-hidden min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-[10px] font-bold text-[#9b287b] dark:text-[#be3999] bg-[#fdf2f8] dark:bg-[#281223] px-2 py-0.5 rounded-md">
-                              {p.category}
-                            </span>
+                            {(() => {
+                              const catObj = categories.find((c) => c.slug === p.category);
+                              return (
+                                <span className="text-[10px] font-bold text-[#9b287b] dark:text-[#be3999] bg-[#fdf2f8] dark:bg-[#281223] px-2 py-0.5 rounded-md">
+                                  {catObj ? `${catObj.icon || ''} ${catObj.nameAr}` : p.category}
+                                </span>
+                              );
+                            })()}
                             {p.isBestSeller && (
                               <span className="text-[10px] font-black bg-amber-500 text-stone-950 px-2 py-0.5 rounded-md">
                                 الأكثر مبيعاً ⭐
@@ -697,6 +842,205 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: CATEGORIES MANAGEMENT (إدارة الفئات والموديلات) */}
+          {activeTab === 'categories' && (
+            <div className="space-y-6">
+              {/* Add New Category Form */}
+              <div className="p-5 rounded-2xl border border-stone-200 dark:border-stone-800 bg-stone-50/60 dark:bg-stone-900/30 space-y-4">
+                <h3 className="text-sm font-bold text-stone-900 dark:text-white flex items-center gap-2">
+                  <Plus className="w-4 h-4 text-[#9b287b]" />
+                  إضافة فئة / قصة شنطة جديدة إلى قاعدة البيانات
+                </h3>
+
+                {categorySuccessMsg && (
+                  <div className="p-3 bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-300 rounded-xl text-xs font-bold">
+                    {categorySuccessMsg}
+                  </div>
+                )}
+
+                <form onSubmit={handleCreateCategory} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                      اسم الفئة (عربي):
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="مثلاً: شنطة حزام"
+                      value={newCategory.nameAr}
+                      onChange={(e) => {
+                        const nameAr = e.target.value;
+                        setNewCategory((prev) => ({
+                          ...prev,
+                          nameAr,
+                          // auto-generate slug if slug is empty or matches previous translation
+                          slug: prev.slug || nameAr.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/^-+|-+$/g, '')
+                        }));
+                      }}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                      الاسم بالإنجليزية:
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Belt Bag"
+                      value={newCategory.nameEn}
+                      onChange={(e) => {
+                        const nameEn = e.target.value;
+                        const autoSlug = nameEn.toLowerCase().trim().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+                        setNewCategory((prev) => ({
+                          ...prev,
+                          nameEn,
+                          slug: autoSlug || prev.slug
+                        }));
+                      }}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                      المعرف الإنجليزي (Slug / Code):
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. belt, satchel"
+                      value={newCategory.slug}
+                      onChange={(e) => setNewCategory({ ...newCategory, slug: e.target.value.toLowerCase().trim().replace(/[^a-z0-9-]/g, '') })}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                      الأيقونة / الإيموجي:
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="👜 أو 👝 أو 🎒"
+                      value={newCategory.icon}
+                      onChange={(e) => setNewCategory({ ...newCategory, icon: e.target.value })}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white text-center text-base"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                      السعر الأساسي المبدئي (ج.م):
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      value={newCategory.basePrice}
+                      onChange={(e) => setNewCategory({ ...newCategory, basePrice: Number(e.target.value) })}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                      رابط صورة نموذجية للفئة (اختياري):
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://..."
+                      value={newCategory.image}
+                      onChange={(e) => setNewCategory({ ...newCategory, image: e.target.value })}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white"
+                    />
+                  </div>
+
+                  <div className="flex items-end">
+                    <button
+                      type="submit"
+                      disabled={isSubmittingCat}
+                      className="w-full py-2.5 rounded-xl bg-[#9b287b] hover:bg-[#831f67] text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>{isSubmittingCat ? 'جاري الحفظ...' : '+ حفظ الفئة'}</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Categories Grid List */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-stone-900 dark:text-white">
+                    الفئات المسجلة في المتجر ({categories.length})
+                  </h3>
+                  <span className="text-xs text-stone-400">
+                    تظهر الفئات الجديدة فوراً في شريط القصات، وفلاتر المتجر، ومعالج التفصيل
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {categories.map((c) => {
+                    const productCount = products.filter((p) => p.category === c.slug).length;
+                    return (
+                      <div
+                        key={c.id || c.slug}
+                        className="p-4 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900/40 flex flex-col justify-between gap-3 hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="w-14 h-14 rounded-2xl bg-[#fdf2f8] dark:bg-[#281223] border border-[#9b287b]/20 flex items-center justify-center text-3xl flex-shrink-0">
+                            {c.icon || '👜'}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <h4 className="text-sm font-bold text-stone-900 dark:text-white truncate">
+                                {c.nameAr}
+                              </h4>
+                              <span className="text-[10px] font-mono text-stone-400 bg-stone-100 dark:bg-stone-800 px-1.5 py-0.5 rounded">
+                                {c.slug}
+                              </span>
+                            </div>
+                            <span className="text-xs text-stone-400 block truncate">{c.nameEn}</span>
+                            <div className="mt-1 flex items-center justify-between">
+                              <span className="text-xs font-black text-[#9b287b] dark:text-[#be3999]">
+                                تبدأ من {formatPrice(c.basePrice, 'EGP', 'ar')}
+                              </span>
+                              <span className="text-[10px] font-bold text-stone-500 bg-stone-100 dark:bg-stone-800 px-2 py-0.5 rounded-full">
+                                {productCount} موديل
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Action buttons: Edit & Delete */}
+                        <div className="flex items-center gap-2 pt-2 border-t border-stone-100 dark:border-stone-800">
+                          <button
+                            onClick={() => setEditingCategory(c)}
+                            className="flex-1 py-1.5 px-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-xs font-bold transition-colors flex items-center justify-center gap-1"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                            <span>تعديل</span>
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteCategory(c.id, c.nameAr)}
+                            disabled={deletingId === c.id}
+                            className="py-1.5 px-3 rounded-xl bg-red-50 dark:bg-red-950/30 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 text-xs font-bold transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
+                            title="حذف هذه الفئة"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>حذف</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -865,12 +1209,22 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
                       className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white"
                     >
-                      <option value="tote">توت باج (Tote)</option>
-                      <option value="crossbody">كروس بودي (Crossbody)</option>
-                      <option value="shoulder">شولدر باج (Shoulder)</option>
-                      <option value="mini">ميني باج (Mini)</option>
-                      <option value="backpack">باك باك (Backpack)</option>
-                      <option value="clutch">كلاتش (Clutch)</option>
+                      {categories.length > 0 ? (
+                        categories.map((cat) => (
+                          <option key={cat.slug} value={cat.slug}>
+                            {cat.icon || '👜'} {cat.nameAr} ({cat.nameEn})
+                          </option>
+                        ))
+                      ) : (
+                        <>
+                          <option value="tote">👜 توت باج (Tote)</option>
+                          <option value="crossbody">👝 كروس بودي (Crossbody)</option>
+                          <option value="shoulder">👛 شولدر باج (Shoulder)</option>
+                          <option value="mini">🎒 ميني باج (Mini)</option>
+                          <option value="backpack">🎒 باك باك (Backpack)</option>
+                          <option value="clutch">👝 كلاتش (Clutch)</option>
+                        </>
+                      )}
                     </select>
                   </div>
                   <div>
@@ -933,6 +1287,124 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   >
                     <Save className="w-4 h-4" />
                     <span>{isSavingEdit ? 'جاري الحفظ...' : 'حفظ التعديلات'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL: EDIT CATEGORY MODAL */}
+        {editingCategory && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+            <div className="bg-white dark:bg-[#1a1a24] rounded-3xl p-6 w-full max-w-lg border border-stone-200 dark:border-stone-800 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-stone-100 dark:border-stone-800">
+                <h3 className="text-sm font-bold text-stone-900 dark:text-white flex items-center gap-2">
+                  <Edit className="w-4 h-4 text-[#9b287b]" />
+                  تعديل بيانات الفئة / القصة: {editingCategory.nameAr}
+                </h3>
+                <button
+                  onClick={() => setEditingCategory(null)}
+                  className="w-8 h-8 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-stone-500 hover:bg-stone-200"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveEditCategory} className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                      اسم الفئة (عربي):
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editingCategory.nameAr}
+                      onChange={(e) => setEditingCategory({ ...editingCategory, nameAr: e.target.value })}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                      الاسم بالإنجليزية:
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editingCategory.nameEn}
+                      onChange={(e) => setEditingCategory({ ...editingCategory, nameEn: e.target.value })}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                      الأيقونة / الإيموجي:
+                    </label>
+                    <input
+                      type="text"
+                      value={editingCategory.icon || ''}
+                      onChange={(e) => setEditingCategory({ ...editingCategory, icon: e.target.value })}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white text-center text-base"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                      السعر الأساسي (ج.م):
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      value={editingCategory.basePrice}
+                      onChange={(e) => setEditingCategory({ ...editingCategory, basePrice: Number(e.target.value) })}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                    المعرف (Slug / Code):
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editingCategory.slug}
+                    onChange={(e) => setEditingCategory({ ...editingCategory, slug: e.target.value.toLowerCase().trim() })}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                    رابط صورة توضيحية (اختياري):
+                  </label>
+                  <input
+                    type="url"
+                    value={editingCategory.image || ''}
+                    onChange={(e) => setEditingCategory({ ...editingCategory, image: e.target.value })}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 pt-3 border-t border-stone-100 dark:border-stone-800">
+                  <button
+                    type="button"
+                    onClick={() => setEditingCategory(null)}
+                    className="flex-1 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-300 text-xs font-bold hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+                  >
+                    إلغاء
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSavingCatEdit}
+                    className="flex-1 py-2.5 rounded-xl bg-[#9b287b] hover:bg-[#831f67] text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>{isSavingCatEdit ? 'جاري الحفظ...' : 'حفظ تعديلات الفئة'}</span>
                   </button>
                 </div>
               </form>

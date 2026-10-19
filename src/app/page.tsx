@@ -35,6 +35,7 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [likedProductIds, setLikedProductIds] = useState<string[]>([]);
   const [dbProducts, setDbProducts] = useState<any[]>(FEATURED_PRODUCTS);
+  const [dbCategories, setDbCategories] = useState<any[]>(BAG_TYPES);
 
   const fetchProducts = () => {
     fetch('/api/products')
@@ -47,9 +48,21 @@ export default function HomePage() {
       .catch((e) => console.log('Using local fallback products', e));
   };
 
-  // Fetch live products from PostgreSQL API
+  const fetchCategories = () => {
+    fetch('/api/categories')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.categories && data.categories.length > 0) {
+          setDbCategories(data.categories);
+        }
+      })
+      .catch((e) => console.log('Using local fallback categories', e));
+  };
+
+  // Fetch live products and categories from PostgreSQL API
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, []);
 
   // Interactive Live Preview on Home Page
@@ -116,7 +129,7 @@ export default function HomePage() {
 
   const handleOpenConfiguratorWithProduct = (product: any) => {
     setSelectedProductForConfig(product);
-    if (product.category && BAG_TYPES.some((t) => t.id === product.category)) {
+    if (product.category) {
       setSelectedBagTypeForConfig(product.category);
     }
     setIsConfiguratorOpen(true);
@@ -134,7 +147,10 @@ export default function HomePage() {
       ? dbProducts
       : dbProducts.filter((p) => p.category === selectedCategory);
 
-  const activeCategoryObj = BAG_TYPES.find((t) => t.id === homePreviewConfig.bagType);
+  const activeCategoryObj =
+    dbCategories.find((t) => (t.slug || t.id) === homePreviewConfig.bagType) ||
+    dbCategories[0] ||
+    BAG_TYPES[0];
 
   return (
     <div className="app-container bg-background text-foreground transition-colors" dir="rtl">
@@ -265,13 +281,14 @@ export default function HomePage() {
             </button>
 
             {/* Bag Types */}
-            {BAG_TYPES.map((bag) => {
-              const isSelected = selectedCategory === bag.id || homePreviewConfig.bagType === bag.id;
-              const count = dbProducts.filter((p) => p.category === bag.id).length;
+            {dbCategories.map((bag) => {
+              const bagSlug = bag.slug || bag.id;
+              const isSelected = selectedCategory === bagSlug || homePreviewConfig.bagType === bagSlug;
+              const count = dbProducts.filter((p) => p.category === bagSlug).length;
               return (
                 <button
-                  key={bag.id}
-                  onClick={() => handleSelectCategory(bag.id)}
+                  key={bagSlug}
+                  onClick={() => handleSelectCategory(bagSlug)}
                   className={`flex-shrink-0 flex flex-col items-center gap-2 p-2.5 sm:p-3.5 rounded-3xl transition-all cursor-pointer ${
                     isSelected
                       ? 'bg-[#fdf2f8] dark:bg-[#281223] text-[#9b287b] dark:text-[#be3999] font-black ring-2 ring-[#9b287b]/40 shadow-sm'
@@ -285,7 +302,7 @@ export default function HomePage() {
                         : 'border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900'
                     }`}
                   >
-                    {bag.icon}
+                    {bag.icon || '👜'}
                   </div>
                   <span className="text-xs sm:text-sm font-bold truncate max-w-[95px]">{bag.nameAr}</span>
                   <span className="text-[10px] sm:text-xs text-stone-400">({count} موديل)</span>
@@ -333,20 +350,21 @@ export default function HomePage() {
               <div className="space-y-2.5">
                 <span className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200 block">اختيار قصة الشنطة المعروضة:</span>
                 <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
-                  {BAG_TYPES.map((type) => {
-                    const isCurrent = homePreviewConfig.bagType === type.id;
+                  {dbCategories.map((type) => {
+                    const typeSlug = type.slug || type.id;
+                    const isCurrent = homePreviewConfig.bagType === typeSlug;
                     return (
                       <button
-                        key={type.id}
-                        onClick={() => handleSelectCategory(type.id)}
+                        key={typeSlug}
+                        onClick={() => handleSelectCategory(typeSlug)}
                         className={`p-2.5 rounded-2xl text-xs sm:text-sm font-bold border transition-all flex items-center justify-center gap-1.5 ${
                           isCurrent
                             ? 'border-[#9b287b] bg-[#fdf2f8] dark:bg-[#281223] text-[#9b287b] dark:text-[#be3999] shadow-sm'
                             : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-300 hover:bg-stone-50'
                         }`}
                       >
-                        <span className="text-base sm:text-lg">{type.icon}</span>
-                        <span className="truncate">{type.nameAr.split(' ')[0]}</span>
+                        <span className="text-base sm:text-lg">{type.icon || '👜'}</span>
+                        <span className="truncate">{type.nameAr?.split(' ')[0] || type.nameAr}</span>
                       </button>
                     );
                   })}
@@ -561,6 +579,7 @@ export default function HomePage() {
         }}
         initialBagType={selectedBagTypeForConfig}
         initialProduct={selectedProductForConfig}
+        categories={dbCategories}
         onAddToCart={handleAddToCart}
       />
 
@@ -586,6 +605,7 @@ export default function HomePage() {
         isOpen={isAdminOpen}
         onClose={() => setIsAdminOpen(false)}
         onProductsUpdated={fetchProducts}
+        onCategoriesUpdated={fetchCategories}
       />
     </div>
   );
