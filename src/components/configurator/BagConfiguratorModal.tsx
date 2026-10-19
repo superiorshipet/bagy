@@ -280,7 +280,10 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                   </div>
                 </div>
               ) : (
-                <BagCanvasPreview config={config} />
+                <BagCanvasPreview
+                  config={config}
+                  imageUrl={initialProduct?.image || effectiveCategories.find((c) => (c.slug || c.id) === config.bagType)?.image}
+                />
               )}
 
               <div className="mt-1.5 sm:mt-3 text-center text-[10px] sm:text-xs text-stone-400 hidden sm:block">

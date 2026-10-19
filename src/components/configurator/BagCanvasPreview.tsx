@@ -8,13 +8,16 @@ interface BagCanvasPreviewProps {
   config: CustomBagConfiguration;
   className?: string;
   viewAngle?: 'front' | 'side' | 'strap';
+  imageUrl?: string;
 }
 
 export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
   config,
   className = '',
   viewAngle = 'front',
+  imageUrl,
 }) => {
+  const [displayMode, setDisplayMode] = React.useState<'3d' | 'photo'>('3d');
   const currentType = BAG_TYPES.find((t) => t.id === config.bagType) || BAG_TYPES[0];
   const currentMaterial = MATERIALS.find((m) => m.id === config.materialId) || MATERIALS[0];
   const currentColor = COLORS.find((c) => c.id === config.primaryColorId) || COLORS[0];
@@ -25,6 +28,9 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
   const primaryHex = config.customColorHex || (config.primaryColorId?.startsWith('#') ? config.primaryColorId : currentColor.hex);
   const colorDisplayName = config.customColorName || (config.customColorHex ? `مخصص (${config.customColorHex})` : currentColor.nameAr);
   const hardwareColor = currentHardware.color;
+
+  const isLegacySilhouette = ['tote', 'shoulder', 'crossbody', 'mini', 'clutch', 'backpack'].includes(config.bagType);
+  const isCrescentOrCustom = !isLegacySilhouette || config.bagType === 'crescent' || config.bagType === 'hobo' || config.bagType === 'ava' || config.bagType === 'belt' || config.bagType === 'u';
 
   // Determine scale based on size
   const scaleMap = {
@@ -45,6 +51,8 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
       ? 278
       : config.bagType === 'shoulder'
       ? 252
+      : isCrescentOrCustom
+      ? 270
       : 275;
 
   const textLength = config.monogram.text.trim().length;
@@ -63,12 +71,38 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(255,255,255,0.85)_0%,rgba(240,235,225,0.3)_60%,transparent_100%)] pointer-events-none" />
       <div className="absolute bottom-4 w-4/5 h-8 bg-black/10 rounded-[100%] blur-xl pointer-events-none" />
 
-      {/* Dynamic Bag SVG */}
-      <svg
-        viewBox="0 0 400 360"
-        className="w-full h-full max-h-[360px] drop-shadow-2xl transition-all duration-500 ease-out z-10"
-        style={{ transform: `scale(${sizeScale})` }}
-      >
+      {/* Dynamic Bag SVG or Photo Mode */}
+      {imageUrl && displayMode === 'photo' ? (
+        <div className="relative w-full h-full max-h-[360px] flex items-center justify-center z-10 p-2 sm:p-4">
+          <img
+            src={imageUrl}
+            alt={colorDisplayName}
+            className="w-full h-full max-h-[310px] object-contain drop-shadow-2xl transition-transform duration-300 hover:scale-105"
+          />
+          {/* Real-time tint color indicator pill on photo */}
+          <div className="absolute bottom-2 inset-x-0 flex justify-center pointer-events-none">
+            <div className="px-3 py-1 rounded-full bg-black/75 backdrop-blur-md text-white text-[11px] font-bold flex items-center gap-1.5 border border-white/20 shadow-lg">
+              <span className="w-2.5 h-2.5 rounded-full border border-white/80" style={{ backgroundColor: primaryHex }} />
+              <span>لون الجلد المطلوب: {colorDisplayName}</span>
+            </div>
+          </div>
+          {/* Personalized Monogram Overlay Badge if enabled */}
+          {config.monogram.enabled && textLength > 0 && (
+            <div className="absolute top-10 inset-x-0 flex justify-center pointer-events-none">
+              <div className="px-3.5 py-1 rounded-xl bg-black/85 backdrop-blur-md border border-amber-400/80 shadow-2xl flex items-center gap-1.5 animate-pulse">
+                <span className="text-amber-300 font-serif font-black tracking-widest text-[11px] uppercase">
+                  حفر: {config.monogram.text.trim().toUpperCase()}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <svg
+          viewBox="0 0 400 360"
+          className="w-full h-full max-h-[360px] drop-shadow-2xl transition-all duration-500 ease-out z-10"
+          style={{ transform: `scale(${sizeScale})` }}
+        >
         <defs>
           {/* Leather Gradient lighting */}
           <linearGradient id="leatherLight" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -417,6 +451,78 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
           </g>
         )}
 
+        {isCrescentOrCustom && (
+          <g id="crescent-strap" className="transition-all duration-300">
+            {config.strapId === 'woven_guitar' ? (
+              <g>
+                <path
+                  d="M 116 172 C 112 45, 288 45, 284 172"
+                  fill="none"
+                  stroke="#181824"
+                  strokeWidth="22"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 116 172 C 112 45, 288 45, 284 172"
+                  fill="none"
+                  stroke="url(#bohoJacquardPattern)"
+                  strokeWidth="18"
+                  strokeLinecap="round"
+                />
+                <rect x="109" y="156" width="14" height="20" rx="3" fill={primaryHex} stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
+                <rect x="277" y="156" width="14" height="20" rx="3" fill={primaryHex} stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
+              </g>
+            ) : config.strapId === 'chunky_chain' ? (
+              <g>
+                <path
+                  d="M 116 172 C 112 45, 288 45, 284 172"
+                  fill="none"
+                  stroke="#1a1a1a"
+                  strokeWidth="12"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 116 172 C 112 45, 288 45, 284 172"
+                  fill="none"
+                  stroke="url(#hardwareGradient)"
+                  strokeWidth="10"
+                  strokeDasharray="6 8"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 116 172 C 112 45, 288 45, 284 172"
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeWidth="2"
+                  strokeDasharray="2 12"
+                  strokeOpacity="0.8"
+                />
+              </g>
+            ) : (
+              <g>
+                {/* Classic Celine curved shoulder leather strap */}
+                <path
+                  d="M 116 172 C 112 50, 288 50, 284 172"
+                  fill="none"
+                  stroke={primaryHex}
+                  strokeWidth="14"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 116 172 C 112 50, 288 50, 284 172"
+                  fill="none"
+                  stroke="url(#leatherLight)"
+                  strokeWidth="14"
+                  strokeLinecap="round"
+                />
+                {/* Gold adjustment pin buckle */}
+                <rect x="123" y="102" width="10" height="15" rx="2" fill="url(#hardwareGradient)" stroke="#000" strokeWidth="0.5" />
+                <line x1="123" y1="110" x2="133" y2="110" stroke="#111" strokeWidth="1.5" />
+              </g>
+            )}
+          </g>
+        )}
+
         {/* 2. BAG MAIN BODY SILHOUETTES */}
         {config.bagType === 'tote' && (
           <g id="tote-body">
@@ -601,6 +707,96 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
           </g>
         )}
 
+        {isCrescentOrCustom && (
+          <g id="crescent-body" className="transition-all duration-300">
+            {/* Main Crescent / Hobo Half-Moon Silhouette */}
+            <path
+              d="M 108 170 C 100 235, 135 295, 200 295 C 265 295, 300 235, 292 170 C 265 214, 135 214, 108 170 Z"
+              fill={primaryHex}
+              className="transition-colors duration-300"
+            />
+            {/* Texture overlay */}
+            {currentMaterial.texture === 'crosshatch' && (
+              <path
+                d="M 108 170 C 100 235, 135 295, 200 295 C 265 295, 300 235, 292 170 C 265 214, 135 214, 108 170 Z"
+                fill="url(#saffianoPattern)"
+              />
+            )}
+            {currentMaterial.texture === 'croc' && (
+              <path
+                d="M 108 170 C 100 235, 135 295, 200 295 C 265 295, 300 235, 292 170 C 265 214, 135 214, 108 170 Z"
+                fill="url(#crocPattern)"
+              />
+            )}
+            {/* Leather curved lighting */}
+            <path
+              d="M 108 170 C 100 235, 135 295, 200 295 C 265 295, 300 235, 292 170 C 265 214, 135 214, 108 170 Z"
+              fill="url(#leatherLight)"
+            />
+
+            {/* Edge stitching around bottom curved contour */}
+            <path
+              d="M 112 176 C 105 233, 138 289, 200 289 C 262 289, 295 233, 288 176"
+              fill="none"
+              stroke="rgba(255,255,255,0.3)"
+              strokeWidth="1.2"
+              strokeDasharray="3 3"
+            />
+
+            {/* Top curved zipper track along the scooped dip */}
+            <path
+              d="M 116 174 C 145 214, 255 214, 284 174"
+              fill="none"
+              stroke="url(#hardwareGradient)"
+              strokeWidth="3.5"
+            />
+            {/* Zipper puller tag */}
+            <circle cx="160" cy="201" r="3.5" fill="url(#hardwareGradient)" />
+            <rect x="158" y="203" width="4" height="10" rx="1.5" fill="url(#hardwareGradient)" />
+
+            {/* D-Ring strap loops on the bag wings */}
+            <rect x="110" y="166" width="7" height="12" rx="2" fill="url(#hardwareGradient)" stroke="#111" strokeWidth="0.5" />
+            <rect x="283" y="166" width="7" height="12" rx="2" fill="url(#hardwareGradient)" stroke="#111" strokeWidth="0.5" />
+
+            {/* Iconic Center Vertical Leather Tab */}
+            <path
+              d="M 183 194 L 217 194 Q 219 194 219 200 L 219 238 Q 219 248 200 248 Q 181 248 181 238 L 181 200 Q 181 194 183 194 Z"
+              fill={primaryHex}
+              filter="drop-shadow(0 3px 5px rgba(0,0,0,0.3))"
+            />
+            {currentMaterial.texture === 'croc' && (
+              <path
+                d="M 183 194 L 217 194 Q 219 194 219 200 L 219 238 Q 219 248 200 248 Q 181 248 181 238 L 181 200 Q 181 194 183 194 Z"
+                fill="url(#crocPattern)"
+              />
+            )}
+            <path
+              d="M 183 194 L 217 194 Q 219 194 219 200 L 219 238 Q 219 248 200 248 Q 181 248 181 238 L 181 200 Q 181 194 183 194 Z"
+              fill="url(#leatherLight)"
+            />
+            {/* Stitching on the tab */}
+            <path
+              d="M 185 196 L 215 196 Q 217 196 217 200 L 217 236 Q 217 245 200 245 Q 183 245 183 236 L 183 200 Q 183 196 185 196 Z"
+              fill="none"
+              stroke="rgba(255,255,255,0.3)"
+              strokeWidth="1"
+              strokeDasharray="2.5 2.5"
+            />
+
+            {/* Iconic Celine Triomphe Double-Arc Clasp Emblem */}
+            <g id="triomphe-logo" transform="translate(200, 222)">
+              {/* Center connector plate */}
+              <rect x="-4" y="-7" width="8" height="14" rx="1.5" fill="url(#hardwareGradient)" stroke="#111" strokeWidth="0.5" />
+              {/* Left Arc */}
+              <path d="M -3 -8 C -13 -8, -15 -4, -15 0 C -15 4, -13 8, -3 8" fill="none" stroke="url(#hardwareGradient)" strokeWidth="3.2" strokeLinecap="round" />
+              {/* Right Arc */}
+              <path d="M 3 -8 C 13 -8, 15 -4, 15 0 C 15 4, 13 8, 3 8" fill="none" stroke="url(#hardwareGradient)" strokeWidth="3.2" strokeLinecap="round" />
+              {/* Center hardware stud */}
+              <circle cx="0" cy="0" r="2.2" fill="url(#hardwareGradient)" />
+            </g>
+          </g>
+        )}
+
         {/* 3. PERSONALIZED MONOGRAM RENDERING (EMBOSSED / FOIL / TEXT) */}
         {config.monogram.enabled && textLength > 0 && (
           <g id="monogram-text">
@@ -712,6 +908,35 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
           </g>
         )}
       </svg>
+      )}
+
+      {/* 3D vs Photo Mode Switcher Pill (if imageUrl provided) */}
+      {imageUrl && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 bg-white/95 dark:bg-[#1a1a26]/95 backdrop-blur-md p-1 rounded-full text-[10px] sm:text-xs font-bold shadow-md border border-stone-200/80 dark:border-stone-700">
+          <button
+            type="button"
+            onClick={() => setDisplayMode('3d')}
+            className={`px-3 py-1 rounded-full transition-all ${
+              displayMode === '3d'
+                ? 'bg-[#9b287b] text-white shadow-xs'
+                : 'text-stone-600 dark:text-stone-300 hover:text-stone-900'
+            }`}
+          >
+            مجسم 3D ✨
+          </button>
+          <button
+            type="button"
+            onClick={() => setDisplayMode('photo')}
+            className={`px-3 py-1 rounded-full transition-all ${
+              displayMode === 'photo'
+                ? 'bg-[#9b287b] text-white shadow-xs'
+                : 'text-stone-600 dark:text-stone-300 hover:text-stone-900'
+            }`}
+          >
+            صورة الموديل 📷
+          </button>
+        </div>
+      )}
 
       {/* Floating Info Badges */}
       <div className="absolute top-3 left-3 bg-white/90 dark:bg-[#1a1a26]/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-stone-800 dark:text-white shadow-sm border border-stone-200/50 dark:border-stone-700 flex items-center gap-1.5">

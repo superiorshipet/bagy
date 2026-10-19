@@ -341,7 +341,11 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-10 items-center">
             {/* Canvas Preview Column */}
             <div className="md:col-span-6 lg:col-span-7">
-              <BagCanvasPreview config={homePreviewConfig} className="max-h-[340px] sm:max-h-[440px]" />
+              <BagCanvasPreview
+                config={homePreviewConfig}
+                imageUrl={activeCategoryObj?.image || filteredProducts[0]?.image}
+                className="max-h-[340px] sm:max-h-[440px]"
+              />
             </div>
 
             {/* Interactive Controls Column */}
