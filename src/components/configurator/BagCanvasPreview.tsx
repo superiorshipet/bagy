@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { CustomBagConfiguration } from '@/types/bag';
-import { BAG_TYPES, MATERIALS, COLORS, HARDWARE_OPTIONS, SIZES } from '@/data/bagOptions';
+import { BAG_TYPES, MATERIALS, COLORS, HARDWARE_OPTIONS, SIZES, STRAPS } from '@/data/bagOptions';
 
 interface BagCanvasPreviewProps {
   config: CustomBagConfiguration;
@@ -20,6 +20,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
   const currentColor = COLORS.find((c) => c.id === config.primaryColorId) || COLORS[0];
   const currentHardware = HARDWARE_OPTIONS.find((h) => h.id === config.hardware) || HARDWARE_OPTIONS[0];
   const currentSize = SIZES.find((s) => s.id === config.size) || SIZES[1];
+  const currentStrap = STRAPS.find((s) => s.id === config.strapId) || STRAPS[0];
 
   const primaryHex = config.customColorHex || (config.primaryColorId?.startsWith('#') ? config.primaryColorId : currentColor.hex);
   const colorDisplayName = config.customColorName || (config.customColorHex ? `مخصص (${config.customColorHex})` : currentColor.nameAr);
@@ -85,75 +86,288 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
             <stop offset="50%" stopColor="#c0c0c0" />
             <stop offset="100%" stopColor="#7a7a7a" />
           </linearGradient>
+
+          {/* Bohemian Jacquard Woven Pattern */}
+          <pattern id="bohoJacquardPattern" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="rotate(30)">
+            <rect width="28" height="28" fill="#181824" />
+            {/* Geometric diamond / chevron tapestry */}
+            <path d="M 0 14 L 14 0 L 28 14 L 14 28 Z" fill="#d97706" />
+            <path d="M 7 14 L 14 7 L 21 14 L 14 21 Z" fill="#ec4899" />
+            <circle cx="14" cy="14" r="3" fill="#06b6d4" />
+            <line x1="0" y1="0" x2="28" y2="0" stroke="#f59e0b" strokeWidth="2" />
+            <line x1="0" y1="28" x2="28" y2="28" stroke="#f59e0b" strokeWidth="2" />
+          </pattern>
         </defs>
 
         {/* 1. BAG HANDLES / STRAP (Behind Body) */}
         {config.bagType === 'tote' && (
           <g className="transition-all duration-300">
-            {/* Handle arches */}
-            <path
-              d="M 140 160 C 140 60, 260 60, 260 160"
-              fill="none"
-              stroke={primaryHex}
-              strokeWidth="16"
-              strokeLinecap="round"
-            />
-            <path
-              d="M 140 160 C 140 60, 260 60, 260 160"
-              fill="none"
-              stroke="url(#leatherLight)"
-              strokeWidth="16"
-              strokeLinecap="round"
-            />
+            {config.strapId === 'chunky_chain' ? (
+              <g>
+                <path
+                  d="M 140 160 C 140 60, 260 60, 260 160"
+                  fill="none"
+                  stroke="#1a1a1a"
+                  strokeWidth="13"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 140 160 C 140 60, 260 60, 260 160"
+                  fill="none"
+                  stroke="url(#hardwareGradient)"
+                  strokeWidth="11"
+                  strokeDasharray="6 8"
+                  strokeLinecap="round"
+                />
+              </g>
+            ) : config.strapId === 'woven_guitar' ? (
+              <g>
+                <path
+                  d="M 140 160 C 140 60, 260 60, 260 160"
+                  fill="none"
+                  stroke="#181824"
+                  strokeWidth="20"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 140 160 C 140 60, 260 60, 260 160"
+                  fill="none"
+                  stroke="url(#bohoJacquardPattern)"
+                  strokeWidth="16"
+                  strokeLinecap="round"
+                />
+              </g>
+            ) : (
+              <g>
+                <path
+                  d="M 140 160 C 140 60, 260 60, 260 160"
+                  fill="none"
+                  stroke={primaryHex}
+                  strokeWidth="16"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 140 160 C 140 60, 260 60, 260 160"
+                  fill="none"
+                  stroke="url(#leatherLight)"
+                  strokeWidth="16"
+                  strokeLinecap="round"
+                />
+              </g>
+            )}
           </g>
         )}
 
         {config.bagType === 'shoulder' && (
-          <g>
-            <path
-              d="M 130 180 C 130 80, 270 80, 270 180"
-              fill="none"
-              stroke={primaryHex}
-              strokeWidth="14"
-              strokeLinecap="round"
-            />
-            <path
-              d="M 130 180 C 130 80, 270 80, 270 180"
-              fill="none"
-              stroke="url(#leatherLight)"
-              strokeWidth="14"
-              strokeLinecap="round"
-            />
+          <g className="transition-all duration-300">
+            {config.strapId === 'chunky_chain' ? (
+              <g>
+                <path
+                  d="M 130 180 C 130 70, 270 70, 270 180"
+                  fill="none"
+                  stroke="#1a1a1a"
+                  strokeWidth="12"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 130 180 C 130 70, 270 70, 270 180"
+                  fill="none"
+                  stroke="url(#hardwareGradient)"
+                  strokeWidth="10"
+                  strokeDasharray="6 8"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 130 180 C 130 70, 270 70, 270 180"
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeWidth="2"
+                  strokeDasharray="2 12"
+                  strokeOpacity="0.8"
+                />
+              </g>
+            ) : config.strapId === 'woven_guitar' ? (
+              <g>
+                <path
+                  d="M 130 180 C 130 70, 270 70, 270 180"
+                  fill="none"
+                  stroke="#181824"
+                  strokeWidth="20"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 130 180 C 130 70, 270 70, 270 180"
+                  fill="none"
+                  stroke="url(#bohoJacquardPattern)"
+                  strokeWidth="16"
+                  strokeLinecap="round"
+                />
+              </g>
+            ) : (
+              <g>
+                <path
+                  d="M 130 180 C 130 80, 270 80, 270 180"
+                  fill="none"
+                  stroke={primaryHex}
+                  strokeWidth="14"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 130 180 C 130 80, 270 80, 270 180"
+                  fill="none"
+                  stroke="url(#leatherLight)"
+                  strokeWidth="14"
+                  strokeLinecap="round"
+                />
+              </g>
+            )}
           </g>
         )}
 
         {(config.bagType === 'crossbody' || config.bagType === 'mini') && (
-          <g>
+          <g className="transition-all duration-300">
             {config.strapId === 'chunky_chain' ? (
-              <path
-                d="M 115 190 C 115 50, 285 50, 285 190"
-                fill="none"
-                stroke="url(#hardwareGradient)"
-                strokeWidth="8"
-                strokeDasharray="4 8"
-                strokeLinecap="round"
-              />
+              <g>
+                <path
+                  d="M 115 190 C 115 50, 285 50, 285 190"
+                  fill="none"
+                  stroke="#1a1a1a"
+                  strokeWidth="10"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 115 190 C 115 50, 285 50, 285 190"
+                  fill="none"
+                  stroke="url(#hardwareGradient)"
+                  strokeWidth="8"
+                  strokeDasharray="6 8"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 115 190 C 115 50, 285 50, 285 190"
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeWidth="2"
+                  strokeDasharray="2 12"
+                  strokeOpacity="0.8"
+                />
+              </g>
             ) : config.strapId === 'woven_guitar' ? (
-              <path
-                d="M 115 190 C 115 50, 285 50, 285 190"
-                fill="none"
-                stroke="#d4af37"
-                strokeWidth="18"
-                strokeDasharray="6 3"
-              />
+              <g>
+                <path
+                  d="M 115 190 C 115 50, 285 50, 285 190"
+                  fill="none"
+                  stroke="#181824"
+                  strokeWidth="22"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 115 190 C 115 50, 285 50, 285 190"
+                  fill="none"
+                  stroke="url(#bohoJacquardPattern)"
+                  strokeWidth="18"
+                  strokeLinecap="round"
+                />
+                {/* Leather connector tabs */}
+                <rect x="108" y="172" width="14" height="20" rx="3" fill={primaryHex} stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
+                <rect x="278" y="172" width="14" height="20" rx="3" fill={primaryHex} stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
+              </g>
             ) : (
-              <path
-                d="M 115 190 C 115 50, 285 50, 285 190"
-                fill="none"
-                stroke={primaryHex}
-                strokeWidth="10"
-                strokeLinecap="round"
-              />
+              <g>
+                <path
+                  d="M 115 190 C 115 50, 285 50, 285 190"
+                  fill="none"
+                  stroke={primaryHex}
+                  strokeWidth="10"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 115 190 C 115 50, 285 50, 285 190"
+                  fill="none"
+                  stroke="url(#leatherLight)"
+                  strokeWidth="10"
+                  strokeLinecap="round"
+                />
+              </g>
+            )}
+          </g>
+        )}
+
+        {config.bagType === 'clutch' && (
+          <g id="clutch-strap" className="transition-all duration-300">
+            {config.strapId === 'woven_guitar' ? (
+              <g>
+                {/* Wide bohemian jacquard guitar strap */}
+                <path
+                  d="M 105 120 C 105 30, 295 30, 295 120"
+                  fill="none"
+                  stroke="#181824"
+                  strokeWidth="22"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 105 120 C 105 30, 295 30, 295 120"
+                  fill="none"
+                  stroke="url(#bohoJacquardPattern)"
+                  strokeWidth="18"
+                  strokeLinecap="round"
+                />
+                {/* Leather ends connecting to clutch */}
+                <rect x="98" y="102" width="14" height="20" rx="3" fill={primaryHex} stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
+                <rect x="288" y="102" width="14" height="20" rx="3" fill={primaryHex} stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
+                {/* Hardware rings and clips */}
+                <circle cx="105" cy="118" r="5" fill="url(#hardwareGradient)" stroke="#000" strokeWidth="0.5" />
+                <circle cx="295" cy="118" r="5" fill="url(#hardwareGradient)" stroke="#000" strokeWidth="0.5" />
+              </g>
+            ) : config.strapId === 'chunky_chain' ? (
+              <g>
+                {/* Luxury chunky chain strap arching over clutch */}
+                <path
+                  d="M 105 120 C 105 25, 295 25, 295 120"
+                  fill="none"
+                  stroke="#1a1a1a"
+                  strokeWidth="11"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 105 120 C 105 25, 295 25, 295 120"
+                  fill="none"
+                  stroke="url(#hardwareGradient)"
+                  strokeWidth="9"
+                  strokeDasharray="6 8"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 105 120 C 105 25, 295 25, 295 120"
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeWidth="2"
+                  strokeDasharray="2 12"
+                  strokeOpacity="0.8"
+                />
+                {/* Chain attachment loops */}
+                <circle cx="105" cy="116" r="6" fill="url(#hardwareGradient)" />
+                <circle cx="295" cy="116" r="6" fill="url(#hardwareGradient)" />
+              </g>
+            ) : (
+              <g>
+                {/* Classic matching leather wristlet loop */}
+                <path
+                  d="M 90 135 C 45 135, 40 190, 75 220 C 88 232, 92 215, 90 165"
+                  fill="none"
+                  stroke={primaryHex}
+                  strokeWidth="10"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M 90 135 C 45 135, 40 190, 75 220 C 88 232, 92 215, 90 165"
+                  fill="none"
+                  stroke="url(#leatherLight)"
+                  strokeWidth="10"
+                  strokeLinecap="round"
+                />
+                <circle cx="90" cy="140" r="5" fill="url(#hardwareGradient)" />
+              </g>
             )}
           </g>
         )}
@@ -325,23 +539,6 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
 
         {config.bagType === 'clutch' && (
           <g id="clutch-body">
-            {/* Elegant wristlet strap */}
-            <path
-              d="M 90 135 C 50 135, 45 185, 75 215 C 88 227, 90 215, 90 175"
-              fill="none"
-              stroke={primaryHex}
-              strokeWidth="9"
-              strokeLinecap="round"
-            />
-            <path
-              d="M 90 135 C 50 135, 45 185, 75 215 C 88 227, 90 215, 90 175"
-              fill="none"
-              stroke="url(#leatherLight)"
-              strokeWidth="9"
-              strokeLinecap="round"
-            />
-            <circle cx="90" cy="145" r="4.5" fill="url(#hardwareGradient)" />
-
             {/* Rectangular envelope clutch centered nicely */}
             <rect x="85" y="115" width="230" height="150" rx="12" fill={primaryHex} />
             {currentMaterial.texture === 'crosshatch' && (
@@ -462,10 +659,12 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
         <span>{colorDisplayName}</span>
       </div>
 
-      <div className="absolute top-3 right-3 bg-white/90 dark:bg-[#1a1a26]/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-stone-800 dark:text-white shadow-sm border border-stone-200/50 dark:border-stone-700 flex items-center gap-1">
+      <div className="absolute top-3 right-3 bg-white/90 dark:bg-[#1a1a26]/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-stone-800 dark:text-white shadow-sm border border-stone-200/50 dark:border-stone-700 flex items-center gap-1.5">
         <span>{currentSize.nameAr}</span>
         <span className="text-stone-400">|</span>
         <span className="text-amber-700 dark:text-amber-400">{currentHardware.nameAr}</span>
+        <span className="text-stone-400">|</span>
+        <span className="text-pink-600 dark:text-pink-400 font-medium">{currentStrap.nameAr}</span>
       </div>
     </div>
   );
