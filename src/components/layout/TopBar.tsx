@@ -228,24 +228,24 @@ export const TopBar: React.FC<TopBarProps> = ({
                   onClick={() => setIsNotifOpen(false)}
                 />
                 <div
-                  className="absolute left-0 sm:left-auto sm:right-0 mt-2.5 w-[320px] sm:w-[380px] bg-white dark:bg-[#1a1a26] rounded-3xl shadow-2xl border border-stone-200 dark:border-stone-800 z-50 overflow-hidden text-right animate-in fade-in zoom-in-95 duration-150"
+                  className="fixed inset-x-3 top-20 sm:absolute sm:inset-x-auto sm:top-full sm:mt-2.5 sm:left-0 sm:right-auto w-auto sm:w-[380px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#1a1a26] rounded-3xl shadow-2xl border border-stone-200 dark:border-stone-800 z-50 overflow-hidden text-right animate-in fade-in zoom-in-95 duration-150"
                   dir="rtl"
                 >
                   <div className="p-3.5 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between bg-stone-50/50 dark:bg-stone-900/40">
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-[#fdf2f8] dark:bg-[#2e1327] text-[#9b287b] dark:text-[#f472b6] flex items-center justify-center">
-                        <Bell className="w-3.5 h-3.5" />
+                      <div className="w-8 h-8 rounded-2xl bg-[#fdf2f8] dark:bg-[#2e1327] text-[#9b287b] dark:text-[#f472b6] flex items-center justify-center font-bold">
+                        <Bell className="w-4 h-4" />
                       </div>
                       <div>
                         <h3 className="text-xs font-black text-stone-900 dark:text-white">مركز التنبيهات</h3>
                         <p className="text-[10px] text-stone-400">تحديثات حالة الطلبات ورسائل الإدارة</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
                       {unreadCount > 0 && (
                         <button
                           onClick={handleMarkAllRead}
-                          className="text-[10px] text-[#9b287b] dark:text-[#f472b6] font-bold hover:underline flex items-center gap-1 px-2 py-1 rounded-full bg-pink-50 dark:bg-pink-950/40"
+                          className="text-[10px] text-[#9b287b] dark:text-[#f472b6] font-bold hover:underline flex items-center gap-1 px-2.5 py-1 rounded-full bg-pink-50 dark:bg-pink-950/40"
                         >
                           <CheckCheck className="w-3 h-3" />
                           <span>قراءة الكل</span>
@@ -253,14 +253,14 @@ export const TopBar: React.FC<TopBarProps> = ({
                       )}
                       <button
                         onClick={() => setIsNotifOpen(false)}
-                        className="w-6 h-6 rounded-full text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 flex items-center justify-center"
+                        className="w-7 h-7 rounded-full text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 flex items-center justify-center transition-colors"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
 
-                  <div className="max-h-[380px] overflow-y-auto divide-y divide-stone-100 dark:divide-stone-800 p-2 space-y-1">
+                  <div className="max-h-[380px] overflow-y-auto divide-y divide-stone-100 dark:divide-stone-800/60 p-2.5 space-y-1.5">
                     {notifications.length === 0 ? (
                       <div className="py-10 text-center space-y-2">
                         <span className="text-2xl">✨</span>
@@ -271,46 +271,48 @@ export const TopBar: React.FC<TopBarProps> = ({
                       notifications.map((notif) => (
                         <div
                           key={notif.id}
-                          className={`p-3 rounded-2xl transition-colors space-y-1 ${
+                          className={`p-3 rounded-2xl transition-colors ${
                             notif.isRead
-                              ? 'bg-transparent text-stone-600 dark:text-stone-400'
-                              : 'bg-[#fdf2f8]/70 dark:bg-[#281223]/60 text-stone-900 dark:text-white border border-[#9b287b]/15'
+                              ? 'bg-transparent text-stone-600 dark:text-stone-400 hover:bg-stone-50/50 dark:hover:bg-stone-900/30'
+                              : 'bg-[#fdf2f8]/70 dark:bg-[#281223]/60 text-stone-900 dark:text-white border border-[#9b287b]/20 shadow-sm'
                           }`}
                         >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm">
-                                {notif.type === 'order'
-                                  ? '🧵'
-                                  : notif.type === 'promo'
-                                  ? '🏷️'
-                                  : '📢'}
-                              </span>
-                              <h4 className="text-xs font-bold text-stone-900 dark:text-white line-clamp-1">
-                                {notif.title}
-                              </h4>
+                          <div className="flex items-start gap-2.5">
+                            <div className="w-7 h-7 rounded-xl bg-pink-100 dark:bg-pink-950/60 text-[#9b287b] dark:text-[#f472b6] flex items-center justify-center flex-shrink-0 text-xs mt-0.5 shadow-sm">
+                              {notif.type === 'order'
+                                ? '🧵'
+                                : notif.type === 'promo'
+                                ? '🏷️'
+                                : '📢'}
                             </div>
-                            {!notif.isRead && (
-                              <span className="w-2 h-2 rounded-full bg-[#9b287b] animate-pulse" />
-                            )}
-                          </div>
-                          <p className="text-[11px] text-stone-600 dark:text-stone-300 leading-relaxed pr-6">
-                            {notif.message}
-                          </p>
-                          <div className="flex items-center justify-between pt-1 pr-6 text-[10px] text-stone-400">
-                            <span>
-                              {new Date(notif.createdAt).toLocaleDateString('ar-EG', {
-                                day: 'numeric',
-                                month: 'short',
-                                hour: 'numeric',
-                                minute: 'numeric',
-                              })}
-                            </span>
-                            {notif.userId === null && (
-                              <span className="bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 px-1.5 py-0.5 rounded text-[9px] font-bold">
-                                إشعار عام
-                              </span>
-                            )}
+                            <div className="flex-1 min-w-0 space-y-1">
+                              <div className="flex items-center justify-between gap-1">
+                                <h4 className="text-xs font-bold text-stone-900 dark:text-white truncate">
+                                  {notif.title}
+                                </h4>
+                                {!notif.isRead && (
+                                  <span className="w-2 h-2 rounded-full bg-[#9b287b] animate-pulse flex-shrink-0" />
+                                )}
+                              </div>
+                              <p className="text-[11px] text-stone-600 dark:text-stone-300 leading-relaxed">
+                                {notif.message}
+                              </p>
+                              <div className="flex items-center justify-between pt-1 text-[10px] text-stone-400">
+                                <span>
+                                  {new Date(notif.createdAt).toLocaleDateString('ar-EG', {
+                                    day: 'numeric',
+                                    month: 'short',
+                                    hour: 'numeric',
+                                    minute: 'numeric',
+                                  })}
+                                </span>
+                                {notif.userId === null && (
+                                  <span className="bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 px-1.5 py-0.5 rounded text-[9px] font-bold">
+                                    إشعار عام
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       ))
