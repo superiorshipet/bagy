@@ -142,3 +142,24 @@ body.dark,
   color: #ffffff !important;
   border-color: #323248 !important;
 }
+
+/* Bulletproof luxury dark mode styling for selected cards */
+.dark [class*="fdf2f8"],
+.dark .bg-\[\#fdf2f8\] {
+  background-color: #2e1327 !important;
+  border-color: #be3999 !important;
+}
+
+.dark [class*="fdf2f8"] h3,
+.dark [class*="fdf2f8"] h4,
+.dark [class*="fdf2f8"] span,
+.dark [class*="fdf2f8"] p,
+.dark [class*="fdf2f8"] div {
+  color: #ffffff !important;
+}
+
+.dark [class*="fdf2f8"] .text-stone-500,
+.dark [class*="fdf2f8"] .text-stone-400 {
+  color: #d1b8cc !important;
+}
+

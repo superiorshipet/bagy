@@ -21,7 +21,8 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
   const currentHardware = HARDWARE_OPTIONS.find((h) => h.id === config.hardware) || HARDWARE_OPTIONS[0];
   const currentSize = SIZES.find((s) => s.id === config.size) || SIZES[1];
 
-  const primaryHex = currentColor.hex;
+  const primaryHex = config.customColorHex || (config.primaryColorId?.startsWith('#') ? config.primaryColorId : currentColor.hex);
+  const colorDisplayName = config.customColorName || (config.customColorHex ? `مخصص (${config.customColorHex})` : currentColor.nameAr);
   const hardwareColor = currentHardware.color;
 
   // Determine scale based on size
@@ -34,7 +35,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
   const sizeScale = scaleMap[config.size] || 1;
 
   return (
-    <div className={`relative w-full aspect-[4/3] flex items-center justify-center p-2.5 sm:p-5 bg-gradient-to-b from-[#f9f7f4] to-[#f0ece5] rounded-2xl sm:rounded-3xl overflow-hidden shadow-inner ${className}`}>
+    <div className={`relative w-full aspect-[4/3] flex items-center justify-center p-2.5 sm:p-5 bg-gradient-to-b from-[#f9f7f4] to-[#f0ece5] dark:from-[#1b1b26] dark:to-[#12121c] rounded-2xl sm:rounded-3xl overflow-hidden shadow-inner ${className}`}>
       {/* Background Studio Lighting & Pedestal Shadow */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(255,255,255,0.85)_0%,rgba(240,235,225,0.3)_60%,transparent_100%)] pointer-events-none" />
       <div className="absolute bottom-4 w-4/5 h-8 bg-black/10 rounded-[100%] blur-xl pointer-events-none" />
@@ -324,18 +325,56 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
 
         {config.bagType === 'clutch' && (
           <g id="clutch-body">
-            {/* Rectangular envelope clutch */}
-            <rect x="100" y="170" width="200" height="130" rx="8" fill={primaryHex} />
-            <rect x="100" y="170" width="200" height="130" rx="8" fill="url(#leatherLight)" />
+            {/* Elegant wristlet strap */}
+            <path
+              d="M 90 135 C 50 135, 45 185, 75 215 C 88 227, 90 215, 90 175"
+              fill="none"
+              stroke={primaryHex}
+              strokeWidth="9"
+              strokeLinecap="round"
+            />
+            <path
+              d="M 90 135 C 50 135, 45 185, 75 215 C 88 227, 90 215, 90 175"
+              fill="none"
+              stroke="url(#leatherLight)"
+              strokeWidth="9"
+              strokeLinecap="round"
+            />
+            <circle cx="90" cy="145" r="4.5" fill="url(#hardwareGradient)" />
+
+            {/* Rectangular envelope clutch centered nicely */}
+            <rect x="85" y="115" width="230" height="150" rx="12" fill={primaryHex} />
+            {currentMaterial.texture === 'crosshatch' && (
+              <rect x="85" y="115" width="230" height="150" rx="12" fill="url(#saffianoPattern)" />
+            )}
+            {currentMaterial.texture === 'croc' && (
+              <rect x="85" y="115" width="230" height="150" rx="12" fill="url(#crocPattern)" />
+            )}
+            <rect x="85" y="115" width="230" height="150" rx="12" fill="url(#leatherLight)" />
+
             {/* Triangular V flap */}
             <path
-              d="M 100 170 L 300 170 L 200 245 Z"
+              d="M 85 115 L 315 115 L 200 205 Z"
               fill={primaryHex}
               filter="drop-shadow(0 4px 6px rgba(0,0,0,0.25))"
             />
-            <path d="M 100 170 L 300 170 L 200 245 Z" fill="url(#leatherLight)" />
+            {currentMaterial.texture === 'croc' && (
+              <path d="M 85 115 L 315 115 L 200 205 Z" fill="url(#crocPattern)" />
+            )}
+            <path d="M 85 115 L 315 115 L 200 205 Z" fill="url(#leatherLight)" />
+
+            {/* Edge stitching */}
+            <path
+              d="M 89 117 L 311 117 L 200 201 Z"
+              fill="none"
+              stroke="rgba(255,255,255,0.3)"
+              strokeWidth="1.2"
+              strokeDasharray="3 3"
+            />
+
             {/* Clasp Point */}
-            <circle cx="200" cy="245" r="8" fill="url(#hardwareGradient)" />
+            <circle cx="200" cy="205" r="9" fill="url(#hardwareGradient)" stroke="#1a1a1a" strokeWidth="0.5" />
+            <circle cx="200" cy="205" r="4" fill="#111111" />
           </g>
         )}
 
@@ -345,7 +384,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
             {/* Subtle shadow for emboss depth */}
             <text
               x="200"
-              y={config.bagType === 'tote' ? 246 : config.bagType === 'crossbody' || config.bagType === 'mini' ? 278 : 265}
+              y={config.bagType === 'tote' ? 246 : config.bagType === 'clutch' ? 232 : config.bagType === 'crossbody' || config.bagType === 'mini' ? 278 : 265}
               textAnchor="middle"
               dominantBaseline="middle"
               fontFamily={
@@ -418,15 +457,15 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
       </svg>
 
       {/* Floating Info Badges */}
-      <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-stone-800 shadow-sm border border-stone-200/50 flex items-center gap-1.5">
+      <div className="absolute top-3 left-3 bg-white/90 dark:bg-[#1a1a26]/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-stone-800 dark:text-white shadow-sm border border-stone-200/50 dark:border-stone-700 flex items-center gap-1.5">
         <span className="w-2.5 h-2.5 rounded-full inline-block border border-black/10" style={{ backgroundColor: primaryHex }} />
-        <span>{currentColor.nameAr}</span>
+        <span>{colorDisplayName}</span>
       </div>
 
-      <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-stone-800 shadow-sm border border-stone-200/50 flex items-center gap-1">
+      <div className="absolute top-3 right-3 bg-white/90 dark:bg-[#1a1a26]/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-stone-800 dark:text-white shadow-sm border border-stone-200/50 dark:border-stone-700 flex items-center gap-1">
         <span>{currentSize.nameAr}</span>
         <span className="text-stone-400">|</span>
-        <span className="text-amber-700">{currentHardware.nameAr}</span>
+        <span className="text-amber-700 dark:text-amber-400">{currentHardware.nameAr}</span>
       </div>
     </div>
   );

@@ -77,6 +77,8 @@ export interface CustomBagConfiguration {
   size: BagSize;
   materialId: string;
   primaryColorId: string;
+  customColorHex?: string;
+  customColorName?: string;
   accentColorId: string;
   hardware: 'gold' | 'silver' | 'brass' | 'black';
   strapId: string;

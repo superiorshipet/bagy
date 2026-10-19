@@ -145,8 +145,11 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
         // ignore
       }
 
-      const bagTypeObj = BAG_TYPES.find((t) => t.id === config.bagType);
+      const bagTypeObj = effectiveCategories.find((t) => (t.slug || t.id) === config.bagType);
       const colorObj = COLORS.find((c) => c.id === config.primaryColorId);
+      const colorLabel = config.customColorHex
+        ? `لون مخصص (${config.customColorHex})`
+        : (colorObj?.nameAr || '');
 
       const cartItem: CartItem = {
         id: `custom_${Date.now()}`,
@@ -155,7 +158,7 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
         configuration: config,
         calculatedPrice: totalPrice,
         quantity: 1,
-        customSummaryText: `${initialProduct?.nameAr || bagTypeObj?.nameAr || 'شنطة مخصصة'} - ${colorObj?.nameAr || ''} ${
+        customSummaryText: `${initialProduct?.nameAr || bagTypeObj?.nameAr || 'شنطة مخصصة'} - ${colorLabel} ${
           config.monogram.enabled && config.monogram.text ? `(حفر: ${config.monogram.text})` : ''
         }`,
       };
@@ -357,7 +360,7 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
               {/* Step 2: Size */}
               {currentStep === 2 && (
                 <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-stone-800">اختار الحجم والأبعاد المناسبة لاحتياجك:</h3>
+                  <h3 className="text-sm font-bold text-stone-800 dark:text-stone-200">اختار الحجم والأبعاد المناسبة لاحتياجك:</h3>
                   <div className="space-y-2.5">
                     {SIZES.map((size) => {
                       const isSelected = config.size === size.id;
@@ -367,24 +370,24 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                           onClick={() => setConfig({ ...config, size: size.id })}
                           className={`w-full p-3.5 rounded-2xl border text-right transition-all flex items-center justify-between ${
                             isSelected
-                              ? 'border-[#9b287b] bg-[#fdf2f8] ring-2 ring-[#9b287b]/20'
-                              : 'border-stone-200 bg-white hover:border-stone-300'
+                              ? 'border-[#9b287b] dark:border-[#be3999] bg-[#fdf2f8] dark:bg-[#2e1327] ring-2 ring-[#9b287b]/20 shadow-sm'
+                              : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900/60 hover:border-stone-300 dark:hover:border-stone-700'
                           }`}
                         >
                           <div className="flex items-center gap-3">
                             <div
                               className={`w-6 h-6 rounded-full border flex items-center justify-center ${
-                                isSelected ? 'border-[#9b287b] bg-[#9b287b] text-white' : 'border-stone-300'
+                                isSelected ? 'border-[#9b287b] bg-[#9b287b] text-white' : 'border-stone-300 dark:border-stone-700'
                               }`}
                             >
                               {isSelected && <Check className="w-3.5 h-3.5" />}
                             </div>
                             <div>
-                              <h4 className="text-sm font-bold text-stone-900">{size.nameAr}</h4>
-                              <p className="text-xs text-stone-500">{size.dimensions}</p>
+                              <h4 className="text-sm font-bold text-stone-900 dark:text-white">{size.nameAr}</h4>
+                              <p className="text-xs text-stone-500 dark:text-stone-400">{size.dimensions}</p>
                             </div>
                           </div>
-                          <div className="text-xs font-semibold text-stone-700">
+                          <div className={`text-xs font-semibold ${isSelected ? 'text-[#9b287b] dark:text-[#f472b6]' : 'text-stone-700 dark:text-stone-300'}`}>
                             {size.priceDelta > 0 ? `+${formatPrice(size.priceDelta, 'EGP', 'ar')}` : 'ضمن السعر الأساسي'}
                           </div>
                         </button>
@@ -397,7 +400,7 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
               {/* Step 3: Material */}
               {currentStep === 3 && (
                 <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-stone-800">اختار خامة الجلد والملمس الخارجي:</h3>
+                  <h3 className="text-sm font-bold text-stone-800 dark:text-stone-200">اختار خامة الجلد والملمس الخارجي:</h3>
                   <div className="space-y-2.5">
                     {MATERIALS.map((mat) => {
                       const isSelected = config.materialId === mat.id;
@@ -407,24 +410,24 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                           onClick={() => setConfig({ ...config, materialId: mat.id })}
                           className={`w-full p-3.5 rounded-2xl border text-right transition-all flex items-center justify-between ${
                             isSelected
-                              ? 'border-[#9b287b] bg-[#fdf2f8] ring-2 ring-[#9b287b]/20'
-                              : 'border-stone-200 bg-white hover:border-stone-300'
+                              ? 'border-[#9b287b] dark:border-[#be3999] bg-[#fdf2f8] dark:bg-[#2e1327] ring-2 ring-[#9b287b]/20 shadow-sm'
+                              : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900/60 hover:border-stone-300 dark:hover:border-stone-700'
                           }`}
                         >
                           <div className="flex items-center gap-3">
                             <div
                               className={`w-6 h-6 rounded-full border flex items-center justify-center ${
-                                isSelected ? 'border-[#9b287b] bg-[#9b287b] text-white' : 'border-stone-300'
+                                isSelected ? 'border-[#9b287b] bg-[#9b287b] text-white' : 'border-stone-300 dark:border-stone-700'
                               }`}
                             >
                               {isSelected && <Check className="w-3.5 h-3.5" />}
                             </div>
                             <div>
-                              <h4 className="text-sm font-bold text-stone-900">{mat.nameAr}</h4>
-                              <p className="text-xs text-stone-500">{mat.descriptionAr}</p>
+                              <h4 className="text-sm font-bold text-stone-900 dark:text-white">{mat.nameAr}</h4>
+                              <p className="text-xs text-stone-500 dark:text-stone-400">{mat.descriptionAr}</p>
                             </div>
                           </div>
-                          <div className="text-xs font-semibold text-stone-700">
+                          <div className={`text-xs font-semibold ${isSelected ? 'text-[#9b287b] dark:text-[#f472b6]' : 'text-stone-700 dark:text-stone-300'}`}>
                             {mat.priceDelta > 0 ? `+${formatPrice(mat.priceDelta, 'EGP', 'ar')}` : 'مشمول'}
                           </div>
                         </button>
@@ -436,32 +439,188 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
 
               {/* Step 4: Color */}
               {currentStep === 4 && (
-                <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-stone-800">اختار لون الجلد الخارجي:</h3>
-                  <div className="grid grid-cols-2 gap-2.5">
-                    {COLORS.map((col) => {
-                      const isSelected = config.primaryColorId === col.id;
-                      return (
-                        <button
-                          key={col.id}
-                          onClick={() => setConfig({ ...config, primaryColorId: col.id })}
-                          className={`p-3 rounded-2xl border text-right transition-all flex items-center gap-3 ${
-                            isSelected
-                              ? 'border-[#9b287b] bg-[#fdf2f8] ring-2 ring-[#9b287b]/20'
-                              : 'border-stone-200 bg-white hover:border-stone-300'
-                          }`}
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-stone-800 dark:text-stone-200 mb-2.5">
+                      الألوان الأساسية الفاخرة المعتمدة:
+                    </h3>
+                    <div className="grid grid-cols-2 gap-2.5">
+                      {COLORS.map((col) => {
+                        const isSelected = config.primaryColorId === col.id && !config.customColorHex;
+                        return (
+                          <button
+                            key={col.id}
+                            type="button"
+                            onClick={() =>
+                              setConfig({
+                                ...config,
+                                primaryColorId: col.id,
+                                customColorHex: undefined,
+                                customColorName: undefined,
+                              })
+                            }
+                            className={`p-3 rounded-2xl border text-right transition-all flex items-center gap-3 ${
+                              isSelected
+                                ? 'border-[#9b287b] dark:border-[#be3999] bg-[#fdf2f8] dark:bg-[#2e1327] ring-2 ring-[#9b287b]/30 shadow-sm'
+                                : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900/60 hover:border-stone-300 dark:hover:border-stone-700'
+                            }`}
+                          >
+                            <div
+                              className="w-7 h-7 rounded-full shadow-inner border border-black/10 flex-shrink-0"
+                              style={{ backgroundColor: col.hex }}
+                            />
+                            <div className="overflow-hidden min-w-0">
+                              <h4 className="text-xs font-bold text-stone-900 dark:text-white truncate">{col.nameAr}</h4>
+                              <span className="text-[10px] text-stone-500 dark:text-stone-400 block truncate">{col.nameEn}</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* CUSTOM COLOR PICKER SECTION */}
+                  <div
+                    className={`p-4 rounded-2xl border transition-all space-y-3.5 ${
+                      config.customColorHex
+                        ? 'border-[#9b287b] dark:border-[#be3999] bg-[#fdf2f8]/70 dark:bg-[#2e1327]/80 ring-2 ring-[#9b287b]/30 shadow-md'
+                        : 'border-dashed border-stone-300 dark:border-stone-700 bg-stone-50/70 dark:bg-stone-900/40 hover:border-stone-400'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div
+                          className="w-8 h-8 rounded-full shadow-md border-2 border-white dark:border-stone-700 flex items-center justify-center text-sm flex-shrink-0"
+                          style={{
+                            backgroundColor: config.customColorHex || '#e91e63',
+                            boxShadow: '0 0 10px rgba(0,0,0,0.15)'
+                          }}
                         >
-                          <div
-                            className="w-7 h-7 rounded-full shadow-inner border border-black/10 flex-shrink-0"
-                            style={{ backgroundColor: col.hex }}
-                          />
-                          <div className="overflow-hidden">
-                            <h4 className="text-xs font-bold text-stone-900 truncate">{col.nameAr}</h4>
-                            <span className="text-[10px] text-stone-500 block truncate">{col.nameEn}</span>
+                          🎨
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white">
+                              اختيار لون مخصص (Custom Color)
+                            </h4>
+                            {config.customColorHex && (
+                              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#9b287b] text-white">
+                                مفعل الآن ✨
+                              </span>
+                            )}
                           </div>
-                        </button>
-                      );
-                    })}
+                          <p className="text-[11px] text-stone-500 dark:text-stone-400">
+                            اكتبي أي كود لون (HEX) أو اختاري من عجلة الألوان مباشرة
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Native Color Picker trigger */}
+                      <label className="relative cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs font-bold text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 transition-all shadow-sm">
+                        <span>باليت الألوان</span>
+                        <input
+                          type="color"
+                          value={config.customColorHex || '#e91e63'}
+                          onChange={(e) =>
+                            setConfig({
+                              ...config,
+                              customColorHex: e.target.value,
+                              customColorName: 'لون مخصص',
+                              primaryColorId: 'custom',
+                            })
+                          }
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                        />
+                      </label>
+                    </div>
+
+                    {/* Hex Code Input & Live Action */}
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-stone-400">
+                          HEX
+                        </span>
+                        <input
+                          type="text"
+                          maxLength={7}
+                          placeholder="#E91E63"
+                          value={config.customColorHex || ''}
+                          onChange={(e) => {
+                            let val = e.target.value.trim();
+                            if (!val.startsWith('#') && val.length > 0) val = '#' + val;
+                            setConfig({
+                              ...config,
+                              customColorHex: val,
+                              customColorName: 'لون مخصص',
+                              primaryColorId: 'custom',
+                            });
+                          }}
+                          className="w-full px-3 py-2 pl-12 text-xs font-mono font-bold rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white uppercase focus:ring-2 focus:ring-[#9b287b]"
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setConfig({
+                            ...config,
+                            customColorHex: config.customColorHex || '#e91e63',
+                            customColorName: 'لون مخصص',
+                            primaryColorId: 'custom',
+                          })
+                        }
+                        className="px-4 py-2 rounded-xl bg-[#9b287b] hover:bg-[#831f67] text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        <span>تطبيق اللون</span>
+                      </button>
+                    </div>
+
+                    {/* Quick Trend Colors Palette */}
+                    <div className="space-y-1.5 pt-1">
+                      <span className="text-[11px] font-bold text-stone-600 dark:text-stone-400 block">
+                        ألوان تريند مقترحة:
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { name: 'زهري باربي', hex: '#ff2d75' },
+                          { name: 'أزرق كحلي ملكي', hex: '#1e3a8a' },
+                          { name: 'تركواز فيروزي', hex: '#0891b2' },
+                          { name: 'خردلي دافئ', hex: '#d97706' },
+                          { name: 'بنفسجي لافندر', hex: '#7c3aed' },
+                          { name: 'رمادي تيتانيوم', hex: '#475569' },
+                          { name: 'أخضر نعناعي', hex: '#10b981' },
+                          { name: 'برتقالي تيراكوتا', hex: '#ea580c' },
+                        ].map((trend) => {
+                          const isTrendActive = config.customColorHex?.toLowerCase() === trend.hex.toLowerCase();
+                          return (
+                            <button
+                              key={trend.hex}
+                              type="button"
+                              onClick={() =>
+                                setConfig({
+                                  ...config,
+                                  customColorHex: trend.hex,
+                                  customColorName: trend.name,
+                                  primaryColorId: 'custom',
+                                })
+                              }
+                              className={`px-2.5 py-1 rounded-xl text-[11px] font-bold border transition-all flex items-center gap-1.5 ${
+                                isTrendActive
+                                  ? 'border-[#9b287b] bg-white dark:bg-stone-800 text-[#9b287b] dark:text-[#be3999] ring-2 ring-[#9b287b]/30 shadow-sm'
+                                  : 'border-stone-200 dark:border-stone-700 bg-white/80 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 hover:scale-105'
+                              }`}
+                            >
+                              <span
+                                className="w-3 h-3 rounded-full border border-black/10 inline-block"
+                                style={{ backgroundColor: trend.hex }}
+                              />
+                              <span>{trend.name}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -469,7 +628,7 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
               {/* Step 5: Hardware */}
               {currentStep === 5 && (
                 <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-stone-800">اختار طلاء الإكسسوارات والسوستة المعدنية:</h3>
+                  <h3 className="text-sm font-bold text-stone-800 dark:text-stone-200">اختار طلاء الإكسسوارات والسوستة المعدنية:</h3>
                   <div className="grid grid-cols-2 gap-2.5">
                     {HARDWARE_OPTIONS.map((hw) => {
                       const isSelected = config.hardware === hw.id;
@@ -479,8 +638,8 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                           onClick={() => setConfig({ ...config, hardware: hw.id })}
                           className={`p-3.5 rounded-2xl border text-right transition-all flex flex-col justify-between ${
                             isSelected
-                              ? 'border-[#9b287b] bg-[#fdf2f8] ring-2 ring-[#9b287b]/20'
-                              : 'border-stone-200 bg-white hover:border-stone-300'
+                              ? 'border-[#9b287b] dark:border-[#be3999] bg-[#fdf2f8] dark:bg-[#2e1327] ring-2 ring-[#9b287b]/20 shadow-sm'
+                              : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900/60 hover:border-stone-300 dark:hover:border-stone-700'
                           }`}
                         >
                           <div className="flex items-center justify-between mb-2">
@@ -488,11 +647,11 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                               className="w-6 h-6 rounded-full shadow-md border border-black/10"
                               style={{ backgroundColor: hw.color }}
                             />
-                            {isSelected && <Check className="w-4 h-4 text-[#9b287b]" />}
+                            {isSelected && <Check className="w-4 h-4 text-[#9b287b] dark:text-[#be3999]" />}
                           </div>
                           <div>
-                            <h4 className="text-xs font-bold text-stone-900">{hw.nameAr}</h4>
-                            <p className="text-[11px] text-stone-500 mt-0.5">
+                            <h4 className="text-xs font-bold text-stone-900 dark:text-white">{hw.nameAr}</h4>
+                            <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
                               {hw.priceDelta > 0 ? `+${formatPrice(hw.priceDelta, 'EGP', 'ar')}` : 'مشمول'}
                             </p>
                           </div>
@@ -506,7 +665,7 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
               {/* Step 6: Strap */}
               {currentStep === 6 && (
                 <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-stone-800">اختار نوع وشكل حزام الشنطة:</h3>
+                  <h3 className="text-sm font-bold text-stone-800 dark:text-stone-200">اختار نوع وشكل حزام الشنطة:</h3>
                   <div className="space-y-2.5">
                     {STRAPS.map((strap) => {
                       const isSelected = config.strapId === strap.id;
@@ -516,21 +675,21 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                           onClick={() => setConfig({ ...config, strapId: strap.id })}
                           className={`w-full p-3.5 rounded-2xl border text-right transition-all flex items-center justify-between ${
                             isSelected
-                              ? 'border-[#9b287b] bg-[#fdf2f8] ring-2 ring-[#9b287b]/20'
-                              : 'border-stone-200 bg-white hover:border-stone-300'
+                              ? 'border-[#9b287b] dark:border-[#be3999] bg-[#fdf2f8] dark:bg-[#2e1327] ring-2 ring-[#9b287b]/20 shadow-sm'
+                              : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900/60 hover:border-stone-300 dark:hover:border-stone-700'
                           }`}
                         >
                           <div className="flex items-center gap-3">
                             <div
                               className={`w-6 h-6 rounded-full border flex items-center justify-center ${
-                                isSelected ? 'border-[#9b287b] bg-[#9b287b] text-white' : 'border-stone-300'
+                                isSelected ? 'border-[#9b287b] bg-[#9b287b] text-white' : 'border-stone-300 dark:border-stone-700'
                               }`}
                             >
                               {isSelected && <Check className="w-3.5 h-3.5" />}
                             </div>
-                            <h4 className="text-sm font-bold text-stone-900">{strap.nameAr}</h4>
+                            <h4 className="text-sm font-bold text-stone-900 dark:text-white">{strap.nameAr}</h4>
                           </div>
-                          <div className="text-xs font-semibold text-stone-700">
+                          <div className={`text-xs font-semibold ${isSelected ? 'text-[#9b287b] dark:text-[#f472b6]' : 'text-stone-700 dark:text-stone-300'}`}>
                             {strap.priceDelta > 0 ? `+${formatPrice(strap.priceDelta, 'EGP', 'ar')}` : 'مشمول'}
                           </div>
                         </button>
@@ -543,10 +702,10 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
               {/* Step 7: Monogram */}
               {currentStep === 7 && (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3.5 bg-stone-50 rounded-2xl border border-stone-200">
+                  <div className="flex items-center justify-between p-3.5 bg-stone-50 dark:bg-stone-900/60 rounded-2xl border border-stone-200 dark:border-stone-800">
                     <div>
-                      <h4 className="text-sm font-bold text-stone-900">تفعيل حفر اسمك أو حروفك الشخصية؟</h4>
-                      <p className="text-xs text-stone-500">حفر حراري دائم على واجهة الشنطة (+150 ج.م)</p>
+                      <h4 className="text-sm font-bold text-stone-900 dark:text-white">تفعيل حفر اسمك أو حروفك الشخصية؟</h4>
+                      <p className="text-xs text-stone-500 dark:text-stone-400">حفر حراري دائم على واجهة الشنطة (+150 ج.م)</p>
                     </div>
                     <input
                       type="checkbox"
@@ -562,9 +721,9 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                   </div>
 
                   {config.monogram.enabled && (
-                    <div className="space-y-3 p-4 bg-[#fdf2f8] rounded-2xl border border-[#9b287b]/20">
+                    <div className="space-y-3 p-4 bg-[#fdf2f8] dark:bg-[#2e1327] rounded-2xl border border-[#9b287b]/20 dark:border-[#be3999]/30">
                       <div>
-                        <label className="text-xs font-bold text-stone-800 block mb-1">
+                        <label className="text-xs font-bold text-stone-800 dark:text-stone-200 block mb-1">
                           اكتب الحروف أو الاسم (حتى 6 حروف بالإنجليزية):
                         </label>
                         <input
@@ -578,17 +737,17 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                               monogram: { ...config.monogram, text: e.target.value.toUpperCase() },
                             })
                           }
-                          className="w-full px-4 py-2.5 rounded-xl border border-stone-300 bg-white text-stone-900 font-bold uppercase tracking-widest text-center text-lg focus:outline-none focus:ring-2 focus:ring-[#9b287b]"
+                          className="w-full px-4 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-white font-bold uppercase tracking-widest text-center text-lg focus:outline-none focus:ring-2 focus:ring-[#9b287b]"
                         />
                       </div>
 
                       <div>
-                        <label className="text-xs font-bold text-stone-800 block mb-1.5">أسلوب ولون الحفر:</label>
+                        <label className="text-xs font-bold text-stone-800 dark:text-stone-200 block mb-1.5">أسلوب ولون الحفر:</label>
                         <div className="grid grid-cols-3 gap-2">
                           {[
-                            { id: 'gold_foil', name: 'ذهب لامع (Gold)', color: 'text-amber-600' },
-                            { id: 'silver_foil', name: 'فضي بلاتيني', color: 'text-stone-500' },
-                            { id: 'blind_emboss', name: 'حفر بارز سادة', color: 'text-stone-700' },
+                            { id: 'gold_foil', name: 'ذهب لامع (Gold)', color: 'text-amber-600 dark:text-amber-400' },
+                            { id: 'silver_foil', name: 'فضي بلاتيني', color: 'text-stone-500 dark:text-stone-300' },
+                            { id: 'blind_emboss', name: 'حفر بارز سادة', color: 'text-stone-700 dark:text-stone-300' },
                           ].map((style) => (
                             <button
                               key={style.id}
@@ -604,8 +763,8 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                               }
                               className={`p-2 rounded-xl text-center text-xs font-bold border transition-all ${
                                 config.monogram.style === style.id
-                              ? 'border-[#9b287b] bg-white shadow-sm'
-                              : 'border-transparent bg-white/60 text-stone-600'
+                                  ? 'border-[#9b287b] bg-white dark:bg-stone-800 shadow-sm'
+                                  : 'border-transparent bg-white/60 dark:bg-stone-800/40 text-stone-600 dark:text-stone-400'
                               }`}
                             >
                               <span className={style.color}>{style.name}</span>
@@ -621,7 +780,7 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
               {/* Step 8: Add-ons & Gifting */}
               {currentStep === 8 && (
                 <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-stone-800">إضافات وتغليف هدايا فاخر:</h3>
+                  <h3 className="text-sm font-bold text-stone-800 dark:text-stone-200">إضافات وتغليف هدايا فاخر:</h3>
                   <div className="space-y-2.5">
                     {ADDONS.map((addon) => {
                       const isChecked = config.selectedAddonIds.includes(addon.id);
@@ -637,24 +796,24 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                           }}
                           className={`w-full p-3.5 rounded-2xl border text-right transition-all flex items-center justify-between ${
                             isChecked
-                              ? 'border-[#9b287b] bg-[#fdf2f8] ring-2 ring-[#9b287b]/20'
-                              : 'border-stone-200 bg-white hover:border-stone-300'
+                              ? 'border-[#9b287b] dark:border-[#be3999] bg-[#fdf2f8] dark:bg-[#2e1327] ring-2 ring-[#9b287b]/20 shadow-sm'
+                              : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900/60 hover:border-stone-300 dark:hover:border-stone-700'
                           }`}
                         >
                           <div className="flex items-center gap-3">
                             <div
                               className={`w-5 h-5 rounded-md border flex items-center justify-center ${
-                                isChecked ? 'border-[#9b287b] bg-[#9b287b] text-white' : 'border-stone-300'
+                                isChecked ? 'border-[#9b287b] bg-[#9b287b] text-white' : 'border-stone-300 dark:border-stone-700'
                               }`}
                             >
                               {isChecked && <Check className="w-3.5 h-3.5" />}
                             </div>
                             <div>
-                              <h4 className="text-xs font-bold text-stone-900">{addon.nameAr}</h4>
-                              <span className="text-[10px] text-stone-500">{addon.nameEn}</span>
+                              <h4 className="text-xs font-bold text-stone-900 dark:text-white">{addon.nameAr}</h4>
+                              <span className="text-[10px] text-stone-500 dark:text-stone-400">{addon.nameEn}</span>
                             </div>
                           </div>
-                          <span className="text-xs font-bold text-[#9b287b]">
+                          <span className="text-xs font-bold text-[#9b287b] dark:text-[#f472b6]">
                             +{formatPrice(addon.price, 'EGP', 'ar')}
                           </span>
                         </button>
@@ -663,8 +822,8 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
                   </div>
 
                   {/* Delivery Promise badge like Lola */}
-                  <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200/60 flex items-center gap-2.5 text-xs text-amber-900">
-                    <Clock className="w-4 h-4 flex-shrink-0 text-amber-700" />
+                  <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-2xl border border-amber-200/60 dark:border-amber-900/40 flex items-center gap-2.5 text-xs text-amber-900 dark:text-amber-200">
+                    <Clock className="w-4 h-4 flex-shrink-0 text-amber-700 dark:text-amber-400" />
                     <span>
                       شنطتك المخصصة تصنع يدوياً خصيصاً لك وتكون جاهزة للشحن خلال <strong>3 إلى 5 أيام عمل</strong>.
                     </span>
