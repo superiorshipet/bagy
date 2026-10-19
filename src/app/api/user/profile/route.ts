@@ -30,7 +30,9 @@ export async function GET(req: NextRequest) {
           orders: {
             include: {
               items: {
-                customization: true,
+                include: {
+                  customization: true,
+                },
               },
             },
             orderBy: { createdAt: 'desc' },
