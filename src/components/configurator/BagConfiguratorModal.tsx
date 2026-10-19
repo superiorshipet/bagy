@@ -221,14 +221,11 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
               <div className="w-full max-w-[260px] sm:max-w-sm">
                 <div className="mb-1.5 sm:mb-2 text-center">
                   <span className="text-[10px] sm:text-[11px] font-bold text-[#9b287b] dark:text-[#be3999] bg-[#fdf2f8] dark:bg-[#281223] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full border border-[#9b287b]/20 inline-block">
-                    معاينة حية تفاعلية للشنطة
+                    ✨ مجسم تفاعلي 3D في الوقت الحقيقي
                   </span>
                 </div>
 
-                <BagCanvasPreview
-                  config={config}
-                  imageUrl={initialProduct?.image || effectiveCategories.find((c) => (c.slug || c.id) === config.bagType)?.image}
-                />
+                <BagCanvasPreview config={config} />
 
                 <div className="mt-1.5 sm:mt-3 text-center text-[10px] sm:text-xs text-stone-400 hidden sm:block">
                   <span>تتحدث الأبعاد والألوان وحفر الاسم تلقائياً مع كل خطوة</span>

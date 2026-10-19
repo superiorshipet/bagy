@@ -1,4 +1,17 @@
-export type BagCategory = 'tote' | 'crossbody' | 'shoulder' | 'mini' | 'backpack' | 'clutch' | (string & {});
+export type BagCategory =
+  | 'tote'
+  | 'crossbody'
+  | 'shoulder'
+  | 'mini'
+  | 'backpack'
+  | 'clutch'
+  | 'hobo'
+  | 'bucket'
+  | 'saddle'
+  | 'satchel'
+  | 'balmain'
+  | 'duffel'
+  | (string & {});
 
 export interface BagTypeOption {
   id: BagCategory;
@@ -40,8 +53,10 @@ export interface ColorOption {
   priceDelta: number;
 }
 
+export type HardwareType = 'gold' | 'silver' | 'brass' | 'black' | 'rosegold' | 'gunmetal' | (string & {});
+
 export interface HardwareOption {
-  id: 'gold' | 'silver' | 'brass' | 'black';
+  id: HardwareType;
   nameEn: string;
   nameAr: string;
   color: string;
@@ -80,7 +95,7 @@ export interface CustomBagConfiguration {
   customColorHex?: string;
   customColorName?: string;
   accentColorId: string;
-  hardware: 'gold' | 'silver' | 'brass' | 'black';
+  hardware: HardwareType;
   strapId: string;
   handleColorId?: string;
   handleColorHex?: string;

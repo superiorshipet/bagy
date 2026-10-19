@@ -14,10 +14,7 @@ interface BagCanvasPreviewProps {
 export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
   config,
   className = '',
-  viewAngle = 'front',
-  imageUrl,
 }) => {
-  const currentType = BAG_TYPES.find((t) => t.id === config.bagType) || BAG_TYPES[0];
   const currentMaterial = MATERIALS.find((m) => m.id === config.materialId) || MATERIALS[0];
   const currentColor = COLORS.find((c) => c.id === config.primaryColorId) || COLORS[0];
   const currentHardware = HARDWARE_OPTIONS.find((h) => h.id === config.hardware) || HARDWARE_OPTIONS[0];
@@ -29,15 +26,20 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
   const colorDisplayName = config.customColorName || (config.customColorHex ? `مخصص (${config.customColorHex})` : currentColor.nameAr);
   const hardwareColor = currentHardware.color;
 
-  // View mode: 3D interactive SVG is always the primary default
-  const [viewMode, setViewMode] = React.useState<'3d' | 'photo'>('3d');
+  // Bag silhouette checks for all 12 categories
+  const isTote = config.bagType === 'tote';
+  const isCrossbody = config.bagType === 'crossbody' || config.bagType === 'mini';
+  const isShoulder = config.bagType === 'shoulder';
+  const isBackpack = config.bagType === 'backpack';
+  const isClutch = config.bagType === 'clutch';
+  const isBalmain = config.bagType === 'balmain' || config.bagType === 'vv' || config.bagType?.toLowerCase().includes('balmain');
+  const isHobo = config.bagType === 'hobo' || config.bagType === 'crescent' || config.bagType === 'ava' || config.bagType === 'u';
+  const isBucket = config.bagType === 'bucket';
+  const isSaddle = config.bagType === 'saddle';
+  const isSatchel = config.bagType === 'satchel';
+  const isDuffel = config.bagType === 'duffel';
 
-  // Support all 6 built-in types + Balmain pleated bag (for 'vv' / 'balmain') + fallback designer crescent/hobo
-  const isBuiltIn = ['tote', 'shoulder', 'crossbody', 'mini', 'backpack', 'clutch'].includes(config.bagType);
-  const isBalmain = config.bagType === 'vv' || config.bagType === 'balmain' || config.bagType?.toLowerCase().includes('balmain');
-  const isCustomOrHobo = (!isBuiltIn && !isBalmain) || config.bagType === 'crescent' || config.bagType === 'hobo' || config.bagType === 'ava' || config.bagType === 'u';
-
-  // Determine scale based on size
+  // Scale factor based on chosen bag size
   const scaleMap = {
     mini: 0.82,
     small: 0.9,
@@ -47,20 +49,27 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
   const sizeScale = scaleMap[config.size] || 1;
 
   // Monogram positioning & typography calculation
-  const monogramY =
-    config.bagType === 'clutch'
-      ? 236
-      : config.bagType === 'tote'
-      ? 242
-      : config.bagType === 'crossbody' || config.bagType === 'mini'
-      ? 278
-      : config.bagType === 'shoulder'
-      ? 252
-      : isBalmain
-      ? 262
-      : isCustomOrHobo
-      ? 270
-      : 275;
+  const monogramY = isClutch
+    ? 236
+    : isTote
+    ? 242
+    : isCrossbody
+    ? 278
+    : isShoulder
+    ? 252
+    : isBucket
+    ? 265
+    : isSaddle
+    ? 226
+    : isSatchel
+    ? 208
+    : isDuffel
+    ? 252
+    : isBalmain
+    ? 262
+    : isHobo
+    ? 270
+    : 275;
 
   const textLength = config.monogram.text.trim().length;
   const monogramFontSize =
@@ -75,6 +84,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
       : textLength <= 18
       ? 6.5
       : Math.max(4.5, 14 - textLength * 0.42);
+
   const letterSpacing =
     textLength > 14
       ? '0.2px'
@@ -83,6 +93,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
       : config.monogram.font === 'script'
       ? '2px'
       : '4px';
+
   const fontFamily =
     config.monogram.font === 'serif'
       ? 'var(--font-playfair), "Playfair Display", Georgia, "Times New Roman", serif'
@@ -90,129 +101,88 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
       ? '"Brush Script MT", "Caveat", "Dancing Script", cursive'
       : 'var(--font-inter), Inter, system-ui, sans-serif';
 
+  // Helper for applying leather textures & realistic lighting to any SVG path
+  const renderMaterialOverlays = (pathD: string) => (
+    <>
+      {currentMaterial.texture === 'crosshatch' && (
+        <path d={pathD} fill="url(#saffianoPattern)" pointerEvents="none" />
+      )}
+      {currentMaterial.texture === 'croc' && (
+        <path d={pathD} fill="url(#crocPattern)" pointerEvents="none" />
+      )}
+      {currentMaterial.texture === 'pebbled' && (
+        <path d={pathD} fill="url(#pebbledPattern)" pointerEvents="none" />
+      )}
+      {currentMaterial.texture === 'suede' && (
+        <path d={pathD} fill="url(#suedePattern)" opacity="0.65" pointerEvents="none" />
+      )}
+      {currentMaterial.texture === 'metallic' && (
+        <path d={pathD} fill="url(#metallicSheen)" opacity="0.75" pointerEvents="none" />
+      )}
+      <path d={pathD} fill="url(#leatherLight)" pointerEvents="none" />
+    </>
+  );
+
+  // Helper for rendering luxury strap variations
+  const renderStrapPath = (d: string, defaultWidth: number = 14) => {
+    if (config.strapId === 'woven_guitar') {
+      return (
+        <g>
+          <path d={d} fill="none" stroke="#181824" strokeWidth={defaultWidth + 6} strokeLinecap="round" />
+          <path d={d} fill="none" stroke="url(#bohoJacquardPattern)" strokeWidth={defaultWidth + 2} strokeLinecap="round" />
+        </g>
+      );
+    }
+    if (config.strapId === 'chunky_chain') {
+      return (
+        <g>
+          <path d={d} fill="none" stroke="#1a1a1a" strokeWidth={defaultWidth - 1} strokeLinecap="round" />
+          <path d={d} fill="none" stroke="url(#hardwareGradient)" strokeWidth={defaultWidth - 3} strokeDasharray="6 8" strokeLinecap="round" />
+          <path d={d} fill="none" stroke="#ffffff" strokeWidth="2" strokeDasharray="2 12" strokeOpacity="0.85" />
+        </g>
+      );
+    }
+    if (config.strapId === 'pearl_chain') {
+      return (
+        <g>
+          <path d={d} fill="none" stroke="url(#hardwareGradient)" strokeWidth="3" strokeLinecap="round" />
+          <path d={d} fill="none" stroke="#ffffff" strokeWidth="12" strokeDasharray="1 14" strokeLinecap="round" strokeOpacity="0.9" />
+          <path d={d} fill="none" stroke="url(#pearlShine)" strokeWidth="11" strokeDasharray="1 14" strokeLinecap="round" />
+          <path d={d} fill="none" stroke="#ffffff" strokeWidth="3" strokeDasharray="1 14" strokeLinecap="round" strokeOpacity="0.95" />
+        </g>
+      );
+    }
+    if (config.strapId === 'braided_leather') {
+      return (
+        <g>
+          <path d={d} fill="none" stroke={handleHex} strokeWidth={defaultWidth + 4} strokeLinecap="round" />
+          <path d={d} fill="none" stroke="url(#braidedPattern)" strokeWidth={defaultWidth + 4} strokeLinecap="round" />
+          <path d={d} fill="none" stroke="url(#leatherLight)" strokeWidth={defaultWidth + 4} strokeLinecap="round" />
+        </g>
+      );
+    }
+    // Default matching leather strap with edge stitching
+    return (
+      <g>
+        <path d={d} fill="none" stroke={handleHex} strokeWidth={defaultWidth} strokeLinecap="round" />
+        <path d={d} fill="none" stroke="url(#leatherLight)" strokeWidth={defaultWidth} strokeLinecap="round" />
+        <path d={d} fill="none" stroke="rgba(255,255,255,0.28)" strokeWidth="1" strokeDasharray="3 3" />
+      </g>
+    );
+  };
+
   return (
     <div className={`relative w-full aspect-[4/3] flex items-center justify-center p-2.5 sm:p-5 bg-gradient-to-b from-[#f9f7f4] to-[#f0ece5] dark:from-[#1b1b26] dark:to-[#12121c] rounded-2xl sm:rounded-3xl overflow-hidden shadow-inner ${className}`}>
       {/* Background Studio Lighting & Pedestal Shadow */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(255,255,255,0.85)_0%,rgba(240,235,225,0.3)_60%,transparent_100%)] pointer-events-none" />
       <div className="absolute bottom-4 w-4/5 h-8 bg-black/10 rounded-[100%] blur-xl pointer-events-none" />
 
-      {/* Floating View Switcher (Allows switching between 3D Interactive Model and Real Photo) */}
-      {imageUrl && (
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 bg-white/95 dark:bg-[#1a1a26]/95 backdrop-blur-md p-1 rounded-full shadow-lg border border-stone-200/80 dark:border-stone-700">
-          <button
-            type="button"
-            onClick={() => setViewMode('3d')}
-            className={`px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold transition-all flex items-center gap-1 ${
-              viewMode === '3d'
-                ? 'bg-[#9b287b] text-white shadow-sm'
-                : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white'
-            }`}
-          >
-            <span>✨ مجسم 3D</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode('photo')}
-            className={`px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold transition-all flex items-center gap-1 ${
-              viewMode === 'photo'
-                ? 'bg-[#9b287b] text-white shadow-sm'
-                : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white'
-            }`}
-          >
-            <span>📷 صورة الموديل</span>
-          </button>
-        </div>
-      )}
-
-      {/* Dynamic Bag Image Canvas (Photo Mode) vs Vector 3D SVG (3D Mode - DEFAULT) */}
-      {imageUrl && viewMode === 'photo' ? (
-        <div
-          className="relative w-full h-full max-h-[360px] flex items-center justify-center z-10 p-2 sm:p-4 transition-transform duration-500 ease-out"
-          style={{ transform: `scale(${sizeScale})` }}
-        >
-          <div className="relative max-w-full max-h-[310px] flex items-center justify-center">
-            {/* 1. Base Bag Photo (The user's exact uploaded/linked bag) */}
-            <img
-              src={imageUrl}
-              alt={colorDisplayName}
-              className="max-h-[300px] w-auto max-w-full object-contain drop-shadow-2xl rounded-2xl transition-all duration-300 select-none"
-            />
-
-            {/* 2. Real-Time Dynamic Leather Color Tint Overlay */}
-            {/* Shifts the image's leather color smoothly while preserving natural shadows & highlights */}
-            <div
-              className="absolute inset-0 rounded-2xl pointer-events-none transition-all duration-500"
-              style={{
-                backgroundColor: primaryHex,
-                mixBlendMode: 'color',
-                opacity: 0.65,
-              }}
-            />
-            {/* Shadow & Depth Multiplier for realistic leather shading */}
-            <div
-              className="absolute inset-0 rounded-2xl pointer-events-none transition-all duration-500"
-              style={{
-                backgroundColor: primaryHex,
-                mixBlendMode: 'multiply',
-                opacity: config.primaryColorId === 'onyx_black' ? 0.35 : 0.14,
-              }}
-            />
-
-            {/* 3. Texture overlay if Saffiano or Croc selected */}
-            {currentMaterial.texture === 'crosshatch' && (
-              <div
-                className="absolute inset-0 rounded-2xl pointer-events-none opacity-20"
-                style={{
-                  backgroundImage: 'radial-gradient(rgba(0,0,0,0.5) 1px, transparent 0)',
-                  backgroundSize: '4px 4px',
-                  mixBlendMode: 'overlay',
-                }}
-              />
-            )}
-            {currentMaterial.texture === 'croc' && (
-              <div
-                className="absolute inset-0 rounded-2xl pointer-events-none opacity-25"
-                style={{
-                  backgroundImage: 'radial-gradient(rgba(0,0,0,0.7) 2px, transparent 0)',
-                  backgroundSize: '18px 14px',
-                  mixBlendMode: 'overlay',
-                }}
-              />
-            )}
-
-            {/* 4. Luxury Monogram Hot Stamping directly on the bag image */}
-            {config.monogram.enabled && textLength > 0 && (
-              <div className="absolute inset-x-0 bottom-12 sm:bottom-14 flex justify-center pointer-events-none">
-                <div
-                  className={`px-3.5 py-1.5 rounded-lg border backdrop-blur-md shadow-2xl transition-all duration-300 flex items-center gap-1.5 ${
-                    config.monogram.style === 'gold_foil'
-                      ? 'bg-black/75 border-[#d4af37] text-[#ffe082] shadow-[0_0_15px_rgba(212,175,55,0.45)]'
-                      : config.monogram.style === 'silver_foil'
-                      ? 'bg-black/75 border-slate-300 text-slate-100 shadow-[0_0_15px_rgba(255,255,255,0.35)]'
-                      : 'bg-black/60 border-black/40 text-stone-200'
-                  }`}
-                >
-                  <span
-                    style={{
-                      fontFamily: fontFamily,
-                      letterSpacing: letterSpacing,
-                      fontSize: `${monogramFontSize + 1}px`,
-                    }}
-                    className="font-black uppercase drop-shadow-md"
-                  >
-                    {config.monogram.text.toUpperCase()}
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      ) : (
-        <svg
-          viewBox="0 0 400 360"
-          className="w-full h-full max-h-[360px] drop-shadow-2xl transition-all duration-500 ease-out z-10"
-          style={{ transform: `scale(${sizeScale})` }}
-        >
+      {/* 3D Interactive SVG Canvas */}
+      <svg
+        viewBox="0 0 400 360"
+        className="w-full h-full max-h-[360px] drop-shadow-2xl transition-all duration-500 ease-out z-10"
+        style={{ transform: `scale(${sizeScale})` }}
+      >
         <defs>
           {/* Leather Gradient lighting */}
           <linearGradient id="leatherLight" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -232,6 +202,30 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
             <rect x="1" y="1" width="18" height="14" rx="3" fill="none" stroke="rgba(0,0,0,0.2)" strokeWidth="1" />
             <rect x="2" y="2" width="16" height="12" rx="2" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />
           </pattern>
+
+          {/* Pebbled full-grain texture pattern */}
+          <pattern id="pebbledPattern" width="7" height="7" patternUnits="userSpaceOnUse">
+            <circle cx="2" cy="2" r="1.2" fill="rgba(0,0,0,0.12)" />
+            <circle cx="2.2" cy="1.8" r="0.7" fill="rgba(255,255,255,0.14)" />
+            <circle cx="5.5" cy="5.5" r="1.3" fill="rgba(0,0,0,0.12)" />
+            <circle cx="5.7" cy="5.2" r="0.8" fill="rgba(255,255,255,0.14)" />
+          </pattern>
+
+          {/* Velvet suede soft texture pattern */}
+          <pattern id="suedePattern" width="4" height="4" patternUnits="userSpaceOnUse">
+            <rect width="4" height="4" fill="rgba(0,0,0,0.06)" />
+            <rect x="0" y="0" width="2" height="2" fill="rgba(255,255,255,0.06)" />
+            <rect x="2" y="2" width="2" height="2" fill="rgba(255,255,255,0.06)" />
+          </pattern>
+
+          {/* Mirror metallic sheen gradient */}
+          <linearGradient id="metallicSheen" x1="0%" y1="0%" x2="100%" y2="80%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.45" />
+            <stop offset="20%" stopColor="#ffffff" stopOpacity="0.1" />
+            <stop offset="45%" stopColor="#ffffff" stopOpacity="0.6" />
+            <stop offset="65%" stopColor="#ffffff" stopOpacity="0.1" />
+            <stop offset="100%" stopColor="#000000" stopOpacity="0.25" />
+          </linearGradient>
 
           {/* Metallic Gold / Silver / Hardware Gradient */}
           <linearGradient id="hardwareGradient" x1="0%" y1="0%" x2="100%" y2="50%">
@@ -260,674 +254,180 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
           {/* Bohemian Jacquard Woven Pattern */}
           <pattern id="bohoJacquardPattern" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="rotate(30)">
             <rect width="28" height="28" fill="#181824" />
-            {/* Geometric diamond / chevron tapestry */}
             <path d="M 0 14 L 14 0 L 28 14 L 14 28 Z" fill="#d97706" />
             <path d="M 7 14 L 14 7 L 21 14 L 14 21 Z" fill="#ec4899" />
             <circle cx="14" cy="14" r="3" fill="#06b6d4" />
             <line x1="0" y1="0" x2="28" y2="0" stroke="#f59e0b" strokeWidth="2" />
             <line x1="0" y1="28" x2="28" y2="28" stroke="#f59e0b" strokeWidth="2" />
           </pattern>
+
+          {/* Hand-Braided Leather Pattern */}
+          <pattern id="braidedPattern" width="12" height="12" patternUnits="userSpaceOnUse">
+            <path d="M0 0 L6 6 L0 12 M6 0 L12 6 L6 12" stroke="rgba(0,0,0,0.28)" strokeWidth="1.8" fill="none" />
+            <path d="M0 0 L6 6 L0 12 M6 0 L12 6 L6 12" stroke="rgba(255,255,255,0.22)" strokeWidth="0.8" fill="none" />
+          </pattern>
+
+          {/* Luminous Pearl Radial Gradient */}
+          <radialGradient id="pearlShine" cx="35%" cy="35%" r="65%">
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="40%" stopColor="#fdfbf7" />
+            <stop offset="80%" stopColor="#e8e2d5" />
+            <stop offset="100%" stopColor="#c4baa8" />
+          </radialGradient>
         </defs>
 
         {/* 1. BAG HANDLES / STRAP (Behind Body) */}
-        {config.bagType === 'tote' && (
+        {isTote && (
           <g className="transition-all duration-300">
-            {config.strapId === 'chunky_chain' ? (
-              <g>
-                <path
-                  d="M 140 160 C 140 60, 260 60, 260 160"
-                  fill="none"
-                  stroke="#1a1a1a"
-                  strokeWidth="13"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 140 160 C 140 60, 260 60, 260 160"
-                  fill="none"
-                  stroke="url(#hardwareGradient)"
-                  strokeWidth="11"
-                  strokeDasharray="6 8"
-                  strokeLinecap="round"
-                />
-              </g>
-            ) : config.strapId === 'woven_guitar' ? (
-              <g>
-                <path
-                  d="M 140 160 C 140 60, 260 60, 260 160"
-                  fill="none"
-                  stroke="#181824"
-                  strokeWidth="20"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 140 160 C 140 60, 260 60, 260 160"
-                  fill="none"
-                  stroke="url(#bohoJacquardPattern)"
-                  strokeWidth="16"
-                  strokeLinecap="round"
-                />
-              </g>
-            ) : (
-              <g>
-                <path
-                  d="M 140 160 C 140 60, 260 60, 260 160"
-                  fill="none"
-                  stroke={handleHex}
-                  strokeWidth="16"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 140 160 C 140 60, 260 60, 260 160"
-                  fill="none"
-                  stroke="url(#leatherLight)"
-                  strokeWidth="16"
-                  strokeLinecap="round"
-                />
-              </g>
-            )}
+            {renderStrapPath('M 140 160 C 140 60, 260 60, 260 160', 16)}
           </g>
         )}
 
-        {config.bagType === 'shoulder' && (
+        {isShoulder && (
           <g className="transition-all duration-300">
-            {config.strapId === 'chunky_chain' ? (
-              <g>
-                <path
-                  d="M 130 180 C 130 70, 270 70, 270 180"
-                  fill="none"
-                  stroke="#1a1a1a"
-                  strokeWidth="12"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 130 180 C 130 70, 270 70, 270 180"
-                  fill="none"
-                  stroke="url(#hardwareGradient)"
-                  strokeWidth="10"
-                  strokeDasharray="6 8"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 130 180 C 130 70, 270 70, 270 180"
-                  fill="none"
-                  stroke="#ffffff"
-                  strokeWidth="2"
-                  strokeDasharray="2 12"
-                  strokeOpacity="0.8"
-                />
-              </g>
-            ) : config.strapId === 'woven_guitar' ? (
-              <g>
-                <path
-                  d="M 130 180 C 130 70, 270 70, 270 180"
-                  fill="none"
-                  stroke="#181824"
-                  strokeWidth="20"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 130 180 C 130 70, 270 70, 270 180"
-                  fill="none"
-                  stroke="url(#bohoJacquardPattern)"
-                  strokeWidth="16"
-                  strokeLinecap="round"
-                />
-              </g>
-            ) : (
-              <g>
-                <path
-                  d="M 130 180 C 130 80, 270 80, 270 180"
-                  fill="none"
-                  stroke={handleHex}
-                  strokeWidth="14"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 130 180 C 130 80, 270 80, 270 180"
-                  fill="none"
-                  stroke="url(#leatherLight)"
-                  strokeWidth="14"
-                  strokeLinecap="round"
-                />
-              </g>
-            )}
+            {renderStrapPath('M 130 180 C 120 70, 280 70, 270 180', 14)}
           </g>
         )}
 
-        {(config.bagType === 'crossbody' || config.bagType === 'mini') && (
+        {isCrossbody && (
           <g className="transition-all duration-300">
-            {config.strapId === 'chunky_chain' ? (
-              <g>
-                <path
-                  d="M 115 190 C 115 50, 285 50, 285 190"
-                  fill="none"
-                  stroke="#1a1a1a"
-                  strokeWidth="10"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 115 190 C 115 50, 285 50, 285 190"
-                  fill="none"
-                  stroke="url(#hardwareGradient)"
-                  strokeWidth="8"
-                  strokeDasharray="6 8"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 115 190 C 115 50, 285 50, 285 190"
-                  fill="none"
-                  stroke="#ffffff"
-                  strokeWidth="2"
-                  strokeDasharray="2 12"
-                  strokeOpacity="0.8"
-                />
-              </g>
-            ) : config.strapId === 'woven_guitar' ? (
-              <g>
-                <path
-                  d="M 115 190 C 115 50, 285 50, 285 190"
-                  fill="none"
-                  stroke="#181824"
-                  strokeWidth="22"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 115 190 C 115 50, 285 50, 285 190"
-                  fill="none"
-                  stroke="url(#bohoJacquardPattern)"
-                  strokeWidth="18"
-                  strokeLinecap="round"
-                />
-                {/* Leather connector tabs */}
-                <rect x="108" y="172" width="14" height="20" rx="3" fill={handleHex} stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
-                <rect x="278" y="172" width="14" height="20" rx="3" fill={handleHex} stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
-              </g>
+            {renderStrapPath('M 115 180 C 95 40, 305 40, 285 180', 14)}
+          </g>
+        )}
+
+        {isClutch && (
+          <g className="transition-all duration-300">
+            {config.strapId === 'chunky_chain' || config.strapId === 'pearl_chain' ? (
+              renderStrapPath('M 85 180 C 65 140, 65 90, 85 80 C 110 70, 150 100, 160 115', 8)
             ) : (
               <g>
-                <path
-                  d="M 115 190 C 115 50, 285 50, 285 190"
-                  fill="none"
-                  stroke={handleHex}
-                  strokeWidth="10"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 115 190 C 115 50, 285 50, 285 190"
-                  fill="none"
-                  stroke="url(#leatherLight)"
-                  strokeWidth="10"
-                  strokeLinecap="round"
-                />
+                <path d="M 85 180 C 60 170, 45 140, 50 110 C 55 85, 75 80, 85 115" fill="none" stroke={handleHex} strokeWidth="6" strokeLinecap="round" />
+                <path d="M 85 180 C 60 170, 45 140, 50 110 C 55 85, 75 80, 85 115" fill="none" stroke="url(#leatherLight)" strokeWidth="6" strokeLinecap="round" />
+                <circle cx="85" cy="180" r="4" fill="url(#hardwareGradient)" />
               </g>
             )}
           </g>
         )}
 
-        {config.bagType === 'clutch' && (
-          <g id="clutch-strap" className="transition-all duration-300">
-            {config.strapId === 'woven_guitar' ? (
-              <g>
-                {/* Wide bohemian jacquard guitar strap */}
-                <path
-                  d="M 105 120 C 105 30, 295 30, 295 120"
-                  fill="none"
-                  stroke="#181824"
-                  strokeWidth="22"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 105 120 C 105 30, 295 30, 295 120"
-                  fill="none"
-                  stroke="url(#bohoJacquardPattern)"
-                  strokeWidth="18"
-                  strokeLinecap="round"
-                />
-                {/* Leather ends connecting to clutch */}
-                <rect x="98" y="102" width="14" height="20" rx="3" fill={handleHex} stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
-                <rect x="288" y="102" width="14" height="20" rx="3" fill={handleHex} stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
-                {/* Hardware rings and clips */}
-                <circle cx="105" cy="118" r="5" fill="url(#hardwareGradient)" stroke="#000" strokeWidth="0.5" />
-                <circle cx="295" cy="118" r="5" fill="url(#hardwareGradient)" stroke="#000" strokeWidth="0.5" />
-              </g>
-            ) : config.strapId === 'chunky_chain' ? (
-              <g>
-                {/* Luxury chunky chain strap arching over clutch */}
-                <path
-                  d="M 105 120 C 105 25, 295 25, 295 120"
-                  fill="none"
-                  stroke="#1a1a1a"
-                  strokeWidth="11"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 105 120 C 105 25, 295 25, 295 120"
-                  fill="none"
-                  stroke="url(#hardwareGradient)"
-                  strokeWidth="9"
-                  strokeDasharray="6 8"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 105 120 C 105 25, 295 25, 295 120"
-                  fill="none"
-                  stroke="#ffffff"
-                  strokeWidth="2"
-                  strokeDasharray="2 12"
-                  strokeOpacity="0.8"
-                />
-                {/* Chain attachment loops */}
-                <circle cx="105" cy="116" r="6" fill="url(#hardwareGradient)" />
-                <circle cx="295" cy="116" r="6" fill="url(#hardwareGradient)" />
-              </g>
-            ) : (
-              <g>
-                {/* Classic matching leather wristlet loop */}
-                <path
-                  d="M 90 135 C 45 135, 40 190, 75 220 C 88 232, 92 215, 90 165"
-                  fill="none"
-                  stroke={handleHex}
-                  strokeWidth="10"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 90 135 C 45 135, 40 190, 75 220 C 88 232, 92 215, 90 165"
-                  fill="none"
-                  stroke="url(#leatherLight)"
-                  strokeWidth="10"
-                  strokeLinecap="round"
-                />
-                <circle cx="90" cy="140" r="5" fill="url(#hardwareGradient)" />
-              </g>
-            )}
-          </g>
-        )}
-
-        {config.bagType === 'backpack' && (
+        {isBackpack && (
           <g>
-            <path
-              d="M 170 140 C 170 100, 230 100, 230 140"
-              fill="none"
-              stroke={handleHex}
-              strokeWidth="12"
-              strokeLinecap="round"
-            />
-            <path
-              d="M 170 140 C 170 100, 230 100, 230 140"
-              fill="none"
-              stroke="url(#leatherLight)"
-              strokeWidth="12"
-              strokeLinecap="round"
-            />
+            <path d="M 170 140 C 170 100, 230 100, 230 140" fill="none" stroke={handleHex} strokeWidth="12" strokeLinecap="round" />
+            <path d="M 170 140 C 170 100, 230 100, 230 140" fill="none" stroke="url(#leatherLight)" strokeWidth="12" strokeLinecap="round" />
+            {renderStrapPath('M 140 180 C 110 130, 95 240, 120 300', 10)}
+            {renderStrapPath('M 260 180 C 290 130, 305 240, 280 300', 10)}
           </g>
         )}
 
         {isBalmain && (
           <g id="balmain-handle-and-interior" className="transition-all duration-300">
-            {/* 1. Interior shaded cavity visible in the top scoop */}
-            <path
-              d="M 125 158 Q 200 198 275 158 Q 200 135 125 158 Z"
-              fill="#101016"
-              filter="drop-shadow(0 4px 6px rgba(0,0,0,0.6))"
-            />
-            {/* Interior leather rim highlight */}
-            <path
-              d="M 125 158 Q 200 198 275 158"
-              fill="none"
-              stroke="rgba(255,255,255,0.12)"
-              strokeWidth="1.5"
-            />
-
-            {/* 2. Main Curved Shoulder Handle Arch */}
-            {config.strapId === 'woven_guitar' ? (
-              <g>
-                <path
-                  d="M 122 170 C 110 50, 290 50, 278 170"
-                  fill="none"
-                  stroke="#181824"
-                  strokeWidth="24"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 122 170 C 110 50, 290 50, 278 170"
-                  fill="none"
-                  stroke="url(#bohoJacquardPattern)"
-                  strokeWidth="20"
-                  strokeLinecap="round"
-                />
-              </g>
-            ) : config.strapId === 'chunky_chain' ? (
-              <g>
-                <path
-                  d="M 122 170 C 110 50, 290 50, 278 170"
-                  fill="none"
-                  stroke="#1a1a1a"
-                  strokeWidth="14"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 122 170 C 110 50, 290 50, 278 170"
-                  fill="none"
-                  stroke="url(#hardwareGradient)"
-                  strokeWidth="11"
-                  strokeDasharray="6 9"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 122 170 C 110 50, 290 50, 278 170"
-                  fill="none"
-                  stroke="#ffffff"
-                  strokeWidth="2.5"
-                  strokeDasharray="2 13"
-                  strokeOpacity="0.85"
-                />
-              </g>
-            ) : (
-              <g>
-                {/* Sculptural Leather Handle with subtle taper and 3D lighting */}
-                <path
-                  d="M 122 170 C 110 50, 290 50, 278 170"
-                  fill="none"
-                  stroke={handleHex}
-                  strokeWidth="22"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 122 170 C 110 50, 290 50, 278 170"
-                  fill="none"
-                  stroke="url(#leatherLight)"
-                  strokeWidth="22"
-                  strokeLinecap="round"
-                />
-                {/* Edge fine stitching along the handle */}
-                <path
-                  d="M 124 165 C 114 55, 286 55, 276 165"
-                  fill="none"
-                  stroke="rgba(255,255,255,0.3)"
-                  strokeWidth="1"
-                  strokeDasharray="3 3"
-                />
-
-                {/* Left side adjustment strap tab & metal buckle as seen in Balmain bag photo */}
-                <g id="balmain-handle-buckle">
-                  <rect
-                    x="114"
-                    y="108"
-                    width="12"
-                    height="18"
-                    rx="3"
-                    fill="url(#hardwareGradient)"
-                    stroke="#111"
-                    strokeWidth="0.5"
-                    filter="drop-shadow(0 2px 3px rgba(0,0,0,0.3))"
-                  />
-                  <line x1="114" y1="117" x2="126" y2="117" stroke="#111" strokeWidth="2" />
-                  <path
-                    d="M 118 126 L 114 158 Q 112 165 108 165 Q 104 165 106 156 L 112 126 Z"
-                    fill={handleHex}
-                    stroke="rgba(0,0,0,0.2)"
-                    strokeWidth="0.5"
-                  />
-                  <path
-                    d="M 118 126 L 114 158 Q 112 165 108 165 Q 104 165 106 156 L 112 126 Z"
-                    fill="url(#leatherLight)"
-                  />
-                </g>
-              </g>
-            )}
+            <path d="M 125 158 Q 200 198 275 158 Q 200 135 125 158 Z" fill="#101016" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.6))" />
+            <path d="M 125 158 Q 200 198 275 158" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" />
+            {renderStrapPath('M 122 170 C 110 50, 290 50, 278 170', 20)}
+            <g id="balmain-handle-buckle">
+              <rect x="114" y="108" width="12" height="18" rx="3" fill="url(#hardwareGradient)" stroke="#111" strokeWidth="0.5" filter="drop-shadow(0 2px 3px rgba(0,0,0,0.3))" />
+              <line x1="114" y1="117" x2="126" y2="117" stroke="#111" strokeWidth="2" />
+            </g>
           </g>
         )}
 
-        {isCustomOrHobo && (
+        {isHobo && (
           <g id="crescent-strap" className="transition-all duration-300">
-            {config.strapId === 'woven_guitar' ? (
-              <g>
-                <path
-                  d="M 116 172 C 112 45, 288 45, 284 172"
-                  fill="none"
-                  stroke="#181824"
-                  strokeWidth="22"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 116 172 C 112 45, 288 45, 284 172"
-                  fill="none"
-                  stroke="url(#bohoJacquardPattern)"
-                  strokeWidth="18"
-                  strokeLinecap="round"
-                />
-                <rect x="109" y="156" width="14" height="20" rx="3" fill={handleHex} stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
-                <rect x="277" y="156" width="14" height="20" rx="3" fill={handleHex} stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
-              </g>
-            ) : config.strapId === 'chunky_chain' ? (
-              <g>
-                <path
-                  d="M 116 172 C 112 45, 288 45, 284 172"
-                  fill="none"
-                  stroke="#1a1a1a"
-                  strokeWidth="12"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 116 172 C 112 45, 288 45, 284 172"
-                  fill="none"
-                  stroke="url(#hardwareGradient)"
-                  strokeWidth="10"
-                  strokeDasharray="6 8"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 116 172 C 112 45, 288 45, 284 172"
-                  fill="none"
-                  stroke="#ffffff"
-                  strokeWidth="2"
-                  strokeDasharray="2 12"
-                  strokeOpacity="0.8"
-                />
-              </g>
-            ) : (
-              <g>
-                {/* Classic Celine curved shoulder leather strap */}
-                <path
-                  d="M 116 172 C 112 50, 288 50, 284 172"
-                  fill="none"
-                  stroke={handleHex}
-                  strokeWidth="14"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 116 172 C 112 50, 288 50, 284 172"
-                  fill="none"
-                  stroke="url(#leatherLight)"
-                  strokeWidth="14"
-                  strokeLinecap="round"
-                />
-                {/* Gold adjustment pin buckle */}
-                <rect x="123" y="102" width="10" height="15" rx="2" fill="url(#hardwareGradient)" stroke="#000" strokeWidth="0.5" />
-                <line x1="123" y1="110" x2="133" y2="110" stroke="#111" strokeWidth="1.5" />
-              </g>
-            )}
+            {renderStrapPath('M 116 172 C 112 50, 288 50, 284 172', 15)}
+            <rect x="123" y="102" width="10" height="15" rx="2" fill="url(#hardwareGradient)" stroke="#000" strokeWidth="0.5" />
+            <line x1="123" y1="110" x2="133" y2="110" stroke="#111" strokeWidth="1.5" />
+          </g>
+        )}
+
+        {isBucket && (
+          <g id="bucket-strap" className="transition-all duration-300">
+            {renderStrapPath('M 125 175 C 120 50, 280 50, 275 175', 14)}
+            <rect x="120" y="170" width="8" height="14" rx="2" fill="url(#hardwareGradient)" stroke="#111" strokeWidth="0.5" />
+            <rect x="272" y="170" width="8" height="14" rx="2" fill="url(#hardwareGradient)" stroke="#111" strokeWidth="0.5" />
+          </g>
+        )}
+
+        {isSaddle && (
+          <g id="saddle-strap" className="transition-all duration-300">
+            {renderStrapPath('M 118 165 C 112 50, 288 50, 282 165', 14)}
+            <circle cx="118" cy="165" r="7" fill="url(#hardwareGradient)" stroke="#111" strokeWidth="0.5" />
+            <circle cx="118" cy="165" r="3.5" fill="#151515" />
+            <circle cx="282" cy="165" r="7" fill="url(#hardwareGradient)" stroke="#111" strokeWidth="0.5" />
+            <circle cx="282" cy="165" r="3.5" fill="#151515" />
+          </g>
+        )}
+
+        {isSatchel && (
+          <g id="satchel-strap-and-handle" className="transition-all duration-300">
+            {renderStrapPath('M 120 185 C 110 40, 290 40, 280 185', 12)}
+            <path d="M 160 165 C 160 95, 240 95, 240 165" fill="none" stroke={handleHex} strokeWidth="14" strokeLinecap="round" />
+            <path d="M 160 165 C 160 95, 240 95, 240 165" fill="none" stroke="url(#leatherLight)" strokeWidth="14" strokeLinecap="round" />
+            <rect x="154" y="158" width="12" height="12" rx="2" fill="url(#hardwareGradient)" stroke="#111" strokeWidth="0.5" />
+            <rect x="234" y="158" width="12" height="12" rx="2" fill="url(#hardwareGradient)" stroke="#111" strokeWidth="0.5" />
+          </g>
+        )}
+
+        {isDuffel && (
+          <g id="duffel-straps" className="transition-all duration-300">
+            {renderStrapPath('M 95 195 C 90 35, 310 35, 305 195', 14)}
+            <path d="M 140 185 C 140 100, 260 100, 260 185" fill="none" stroke={handleHex} strokeWidth="13" strokeLinecap="round" />
+            <path d="M 140 185 C 140 100, 260 100, 260 185" fill="none" stroke="url(#leatherLight)" strokeWidth="13" strokeLinecap="round" />
+            <rect x="185" y="94" width="30" height="14" rx="4" fill={handleHex} stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
+            <circle cx="200" cy="101" r="2.5" fill="url(#hardwareGradient)" />
           </g>
         )}
 
         {/* 2. BAG MAIN BODY SILHOUETTES */}
-        {config.bagType === 'tote' && (
+        {isTote && (
           <g id="tote-body">
-            {/* Trapezoid Tote Body */}
-            <path
-              d="M 110 150 L 290 150 L 275 310 Q 270 325 250 325 L 150 325 Q 130 325 125 310 Z"
-              fill={primaryHex}
-              className="transition-colors duration-300"
-            />
-            {/* Texture overlay */}
-            {currentMaterial.texture === 'crosshatch' && (
-              <path
-                d="M 110 150 L 290 150 L 275 310 Q 270 325 250 325 L 150 325 Q 130 325 125 310 Z"
-                fill="url(#saffianoPattern)"
-              />
-            )}
-            {currentMaterial.texture === 'croc' && (
-              <path
-                d="M 110 150 L 290 150 L 275 310 Q 270 325 250 325 L 150 325 Q 130 325 125 310 Z"
-                fill="url(#crocPattern)"
-              />
-            )}
-            {/* Realistic Light and shadow */}
-            <path
-              d="M 110 150 L 290 150 L 275 310 Q 270 325 250 325 L 150 325 Q 130 325 125 310 Z"
-              fill="url(#leatherLight)"
-            />
-            {/* Top Rim stitched fold */}
+            <path d="M 110 150 L 290 150 L 275 310 Q 270 325 250 325 L 150 325 Q 130 325 125 310 Z" fill={primaryHex} className="transition-colors duration-300" />
+            {renderMaterialOverlays("M 110 150 L 290 150 L 275 310 Q 270 325 250 325 L 150 325 Q 130 325 125 310 Z")}
             <path d="M 110 150 L 290 150" stroke="rgba(0,0,0,0.25)" strokeWidth="4" />
             <path d="M 112 155 L 288 155" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" strokeDasharray="3 3" />
-
-            {/* Handle Base Hardware Clasps */}
             <rect x="135" y="152" width="10" height="16" rx="2" fill="url(#hardwareGradient)" />
             <rect x="255" y="152" width="10" height="16" rx="2" fill="url(#hardwareGradient)" />
           </g>
         )}
 
-        {(config.bagType === 'crossbody' || config.bagType === 'mini') && (
+        {isCrossbody && (
           <g id="crossbody-body">
-            {/* Curved Flap Bag */}
-            <path
-              d="M 115 170 Q 115 155 130 155 L 270 155 Q 285 155 285 170 L 285 285 Q 285 310 260 310 L 140 310 Q 115 310 115 285 Z"
-              fill={primaryHex}
-              className="transition-colors duration-300"
-            />
-            {currentMaterial.texture === 'crosshatch' && (
-              <path
-                d="M 115 170 Q 115 155 130 155 L 270 155 Q 285 155 285 170 L 285 285 Q 285 310 260 310 L 140 310 Q 115 310 115 285 Z"
-                fill="url(#saffianoPattern)"
-              />
-            )}
-            {currentMaterial.texture === 'croc' && (
-              <path
-                d="M 115 170 Q 115 155 130 155 L 270 155 Q 285 155 285 170 L 285 285 Q 285 310 260 310 L 140 310 Q 115 310 115 285 Z"
-                fill="url(#crocPattern)"
-              />
-            )}
-            <path
-              d="M 115 170 Q 115 155 130 155 L 270 155 Q 285 155 285 170 L 285 285 Q 285 310 260 310 L 140 310 Q 115 310 115 285 Z"
-              fill="url(#leatherLight)"
-            />
-
-            {/* Front Envelope Flap */}
-            <path
-              d="M 115 160 L 285 160 L 285 220 Q 200 265 115 220 Z"
-              fill={primaryHex}
-              filter="drop-shadow(0px 5px 6px rgba(0,0,0,0.25))"
-            />
-            <path
-              d="M 115 160 L 285 160 L 285 220 Q 200 265 115 220 Z"
-              fill="url(#leatherLight)"
-            />
-            {/* Flap edge decorative stitching */}
-            <path
-              d="M 118 162 L 282 162 L 282 216 Q 200 260 118 216 Z"
-              fill="none"
-              stroke="rgba(255,255,255,0.3)"
-              strokeWidth="1.2"
-              strokeDasharray="3 3"
-            />
-
-            {/* Iconic Metallic Turnlock Clasp */}
+            <path d="M 115 170 Q 115 155 130 155 L 270 155 Q 285 155 285 170 L 285 285 Q 285 310 260 310 L 140 310 Q 115 310 115 285 Z" fill={primaryHex} className="transition-colors duration-300" />
+            {renderMaterialOverlays("M 115 170 Q 115 155 130 155 L 270 155 Q 285 155 285 170 L 285 285 Q 285 310 260 310 L 140 310 Q 115 310 115 285 Z")}
+            <path d="M 115 160 L 285 160 L 285 220 Q 200 265 115 220 Z" fill={primaryHex} filter="drop-shadow(0px 5px 6px rgba(0,0,0,0.25))" />
+            {renderMaterialOverlays("M 115 160 L 285 160 L 285 220 Q 200 265 115 220 Z")}
+            <path d="M 118 162 L 282 162 L 282 216 Q 200 260 118 216 Z" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.2" strokeDasharray="3 3" />
             <ellipse cx="200" cy="242" rx="14" ry="11" fill="url(#hardwareGradient)" stroke="#1a1a1a" strokeWidth="0.5" />
             <rect x="194" y="238" width="12" height="8" rx="2" fill="#111111" />
             <circle cx="200" cy="242" r="3" fill="url(#hardwareGradient)" />
           </g>
         )}
 
-        {config.bagType === 'shoulder' && (
+        {isShoulder && (
           <g id="shoulder-body">
-            {/* Baguette curved silhouette */}
-            <path
-              d="M 110 190 Q 110 170 135 170 L 265 170 Q 290 170 290 190 L 290 280 Q 290 305 265 305 L 135 305 Q 110 305 110 280 Z"
-              fill={primaryHex}
-            />
-            {currentMaterial.texture === 'crosshatch' && (
-              <path
-                d="M 110 190 Q 110 170 135 170 L 265 170 Q 290 170 290 190 L 290 280 Q 290 305 265 305 L 135 305 Q 110 305 110 280 Z"
-                fill="url(#saffianoPattern)"
-              />
-            )}
-            {currentMaterial.texture === 'croc' && (
-              <path
-                d="M 110 190 Q 110 170 135 170 L 265 170 Q 290 170 290 190 L 290 280 Q 290 305 265 305 L 135 305 Q 110 305 110 280 Z"
-                fill="url(#crocPattern)"
-              />
-            )}
-            <path
-              d="M 110 190 Q 110 170 135 170 L 265 170 Q 290 170 290 190 L 290 280 Q 290 305 265 305 L 135 305 Q 110 305 110 280 Z"
-              fill="url(#leatherLight)"
-            />
-
-            {/* Zipper top trim */}
+            <path d="M 110 190 Q 110 170 135 170 L 265 170 Q 290 170 290 190 L 290 280 Q 290 305 265 305 L 135 305 Q 110 305 110 280 Z" fill={primaryHex} />
+            {renderMaterialOverlays("M 110 190 Q 110 170 135 170 L 265 170 Q 290 170 290 190 L 290 280 Q 290 305 265 305 L 135 305 Q 110 305 110 280 Z")}
             <rect x="130" y="167" width="140" height="6" rx="2" fill="url(#hardwareGradient)" />
-            {/* Center Buckle */}
             <circle cx="200" cy="225" r="12" fill="url(#hardwareGradient)" />
           </g>
         )}
 
-        {config.bagType === 'backpack' && (
+        {isBackpack && (
           <g id="backpack-body">
-            {/* Dome-shaped Backpack */}
-            <path
-              d="M 130 315 L 270 315 Q 285 315 285 295 L 280 200 Q 275 140 200 140 Q 125 140 120 200 L 115 295 Q 115 315 130 315 Z"
-              fill={primaryHex}
-            />
-            <path
-              d="M 130 315 L 270 315 Q 285 315 285 295 L 280 200 Q 275 140 200 140 Q 125 140 120 200 L 115 295 Q 115 315 130 315 Z"
-              fill="url(#leatherLight)"
-            />
-            {/* Front Zipper Pocket */}
-            <path
-              d="M 140 240 L 260 240 Q 270 240 270 255 L 268 300 Q 268 310 255 310 L 145 310 Q 132 310 132 300 L 130 255 Q 130 240 140 240 Z"
-              fill={primaryHex}
-              filter="drop-shadow(0 4px 6px rgba(0,0,0,0.2))"
-            />
-            <path
-              d="M 140 240 L 260 240 Q 270 240 270 255 L 268 300 Q 268 310 255 310 L 145 310 Q 132 310 132 300 L 130 255 Q 130 240 140 240 Z"
-              fill="url(#leatherLight)"
-            />
-            {/* Pocket Zipper with hardware puller */}
+            <path d="M 130 315 L 270 315 Q 285 315 285 295 L 280 200 Q 275 140 200 140 Q 125 140 120 200 L 115 295 Q 115 315 130 315 Z" fill={primaryHex} />
+            {renderMaterialOverlays("M 130 315 L 270 315 Q 285 315 285 295 L 280 200 Q 275 140 200 140 Q 125 140 120 200 L 115 295 Q 115 315 130 315 Z")}
+            <path d="M 140 240 L 260 240 Q 270 240 270 255 L 268 300 Q 268 310 255 310 L 145 310 Q 132 310 132 300 L 130 255 Q 130 240 140 240 Z" fill={primaryHex} filter="drop-shadow(0 4px 6px rgba(0,0,0,0.2))" />
+            {renderMaterialOverlays("M 140 240 L 260 240 Q 270 240 270 255 L 268 300 Q 268 310 255 310 L 145 310 Q 132 310 132 300 L 130 255 Q 130 240 140 240 Z")}
             <line x1="145" y1="245" x2="255" y2="245" stroke="url(#hardwareGradient)" strokeWidth="3" />
             <circle cx="200" cy="245" r="5" fill="url(#hardwareGradient)" />
           </g>
         )}
 
-        {config.bagType === 'clutch' && (
+        {isClutch && (
           <g id="clutch-body">
-            {/* Rectangular envelope clutch centered nicely */}
             <rect x="85" y="115" width="230" height="150" rx="12" fill={primaryHex} />
-            {currentMaterial.texture === 'crosshatch' && (
-              <rect x="85" y="115" width="230" height="150" rx="12" fill="url(#saffianoPattern)" />
-            )}
-            {currentMaterial.texture === 'croc' && (
-              <rect x="85" y="115" width="230" height="150" rx="12" fill="url(#crocPattern)" />
-            )}
-            <rect x="85" y="115" width="230" height="150" rx="12" fill="url(#leatherLight)" />
-
-            {/* Triangular V flap */}
-            <path
-              d="M 85 115 L 315 115 L 200 205 Z"
-              fill={primaryHex}
-              filter="drop-shadow(0 4px 6px rgba(0,0,0,0.25))"
-            />
-            {currentMaterial.texture === 'croc' && (
-              <path d="M 85 115 L 315 115 L 200 205 Z" fill="url(#crocPattern)" />
-            )}
-            <path d="M 85 115 L 315 115 L 200 205 Z" fill="url(#leatherLight)" />
-
-            {/* Edge stitching */}
-            <path
-              d="M 89 117 L 311 117 L 200 201 Z"
-              fill="none"
-              stroke="rgba(255,255,255,0.3)"
-              strokeWidth="1.2"
-              strokeDasharray="3 3"
-            />
-
-            {/* Clasp Point */}
+            {renderMaterialOverlays("M 85 115 L 315 115 L 315 265 L 85 265 Z")}
+            <path d="M 85 115 L 315 115 L 200 205 Z" fill={primaryHex} filter="drop-shadow(0 4px 6px rgba(0,0,0,0.25))" />
+            {renderMaterialOverlays("M 85 115 L 315 115 L 200 205 Z")}
+            <path d="M 89 117 L 311 117 L 200 201 Z" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.2" strokeDasharray="3 3" />
             <circle cx="200" cy="205" r="9" fill="url(#hardwareGradient)" stroke="#1a1a1a" strokeWidth="0.5" />
             <circle cx="200" cy="205" r="4" fill="#111111" />
           </g>
@@ -935,217 +435,33 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
 
         {isBalmain && (
           <g id="balmain-body" className="transition-all duration-300">
-            {/* A. Base Silhouette & Volume (Upper draped tier + Lower billowing cloud pouch) */}
             <path
-              d="M 120 162
-                 Q 200 196 280 162
-                 C 288 185, 280 205, 270 216
-                 C 325 245, 335 285, 310 312
-                 C 290 328, 245 322, 200 322
-                 C 155 322, 110 328, 90 312
-                 C 65 285, 75 245, 130 216
-                 C 120 205, 112 185, 120 162 Z"
+              d="M 120 162 Q 200 196 280 162 C 288 185, 280 205, 270 216 C 325 245, 335 285, 310 312 C 290 328, 245 322, 200 322 C 155 322, 110 328, 90 312 C 65 285, 75 245, 130 216 C 120 205, 112 185, 120 162 Z"
               fill={primaryHex}
-              className="transition-colors duration-300"
               filter="drop-shadow(0 12px 18px rgba(0,0,0,0.35))"
             />
+            {renderMaterialOverlays("M 120 162 Q 200 196 280 162 C 288 185, 280 205, 270 216 C 325 245, 335 285, 310 312 C 290 328, 245 322, 200 322 C 155 322, 110 328, 90 312 C 65 285, 75 245, 130 216 C 120 205, 112 185, 120 162 Z")}
 
-            {/* Leather texture overlay if selected */}
-            {currentMaterial.texture === 'crosshatch' && (
-              <path
-                d="M 120 162
-                   Q 200 196 280 162
-                   C 288 185, 280 205, 270 216
-                   C 325 245, 335 285, 310 312
-                   C 290 328, 245 322, 200 322
-                   C 155 322, 110 328, 90 312
-                   C 65 285, 75 245, 130 216
-                   C 120 205, 112 185, 120 162 Z"
-                fill="url(#saffianoPattern)"
-              />
-            )}
-            {currentMaterial.texture === 'croc' && (
-              <path
-                d="M 120 162
-                   Q 200 196 280 162
-                   C 288 185, 280 205, 270 216
-                   C 325 245, 335 285, 310 312
-                   C 290 328, 245 322, 200 322
-                   C 155 322, 110 328, 90 312
-                   C 65 285, 75 245, 130 216
-                   C 120 205, 112 185, 120 162 Z"
-                fill="url(#crocPattern)"
-              />
-            )}
-
-            {/* Base Volumetric Light & Soft Shading */}
-            <path
-              d="M 120 162
-                 Q 200 196 280 162
-                 C 288 185, 280 205, 270 216
-                 C 325 245, 335 285, 310 312
-                 C 290 328, 245 322, 200 322
-                 C 155 322, 110 328, 90 312
-                 C 65 285, 75 245, 130 216
-                 C 120 205, 112 185, 120 162 Z"
-              fill="url(#leatherLight)"
-            />
-
-            {/* B. Deep Sculptural Folds and Pleats (Upper Section - cascading to cinch) */}
+            {/* Balmain pleats */}
             <g id="balmain-upper-pleats">
               <path d="M 142 172 Q 148 195 152 216" stroke="rgba(0,0,0,0.35)" strokeWidth="3" fill="none" />
               <path d="M 144 172 Q 150 195 154 216" stroke="rgba(255,255,255,0.28)" strokeWidth="1.5" fill="none" />
-
               <path d="M 170 182 Q 174 200 178 216" stroke="rgba(0,0,0,0.35)" strokeWidth="3.5" fill="none" />
               <path d="M 172 182 Q 176 200 180 216" stroke="rgba(255,255,255,0.3)" strokeWidth="1.8" fill="none" />
-
               <path d="M 230 182 Q 226 200 222 216" stroke="rgba(0,0,0,0.35)" strokeWidth="3.5" fill="none" />
               <path d="M 228 182 Q 224 200 220 216" stroke="rgba(255,255,255,0.3)" strokeWidth="1.8" fill="none" />
-
               <path d="M 258 172 Q 252 195 248 216" stroke="rgba(0,0,0,0.35)" strokeWidth="3" fill="none" />
               <path d="M 256 172 Q 250 195 246 216" stroke="rgba(255,255,255,0.28)" strokeWidth="1.5" fill="none" />
             </g>
 
-            {/* C. Voluminous Lower Drapery & Folds (Expanding out into rich cloud pouch) */}
-            <g id="balmain-lower-pleats">
-              {/* Center deep drape valley */}
-              <path
-                d="M 195 220 Q 192 270 190 321"
-                stroke="rgba(0,0,0,0.4)"
-                strokeWidth="5"
-                fill="none"
-              />
-              <path
-                d="M 205 220 Q 208 270 210 321"
-                stroke="rgba(0,0,0,0.4)"
-                strokeWidth="5"
-                fill="none"
-              />
-              <path
-                d="M 200 220 Q 200 270 200 322"
-                stroke="rgba(255,255,255,0.22)"
-                strokeWidth="2.5"
-                fill="none"
-              />
-
-              {/* Mid-Left Drape Flounce */}
-              <path
-                d="M 165 218 C 155 250, 145 285, 138 316"
-                stroke="rgba(0,0,0,0.35)"
-                strokeWidth="6"
-                fill="none"
-              />
-              <path
-                d="M 168 218 C 158 250, 148 285, 141 316"
-                stroke="rgba(255,255,255,0.25)"
-                strokeWidth="2.2"
-                fill="none"
-              />
-
-              {/* Far-Left Cloud Pillow Fold */}
-              <path
-                d="M 130 216 C 105 245, 95 275, 92 310"
-                stroke="rgba(0,0,0,0.35)"
-                strokeWidth="5"
-                fill="none"
-              />
-              <path
-                d="M 132 216 C 108 245, 98 275, 95 310"
-                stroke="rgba(255,255,255,0.25)"
-                strokeWidth="2"
-                fill="none"
-              />
-
-              {/* Mid-Right Drape Flounce */}
-              <path
-                d="M 235 218 C 245 250, 255 285, 262 316"
-                stroke="rgba(0,0,0,0.35)"
-                strokeWidth="6"
-                fill="none"
-              />
-              <path
-                d="M 232 218 C 242 250, 252 285, 259 316"
-                stroke="rgba(255,255,255,0.25)"
-                strokeWidth="2.2"
-                fill="none"
-              />
-
-              {/* Far-Right Cloud Pillow Fold */}
-              <path
-                d="M 270 216 C 295 245, 305 275, 308 310"
-                stroke="rgba(0,0,0,0.35)"
-                strokeWidth="5"
-                fill="none"
-              />
-              <path
-                d="M 268 216 C 292 245, 302 275, 305 310"
-                stroke="rgba(255,255,255,0.25)"
-                strokeWidth="2"
-                fill="none"
-              />
-            </g>
-
-            {/* D. Ruched Cinch Belt (Horizontal Band running across the waist) */}
+            {/* Balmain Cinch & Gold Ingot Bar */}
             <g id="balmain-cinch-belt">
-              {/* Belt shadow on lower body */}
-              <path
-                d="M 126 220 Q 200 227 274 220"
-                fill="none"
-                stroke="rgba(0,0,0,0.4)"
-                strokeWidth="8"
-                filter="blur(1.5px)"
-              />
-              {/* Leather Cinch Cord / Belt */}
-              <path
-                d="M 126 217 Q 200 223 274 217"
-                fill="none"
-                stroke={primaryHex}
-                strokeWidth="6"
-                strokeLinecap="round"
-              />
-              <path
-                d="M 126 217 Q 200 223 274 217"
-                fill="none"
-                stroke="url(#leatherLight)"
-                strokeWidth="6"
-                strokeLinecap="round"
-              />
-              {/* Top and bottom subtle edge stitching on the cinch belt */}
-              <path
-                d="M 128 215 Q 200 221 272 215"
-                fill="none"
-                stroke="rgba(255,255,255,0.3)"
-                strokeWidth="0.8"
-                strokeDasharray="2 2"
-              />
-
-              {/* Ruched gather micro-folds around the center clasp */}
-              <path d="M 165 213 Q 170 217 172 222" stroke="rgba(0,0,0,0.45)" strokeWidth="2" fill="none" />
-              <path d="M 174 214 Q 177 217 178 221" stroke="rgba(0,0,0,0.45)" strokeWidth="2" fill="none" />
-              <path d="M 235 213 Q 230 217 228 222" stroke="rgba(0,0,0,0.45)" strokeWidth="2" fill="none" />
-              <path d="M 226 214 Q 223 217 222 221" stroke="rgba(0,0,0,0.45)" strokeWidth="2" fill="none" />
-
-              {/* Iconic Balmain Center Metallic Bar Clasp */}
+              <path d="M 126 217 Q 200 223 274 217" fill="none" stroke={primaryHex} strokeWidth="6" strokeLinecap="round" />
+              <path d="M 126 217 Q 200 223 274 217" fill="none" stroke="url(#leatherLight)" strokeWidth="6" strokeLinecap="round" />
               <g id="balmain-gold-bar" transform="translate(200, 219)">
-                {/* Bar drop shadow */}
                 <rect x="-24" y="-5" width="48" height="12" rx="4" fill="rgba(0,0,0,0.4)" filter="blur(1px)" />
-                {/* Metallic Tube / Ingot Bar */}
-                <rect
-                  x="-23"
-                  y="-6"
-                  width="46"
-                  height="12"
-                  rx="3.5"
-                  fill="url(#hardwareGradient)"
-                  stroke="#111111"
-                  strokeWidth="0.6"
-                />
-                {/* Specular highlight along top of bar */}
+                <rect x="-23" y="-6" width="46" height="12" rx="3.5" fill="url(#hardwareGradient)" stroke="#111111" strokeWidth="0.6" />
                 <line x1="-20" y1="-4" x2="20" y2="-4" stroke="#ffffff" strokeWidth="1.2" strokeOpacity="0.85" />
-                {/* Center luxury engraving groove & Balmain signature badge */}
-                <rect x="-10" y="-2" width="20" height="4" rx="1" fill="#151515" fillOpacity="0.35" />
-                <line x1="-6" y1="0" x2="6" y2="0" stroke="#ffffff" strokeWidth="0.8" strokeOpacity="0.6" />
-                {/* Left and Right hardware retaining collar rings */}
                 <rect x="-22" y="-6.5" width="4" height="13" rx="1.5" fill="url(#hardwareGradient)" stroke="#000" strokeWidth="0.4" />
                 <rect x="18" y="-6.5" width="4" height="13" rx="1.5" fill="url(#hardwareGradient)" stroke="#000" strokeWidth="0.4" />
               </g>
@@ -1153,93 +469,120 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
           </g>
         )}
 
-        {isCustomOrHobo && (
+        {isHobo && (
           <g id="crescent-body" className="transition-all duration-300">
-            {/* Main Crescent / Hobo Half-Moon Silhouette */}
             <path
               d="M 108 170 C 100 235, 135 295, 200 295 C 265 295, 300 235, 292 170 C 265 214, 135 214, 108 170 Z"
               fill={primaryHex}
               className="transition-colors duration-300"
             />
-            {/* Texture overlay */}
-            {currentMaterial.texture === 'crosshatch' && (
-              <path
-                d="M 108 170 C 100 235, 135 295, 200 295 C 265 295, 300 235, 292 170 C 265 214, 135 214, 108 170 Z"
-                fill="url(#saffianoPattern)"
-              />
-            )}
-            {currentMaterial.texture === 'croc' && (
-              <path
-                d="M 108 170 C 100 235, 135 295, 200 295 C 265 295, 300 235, 292 170 C 265 214, 135 214, 108 170 Z"
-                fill="url(#crocPattern)"
-              />
-            )}
-            {/* Leather curved lighting */}
-            <path
-              d="M 108 170 C 100 235, 135 295, 200 295 C 265 295, 300 235, 292 170 C 265 214, 135 214, 108 170 Z"
-              fill="url(#leatherLight)"
-            />
-
-            {/* Edge stitching around bottom curved contour */}
-            <path
-              d="M 112 176 C 105 233, 138 289, 200 289 C 262 289, 295 233, 288 176"
-              fill="none"
-              stroke="rgba(255,255,255,0.3)"
-              strokeWidth="1.2"
-              strokeDasharray="3 3"
-            />
-
-            {/* Top curved zipper track along the scooped dip */}
-            <path
-              d="M 116 174 C 145 214, 255 214, 284 174"
-              fill="none"
-              stroke="url(#hardwareGradient)"
-              strokeWidth="3.5"
-            />
-            {/* Zipper puller tag */}
+            {renderMaterialOverlays("M 108 170 C 100 235, 135 295, 200 295 C 265 295, 300 235, 292 170 C 265 214, 135 214, 108 170 Z")}
+            <path d="M 112 176 C 105 233, 138 289, 200 289 C 262 289, 295 233, 288 176" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.2" strokeDasharray="3 3" />
+            <path d="M 116 174 C 145 214, 255 214, 284 174" fill="none" stroke="url(#hardwareGradient)" strokeWidth="3.5" />
             <circle cx="160" cy="201" r="3.5" fill="url(#hardwareGradient)" />
             <rect x="158" y="203" width="4" height="10" rx="1.5" fill="url(#hardwareGradient)" />
-
-            {/* D-Ring strap loops on the bag wings */}
             <rect x="110" y="166" width="7" height="12" rx="2" fill="url(#hardwareGradient)" stroke="#111" strokeWidth="0.5" />
             <rect x="283" y="166" width="7" height="12" rx="2" fill="url(#hardwareGradient)" stroke="#111" strokeWidth="0.5" />
-
-            {/* Iconic Center Vertical Leather Tab */}
-            <path
-              d="M 183 194 L 217 194 Q 219 194 219 200 L 219 238 Q 219 248 200 248 Q 181 248 181 238 L 181 200 Q 181 194 183 194 Z"
-              fill={primaryHex}
-              filter="drop-shadow(0 3px 5px rgba(0,0,0,0.3))"
-            />
-            {currentMaterial.texture === 'croc' && (
-              <path
-                d="M 183 194 L 217 194 Q 219 194 219 200 L 219 238 Q 219 248 200 248 Q 181 248 181 238 L 181 200 Q 181 194 183 194 Z"
-                fill="url(#crocPattern)"
-              />
-            )}
-            <path
-              d="M 183 194 L 217 194 Q 219 194 219 200 L 219 238 Q 219 248 200 248 Q 181 248 181 238 L 181 200 Q 181 194 183 194 Z"
-              fill="url(#leatherLight)"
-            />
-            {/* Stitching on the tab */}
-            <path
-              d="M 185 196 L 215 196 Q 217 196 217 200 L 217 236 Q 217 245 200 245 Q 183 245 183 236 L 183 200 Q 183 196 185 196 Z"
-              fill="none"
-              stroke="rgba(255,255,255,0.3)"
-              strokeWidth="1"
-              strokeDasharray="2.5 2.5"
-            />
-
-            {/* Iconic Celine Triomphe Double-Arc Clasp Emblem */}
             <g id="triomphe-logo" transform="translate(200, 222)">
-              {/* Center connector plate */}
               <rect x="-4" y="-7" width="8" height="14" rx="1.5" fill="url(#hardwareGradient)" stroke="#111" strokeWidth="0.5" />
-              {/* Left Arc */}
               <path d="M -3 -8 C -13 -8, -15 -4, -15 0 C -15 4, -13 8, -3 8" fill="none" stroke="url(#hardwareGradient)" strokeWidth="3.2" strokeLinecap="round" />
-              {/* Right Arc */}
               <path d="M 3 -8 C 13 -8, 15 -4, 15 0 C 15 4, 13 8, 3 8" fill="none" stroke="url(#hardwareGradient)" strokeWidth="3.2" strokeLinecap="round" />
-              {/* Center hardware stud */}
               <circle cx="0" cy="0" r="2.2" fill="url(#hardwareGradient)" />
             </g>
+          </g>
+        )}
+
+        {isBucket && (
+          <g id="bucket-body" className="transition-all duration-300">
+            <path
+              d="M 135 155 Q 200 170 265 155 L 280 290 Q 282 315 200 315 Q 118 315 120 290 Z"
+              fill={primaryHex}
+              filter="drop-shadow(0 10px 15px rgba(0,0,0,0.3))"
+            />
+            {renderMaterialOverlays("M 135 155 Q 200 170 265 155 L 280 290 Q 282 315 200 315 Q 118 315 120 290 Z")}
+            <path d="M 135 155 Q 200 170 265 155 Q 200 142 135 155 Z" fill="#14141c" />
+            <path d="M 135 155 Q 200 170 265 155" fill="none" stroke={handleHex} strokeWidth="3" />
+            {/* Soft vertical gathers */}
+            <path d="M 160 170 Q 165 240 162 310" stroke="rgba(0,0,0,0.2)" strokeWidth="3" fill="none" />
+            <path d="M 161 170 Q 166 240 163 310" stroke="rgba(255,255,255,0.18)" strokeWidth="1" fill="none" />
+            <path d="M 240 170 Q 235 240 238 310" stroke="rgba(0,0,0,0.2)" strokeWidth="3" fill="none" />
+            <path d="M 239 170 Q 234 240 237 310" stroke="rgba(255,255,255,0.18)" strokeWidth="1" fill="none" />
+            {/* Drawstring eyelets */}
+            <circle cx="155" cy="180" r="4.5" fill="none" stroke="url(#hardwareGradient)" strokeWidth="2.5" />
+            <circle cx="185" cy="186" r="4.5" fill="none" stroke="url(#hardwareGradient)" strokeWidth="2.5" />
+            <circle cx="215" cy="186" r="4.5" fill="none" stroke="url(#hardwareGradient)" strokeWidth="2.5" />
+            <circle cx="245" cy="180" r="4.5" fill="none" stroke="url(#hardwareGradient)" strokeWidth="2.5" />
+            {/* Cinch cord */}
+            <path d="M 148 178 Q 200 190 252 178" fill="none" stroke={handleHex} strokeWidth="4" />
+            <path d="M 195 190 Q 192 215 190 236" fill="none" stroke={handleHex} strokeWidth="3.5" />
+            <path d="M 205 190 Q 208 215 210 236" fill="none" stroke={handleHex} strokeWidth="3.5" />
+            <rect x="187" y="235" width="6" height="12" rx="2" fill="url(#hardwareGradient)" />
+            <rect x="207" y="235" width="6" height="12" rx="2" fill="url(#hardwareGradient)" />
+            <path d="M 125 295 Q 200 320 275 295" fill="none" stroke="rgba(0,0,0,0.25)" strokeWidth="2" />
+          </g>
+        )}
+
+        {isSaddle && (
+          <g id="saddle-body" className="transition-all duration-300">
+            <path d="M 115 160 L 285 160 L 285 235 C 285 305, 115 305, 115 235 Z" fill={primaryHex} />
+            {renderMaterialOverlays("M 115 160 L 285 160 L 285 235 C 285 305, 115 305, 115 235 Z")}
+            {/* Sculpted Saddle Curved Flap */}
+            <path d="M 115 160 L 285 160 L 285 218 C 285 290, 210 282, 115 240 Z" fill={primaryHex} filter="drop-shadow(0 6px 10px rgba(0,0,0,0.3))" />
+            {renderMaterialOverlays("M 115 160 L 285 160 L 285 218 C 285 290, 210 282, 115 240 Z")}
+            <path d="M 118 163 L 282 163 L 282 215 C 282 284, 210 277, 118 237 Z" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.2" strokeDasharray="3 3" />
+            {/* Stirrup hardware charm */}
+            <g id="saddle-stirrup" transform="translate(210, 262)">
+              <rect x="-2" y="-12" width="4" height="14" rx="1" fill={handleHex} stroke="rgba(0,0,0,0.3)" strokeWidth="0.5" />
+              <path d="M -7 2 L 7 2 C 7 12, -7 12, -7 2 Z" fill="none" stroke="url(#hardwareGradient)" strokeWidth="3" strokeLinecap="round" />
+            </g>
+          </g>
+        )}
+
+        {isSatchel && (
+          <g id="satchel-body" className="transition-all duration-300">
+            <path d="M 115 168 L 285 168 L 274 312 Q 270 322 250 322 L 150 322 Q 130 322 126 312 Z" fill={primaryHex} />
+            {renderMaterialOverlays("M 115 168 L 285 168 L 274 312 Q 270 322 250 322 L 150 322 Q 130 322 126 312 Z")}
+            {/* Upper Structured Flap */}
+            <path d="M 115 168 L 285 168 L 282 232 L 118 232 Z" fill={primaryHex} filter="drop-shadow(0 5px 8px rgba(0,0,0,0.3))" />
+            {renderMaterialOverlays("M 115 168 L 285 168 L 282 232 L 118 232 Z")}
+            <rect x="120" y="170" width="160" height="60" rx="2" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="3 3" />
+            {/* Dual vertical straps with mini buckles */}
+            <rect x="145" y="168" width="12" height="105" rx="3" fill={handleHex} filter="drop-shadow(1px 2px 3px rgba(0,0,0,0.25))" />
+            <rect x="145" y="168" width="12" height="105" rx="3" fill="url(#leatherLight)" />
+            <rect x="143" y="224" width="16" height="14" rx="2" fill="none" stroke="url(#hardwareGradient)" strokeWidth="2.5" />
+            <rect x="243" y="168" width="12" height="105" rx="3" fill={handleHex} filter="drop-shadow(1px 2px 3px rgba(0,0,0,0.25))" />
+            <rect x="243" y="168" width="12" height="105" rx="3" fill="url(#leatherLight)" />
+            <rect x="241" y="224" width="16" height="14" rx="2" fill="none" stroke="url(#hardwareGradient)" strokeWidth="2.5" />
+            {/* Lock hardware */}
+            <g id="satchel-lock" transform="translate(200, 232)">
+              <rect x="-10" y="-10" width="20" height="22" rx="3" fill="url(#hardwareGradient)" stroke="#111" strokeWidth="0.5" />
+              <circle cx="0" cy="-2" r="3" fill="#111" />
+              <line x1="0" y1="-2" x2="0" y2="4" stroke="#111" strokeWidth="1.5" />
+            </g>
+          </g>
+        )}
+
+        {isDuffel && (
+          <g id="duffel-body" className="transition-all duration-300">
+            <path d="M 90 205 C 90 160, 310 160, 310 205 L 310 285 C 310 315, 90 315, 90 285 Z" fill={primaryHex} />
+            {renderMaterialOverlays("M 90 205 C 90 160, 310 160, 310 205 L 310 285 C 310 315, 90 315, 90 285 Z")}
+            {/* Barrel rounded end caps */}
+            <ellipse cx="92" cy="245" rx="8" ry="40" fill={primaryHex} stroke="rgba(0,0,0,0.3)" strokeWidth="1.5" />
+            <ellipse cx="308" cy="245" rx="8" ry="40" fill={primaryHex} stroke="rgba(0,0,0,0.3)" strokeWidth="1.5" />
+            {/* Reinforcing vertical leather bands */}
+            <rect x="142" y="165" width="16" height="140" fill={handleHex} />
+            <rect x="142" y="165" width="16" height="140" fill="url(#leatherLight)" />
+            <line x1="144" y1="165" x2="144" y2="305" stroke="rgba(255,255,255,0.3)" strokeWidth="0.8" strokeDasharray="3 3" />
+            <line x1="156" y1="165" x2="156" y2="305" stroke="rgba(255,255,255,0.3)" strokeWidth="0.8" strokeDasharray="3 3" />
+            <rect x="242" y="165" width="16" height="140" fill={handleHex} />
+            <rect x="242" y="165" width="16" height="140" fill="url(#leatherLight)" />
+            <line x1="244" y1="165" x2="244" y2="305" stroke="rgba(255,255,255,0.3)" strokeWidth="0.8" strokeDasharray="3 3" />
+            <line x1="256" y1="165" x2="256" y2="305" stroke="rgba(255,255,255,0.3)" strokeWidth="0.8" strokeDasharray="3 3" />
+            {/* Top Zipper track */}
+            <line x1="95" y1="185" x2="305" y2="185" stroke="url(#hardwareGradient)" strokeWidth="4" />
+            <circle cx="200" cy="185" r="5" fill="url(#hardwareGradient)" />
+            <rect x="144" y="180" width="12" height="10" rx="2" fill="url(#hardwareGradient)" />
+            <rect x="244" y="180" width="12" height="10" rx="2" fill="url(#hardwareGradient)" />
           </g>
         )}
 
@@ -1247,9 +590,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
         {config.monogram.enabled && textLength > 0 && (
           <g id="monogram-text">
             {config.monogram.style === 'blind_emboss' ? (
-              /* Photorealistic heat deboss into leather */
               <g>
-                {/* Top inner deboss shadow (sunken depth) */}
                 <text
                   x="200"
                   y={monogramY}
@@ -1264,7 +605,6 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
                 >
                   {config.monogram.text.toUpperCase()}
                 </text>
-                {/* Bottom edge highlight reflection */}
                 <text
                   x="200"
                   y={monogramY}
@@ -1279,7 +619,6 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
                 >
                   {config.monogram.text.toUpperCase()}
                 </text>
-                {/* Center sunken impression */}
                 <text
                   x="200"
                   y={monogramY}
@@ -1295,9 +634,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
                 </text>
               </g>
             ) : (
-              /* Hot stamped metallic foil (Gold or Silver) */
               <g>
-                {/* Micro deboss groove shadow (underneath the foil) */}
                 <text
                   x="200"
                   y={monogramY}
@@ -1312,7 +649,6 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
                 >
                   {config.monogram.text.toUpperCase()}
                 </text>
-                {/* Shimmering Metallic Foil Text with subtle specular drop shadow */}
                 <text
                   x="200"
                   y={monogramY}
@@ -1332,12 +668,11 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
           </g>
         )}
 
-        {/* 4. LEATHER LUGGAGE TAG / CHARM (IF SELECTED) */}
+        {/* 4. LUXURY ADDONS & HARDWARE ACCENTS */}
+        {/* Leather luggage tag */}
         {config.selectedAddonIds.includes('bag_charm') && (
           <g id="addon-bag-charm" transform="translate(130, 160)">
-            {/* Cord */}
             <line x1="10" y1="0" x2="18" y2="35" stroke="url(#hardwareGradient)" strokeWidth="2.5" />
-            {/* Tag */}
             <rect
               x="8"
               y="32"
@@ -1349,12 +684,44 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
               strokeWidth="0.8"
               filter="drop-shadow(2px 3px 4px rgba(0,0,0,0.3))"
             />
-            {/* Gold foil on charm */}
             <circle cx="18" cy="50" r="4" fill="url(#goldFoil)" />
           </g>
         )}
+
+        {/* Leather Tassel Charm */}
+        {config.selectedAddonIds.includes('tassel_charm') && (
+          <g id="addon-tassel-charm" transform="translate(136, 162)">
+            <line x1="4" y1="0" x2="8" y2="28" stroke="url(#hardwareGradient)" strokeWidth="2" />
+            <circle cx="8" cy="30" r="4" fill="url(#hardwareGradient)" />
+            <rect x="4" y="33" width="8" height="26" rx="2" fill={primaryHex} filter="drop-shadow(1px 2px 3px rgba(0,0,0,0.3))" />
+            <line x1="6" y1="36" x2="6" y2="59" stroke="rgba(0,0,0,0.35)" strokeWidth="0.8" />
+            <line x1="8" y1="36" x2="8" y2="59" stroke="rgba(0,0,0,0.35)" strokeWidth="0.8" />
+            <line x1="10" y1="36" x2="10" y2="59" stroke="rgba(0,0,0,0.35)" strokeWidth="0.8" />
+          </g>
+        )}
+
+        {/* Silk Twilly Scarf wrapped around handle */}
+        {config.selectedAddonIds.includes('silk_twilly') && (
+          <g id="addon-silk-twilly">
+            <path d="M 132 145 Q 140 140 148 146 Q 142 152 132 145 Z" fill="#d97706" stroke="#ec4899" strokeWidth="1" />
+            <path
+              d="M 138 145 C 132 165, 126 190, 122 215 Q 120 224 127 221 C 134 218, 137 185, 140 148 Z"
+              fill="#ec4899"
+              stroke="#d97706"
+              strokeWidth="0.8"
+              filter="drop-shadow(2px 3px 4px rgba(0,0,0,0.25))"
+            />
+          </g>
+        )}
+
+        {/* Protective Base Metal Studs */}
+        {config.selectedAddonIds.includes('base_studs') && (
+          <g id="addon-base-studs">
+            <ellipse cx="140" cy="318" rx="6" ry="2.8" fill="url(#hardwareGradient)" stroke="#111" strokeWidth="0.4" />
+            <ellipse cx="260" cy="318" rx="6" ry="2.8" fill="url(#hardwareGradient)" stroke="#111" strokeWidth="0.4" />
+          </g>
+        )}
       </svg>
-      )}
 
       {/* Floating Info Badges */}
       <div className="absolute top-3 left-3 bg-white/90 dark:bg-[#1a1a26]/90 backdrop-blur-md px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold text-stone-800 dark:text-white shadow-sm border border-stone-200/50 dark:border-stone-700 flex items-center gap-1.5 z-20">

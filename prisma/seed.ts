@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { prisma } from '../src/lib/prisma';
-import { FEATURED_PRODUCTS } from '../src/data/bagOptions';
+import { BAG_TYPES, FEATURED_PRODUCTS } from '../src/data/bagOptions';
 
 async function main() {
   console.log('🌱 Starting database seed for bagy_db...');
@@ -50,7 +50,34 @@ async function main() {
   });
   console.log('👤 Sample Customer ready:', customer.name);
 
-  // 3. Seed Products
+  // 3. Seed Categories
+  for (const cat of BAG_TYPES) {
+    await prisma.category.upsert({
+      where: { slug: cat.id },
+      update: {
+        nameAr: cat.nameAr,
+        nameEn: cat.nameEn,
+        icon: cat.icon,
+        basePrice: cat.basePrice,
+        descriptionAr: cat.descriptionAr,
+        descriptionEn: cat.descriptionEn,
+        image: cat.image,
+      },
+      create: {
+        slug: cat.id,
+        nameAr: cat.nameAr,
+        nameEn: cat.nameEn,
+        icon: cat.icon,
+        basePrice: cat.basePrice,
+        descriptionAr: cat.descriptionAr,
+        descriptionEn: cat.descriptionEn,
+        image: cat.image,
+      },
+    });
+  }
+  console.log(`🗂️ Seeded ${BAG_TYPES.length} categories`);
+
+  // 4. Seed Products
   for (const prod of FEATURED_PRODUCTS) {
     await prisma.product.upsert({
       where: { id: prod.id },
