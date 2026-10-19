@@ -11,6 +11,7 @@ import { BagCanvasPreview } from '@/components/configurator/BagCanvasPreview';
 import { BAG_TYPES, FEATURED_PRODUCTS, COLORS } from '@/data/bagOptions';
 import { BagCategory, CartItem, CustomBagConfiguration } from '@/types/bag';
 import { formatPrice } from '@/lib/utils';
+import confetti from 'canvas-confetti';
 import {
   Sparkles,
   ArrowLeft,
@@ -21,6 +22,7 @@ import {
   ChevronRight,
   Eye,
   Check,
+  ShoppingBag,
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -99,8 +101,43 @@ export default function HomePage() {
 
   // Cart operations
   const handleAddToCart = (item: CartItem) => {
-    setCartItems((prev) => [...prev, item]);
+    setCartItems((prev) => {
+      const existingIndex = prev.findIndex((i) => i.id === item.id);
+      if (existingIndex > -1) {
+        const next = [...prev];
+        next[existingIndex] = {
+          ...next[existingIndex],
+          quantity: next[existingIndex].quantity + item.quantity,
+        };
+        return next;
+      }
+      return [...prev, item];
+    });
     setIsCartOpen(true);
+  };
+
+  // Direct fast buy for ready-made catalog products
+  const handleDirectBuy = (product: any, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    try {
+      confetti({
+        particleCount: 50,
+        spread: 60,
+        origin: { y: 0.7 },
+        colors: ['#9b287b', '#c69b59', '#10b981'],
+      });
+    } catch (err) {}
+
+    const cartItem: CartItem = {
+      id: `direct_${product.id}`,
+      product: product,
+      calculatedPrice: product.price,
+      quantity: 1,
+      customSummaryText: `${product.nameAr} - تصميم جاهز`,
+      previewDataUrl: product.image,
+    };
+
+    handleAddToCart(cartItem);
   };
 
   const handleUpdateQuantity = (id: string, delta: number) => {
@@ -475,6 +512,14 @@ export default function HomePage() {
                         الأكثر مبيعاً ⭐
                       </span>
                     )}
+                    {/* Quick Add To Cart icon button directly on the photo */}
+                    <button
+                      onClick={(e) => handleDirectBuy(prod, e)}
+                      title="شراء فوري مباشر"
+                      className="absolute bottom-2.5 left-2.5 sm:bottom-3 sm:left-3 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#9b287b] hover:bg-[#831f67] text-white shadow-lg flex items-center justify-center active:scale-90 transition-transform cursor-pointer z-10"
+                    >
+                      <ShoppingBag className="w-4 h-4" />
+                    </button>
                   </div>
 
                   <div className="p-3.5 sm:p-5 space-y-2.5">
@@ -492,10 +537,20 @@ export default function HomePage() {
                       </p>
                     </div>
 
-                    <div className="pt-1 flex flex-col gap-2">
+                    <div className="pt-1.5 flex flex-col gap-2">
+                      {/* Direct Buy Button (Fast Add to Cart) */}
+                      <button
+                        onClick={(e) => handleDirectBuy(prod, e)}
+                        className="w-full py-2.5 sm:py-3 rounded-xl sm:rounded-2xl bg-[#9b287b] hover:bg-[#831f67] active:scale-95 text-white text-xs sm:text-sm font-bold shadow-md shadow-[#9b287b]/25 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <ShoppingBag className="w-4 h-4" />
+                        <span>شراء فوري</span>
+                      </button>
+
+                      {/* Customize in 3D Button */}
                       <button
                         onClick={() => handleOpenConfiguratorWithProduct(prod)}
-                        className="w-full py-2.5 sm:py-3 rounded-xl sm:rounded-2xl bg-[#fdf2f8] dark:bg-[#281223] text-[#9b287b] dark:text-[#be3999] text-xs sm:text-sm font-bold hover:bg-[#fae8f3] transition-colors flex items-center justify-center gap-1.5"
+                        className="w-full py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[#fdf2f8] dark:bg-[#281223] text-[#9b287b] dark:text-[#be3999] hover:bg-[#fae8f3] dark:hover:bg-[#381531] text-xs sm:text-sm font-bold border border-[#9b287b]/20 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         <Sparkles className="w-3.5 h-3.5" />
                         <span>خصصها بذوقك</span>
