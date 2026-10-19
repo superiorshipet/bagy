@@ -18,39 +18,39 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   onOpenCustomize,
 }) => {
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-t border-stone-200/80 px-4 py-2" dir="rtl">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#15151e]/95 backdrop-blur-lg border-t border-stone-200/80 dark:border-stone-800 px-4 pt-2 pb-safe shadow-lg transition-colors" dir="rtl">
       <div className="max-w-md mx-auto flex items-center justify-around relative">
         {/* Tab 1: Home */}
         <button
           onClick={() => onChangeTab('home')}
           className={`flex flex-col items-center gap-1 transition-colors ${
-            activeTab === 'home' ? 'text-[#9b287b] font-bold' : 'text-stone-400 hover:text-stone-600'
+            activeTab === 'home' ? 'text-[#9b287b] dark:text-[#be3999] font-black' : 'text-stone-400 dark:text-stone-500 hover:text-stone-600'
           }`}
         >
           <Home className="w-5 h-5" />
-          <span className="text-[10px]">الرئيسية</span>
+          <span className="text-[11px]">الرئيسية</span>
         </button>
 
         {/* Tab 2: Catalog */}
         <button
           onClick={() => onChangeTab('catalog')}
           className={`flex flex-col items-center gap-1 transition-colors ${
-            activeTab === 'catalog' ? 'text-[#9b287b] font-bold' : 'text-stone-400 hover:text-stone-600'
+            activeTab === 'catalog' ? 'text-[#9b287b] dark:text-[#be3999] font-black' : 'text-stone-400 dark:text-stone-500 hover:text-stone-600'
           }`}
         >
           <Compass className="w-5 h-5" />
-          <span className="text-[10px]">الموديلات</span>
+          <span className="text-[11px]">الموديلات</span>
         </button>
 
         {/* Center Tab: Floating Glow Customize Button (Signature Lola feature) */}
         <div className="relative -top-5">
           <button
             onClick={onOpenCustomize}
-            className="w-14 h-14 rounded-full bg-gradient-to-tr from-[#9b287b] to-[#c69b59] text-white shadow-xl shadow-[#9b287b]/40 flex flex-col items-center justify-center hover:scale-105 active:scale-95 transition-transform border-4 border-white"
+            className="w-14 h-14 rounded-full bg-gradient-to-tr from-[#9b287b] to-[#c69b59] text-white shadow-xl shadow-[#9b287b]/40 flex flex-col items-center justify-center hover:scale-105 active:scale-95 transition-transform border-4 border-white dark:border-[#15151e]"
             aria-label="صمم شنطتك الآن"
           >
-            <Sparkles className="w-6 h-6 animate-pulse" />
-            <span className="text-[9px] font-black tracking-tight mt-0.5">فصّل</span>
+            <Sparkles className="w-6 h-6 animate-pulse text-amber-300" />
+            <span className="text-[10px] font-black tracking-tight mt-0.5">فصّل</span>
           </button>
         </div>
 
@@ -58,22 +58,22 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         <button
           onClick={() => onChangeTab('gifts')}
           className={`flex flex-col items-center gap-1 transition-colors ${
-            activeTab === 'gifts' ? 'text-[#9b287b] font-bold' : 'text-stone-400 hover:text-stone-600'
+            activeTab === 'gifts' ? 'text-[#9b287b] dark:text-[#be3999] font-black' : 'text-stone-400 dark:text-stone-500 hover:text-stone-600'
           }`}
         >
           <Gift className="w-5 h-5" />
-          <span className="text-[10px]">الهدايا</span>
+          <span className="text-[11px]">الهدايا</span>
         </button>
 
         {/* Tab 5: Account / Orders */}
         <button
           onClick={() => onChangeTab('orders')}
           className={`flex flex-col items-center gap-1 transition-colors ${
-            activeTab === 'orders' ? 'text-[#9b287b] font-bold' : 'text-stone-400 hover:text-stone-600'
+            activeTab === 'orders' ? 'text-[#9b287b] dark:text-[#be3999] font-black' : 'text-stone-400 dark:text-stone-500 hover:text-stone-600'
           }`}
         >
           <User className="w-5 h-5" />
-          <span className="text-[10px]">حسابي</span>
+          <span className="text-[11px]">حسابي</span>
         </button>
       </div>
     </div>

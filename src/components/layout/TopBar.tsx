@@ -49,31 +49,31 @@ export const TopBar: React.FC<TopBarProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 dark:bg-[#15151e]/95 backdrop-blur-md border-b border-stone-200/60 dark:border-stone-800 px-4 sm:px-6 lg:px-8 py-3 transition-colors">
-      <div className="flex items-center justify-between gap-4 max-w-7xl mx-auto w-full">
+    <header className="sticky top-0 z-30 bg-white/95 dark:bg-[#15151e]/95 backdrop-blur-md border-b border-stone-200/60 dark:border-stone-800 px-3 sm:px-6 lg:px-10 py-3 sm:py-3.5 transition-colors">
+      <div className="flex items-center justify-between gap-2 sm:gap-4 max-w-[1536px] mx-auto w-full">
         {/* Left: Location Delivery Selector & Brand Logo */}
-        <div className="flex items-center gap-3 sm:gap-6">
+        <div className="flex items-center gap-2 sm:gap-6 flex-shrink-0">
           <button
             onClick={() => onChangeTab && onChangeTab('home')}
-            className="flex items-center gap-1.5 focus:outline-none"
+            className="flex items-center gap-1.5 focus:outline-none group"
           >
-            <span className="text-2xl font-black tracking-tight text-[#9b287b] dark:text-[#be3999]">
+            <span className="text-2xl sm:text-3xl font-black tracking-tight text-[#9b287b] dark:text-[#be3999] group-hover:opacity-90 transition-opacity">
               BAGY
             </span>
-            <span className="w-2 h-2 rounded-full bg-[#c69b59] inline-block" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#c69b59] inline-block shadow-sm" />
           </button>
 
           {/* Location Delivery Selector */}
           <button
             onClick={onOpenLocationSelector}
-            className="flex items-center gap-2 text-right hover:opacity-85 transition-opacity bg-stone-50 dark:bg-stone-900/60 hover:bg-stone-100 dark:hover:bg-stone-800 px-3 py-1.5 rounded-full border border-stone-200/60 dark:border-stone-800"
+            className="flex items-center gap-1.5 sm:gap-2 text-right hover:opacity-85 transition-opacity bg-stone-50 dark:bg-stone-900/60 hover:bg-stone-100 dark:hover:bg-stone-800 px-2 sm:px-3 py-1.5 rounded-full border border-stone-200/60 dark:border-stone-800"
           >
             <div className="w-7 h-7 rounded-full bg-[#fdf2f8] dark:bg-[#281223] text-[#9b287b] dark:text-[#be3999] flex items-center justify-center flex-shrink-0">
               <MapPin className="w-3.5 h-3.5" />
             </div>
-            <div className="leading-tight text-right hidden sm:block">
+            <div className="leading-tight text-right hidden min-[480px]:block">
               <span className="text-[10px] text-stone-400 block font-medium">التوصيل إلى</span>
-              <span className="text-xs font-bold text-stone-900 dark:text-stone-200 line-clamp-1 max-w-[150px] lg:max-w-[200px]">
+              <span className="text-xs font-bold text-stone-900 dark:text-stone-200 line-clamp-1 max-w-[120px] sm:max-w-[170px] lg:max-w-[220px]">
                 {deliveryLocation}
               </span>
             </div>
@@ -81,10 +81,10 @@ export const TopBar: React.FC<TopBarProps> = ({
         </div>
 
         {/* Center: Desktop Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-6 text-xs font-bold text-stone-600 dark:text-stone-300">
+        <nav className="hidden lg:flex items-center gap-7 text-sm font-bold text-stone-600 dark:text-stone-300">
           <button
             onClick={() => onChangeTab && onChangeTab('home')}
-            className={`hover:text-[#9b287b] transition-colors flex items-center gap-1.5 ${
+            className={`hover:text-[#9b287b] transition-colors flex items-center gap-1.5 py-1 ${
               activeTab === 'home' ? 'text-[#9b287b] dark:text-[#be3999] font-black' : ''
             }`}
           >
@@ -94,7 +94,7 @@ export const TopBar: React.FC<TopBarProps> = ({
 
           <button
             onClick={() => onChangeTab && onChangeTab('catalog')}
-            className={`hover:text-[#9b287b] transition-colors flex items-center gap-1.5 ${
+            className={`hover:text-[#9b287b] transition-colors flex items-center gap-1.5 py-1 ${
               activeTab === 'catalog' ? 'text-[#9b287b] dark:text-[#be3999] font-black' : ''
             }`}
           >
@@ -104,15 +104,15 @@ export const TopBar: React.FC<TopBarProps> = ({
 
           <button
             onClick={onOpenCustomize}
-            className="px-4 py-1.5 rounded-full bg-gradient-to-r from-[#9b287b] to-[#8a1d63] text-white hover:shadow-md transition-all flex items-center gap-1.5 shadow-sm"
+            className="px-5 py-2 rounded-full bg-gradient-to-r from-[#9b287b] to-[#8a1d63] text-white hover:shadow-lg hover:scale-105 transition-all flex items-center gap-2 shadow-sm font-black"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+            <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
             صمم شنطتك الآن
           </button>
 
           <button
             onClick={() => onChangeTab && onChangeTab('gifts')}
-            className={`hover:text-[#9b287b] transition-colors flex items-center gap-1.5 ${
+            className={`hover:text-[#9b287b] transition-colors flex items-center gap-1.5 py-1 ${
               activeTab === 'gifts' ? 'text-[#9b287b] dark:text-[#be3999] font-black' : ''
             }`}
           >
@@ -122,11 +122,11 @@ export const TopBar: React.FC<TopBarProps> = ({
         </nav>
 
         {/* Right: Actions (Theme Toggle, Admin Panel, Profile, Cart) */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
           {/* Admin Control Button */}
           <button
             onClick={handleAdminClick}
-            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm ${
+            className={`px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm ${
               isAdmin
                 ? 'bg-amber-500 text-stone-950 font-black hover:bg-amber-400'
                 : 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 hover:bg-amber-100'
@@ -140,7 +140,7 @@ export const TopBar: React.FC<TopBarProps> = ({
           {/* Night / Dark Theme Switcher */}
           <button
             onClick={toggleTheme}
-            className="w-9 h-9 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-200 flex items-center justify-center hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-200 flex items-center justify-center hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors flex-shrink-0"
             title={theme === 'dark' ? 'تفعيل الوضع النهاري' : 'تفعيل الوضع الليلي (Dark Mode)'}
             aria-label="تبديل المظهر الليلي"
           >
@@ -155,18 +155,18 @@ export const TopBar: React.FC<TopBarProps> = ({
           {user ? (
             <button
               onClick={handleProfileClick}
-              className="px-2.5 py-1.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-white flex items-center gap-1.5 hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
+              className="px-2.5 py-1.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-white flex items-center gap-1.5 hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors flex-shrink-0"
               title="الملف الشخصي وسجل الطلبات"
             >
-              <div className="w-5 h-5 rounded-full bg-[#9b287b] text-white flex items-center justify-center text-[10px] font-black">
+              <div className="w-6 h-6 rounded-full bg-[#9b287b] text-white flex items-center justify-center text-[11px] font-black shadow-sm">
                 {user.name.charAt(0)}
               </div>
-              <span className="text-xs font-bold hidden sm:inline">{user.name.split(' ')[0]}</span>
+              <span className="text-xs font-bold hidden md:inline">{user.name.split(' ')[0]}</span>
             </button>
           ) : (
             <button
               onClick={() => openAuthModal()}
-              className="px-3 py-1.5 rounded-full bg-[#fdf2f8] dark:bg-[#281223] text-[#9b287b] dark:text-[#be3999] hover:bg-[#fae8f3] text-xs font-bold transition-colors flex items-center gap-1"
+              className="px-2.5 sm:px-3 py-1.5 rounded-full bg-[#fdf2f8] dark:bg-[#281223] text-[#9b287b] dark:text-[#be3999] hover:bg-[#fae8f3] text-xs font-bold transition-colors flex items-center gap-1 flex-shrink-0"
             >
               <LogIn className="w-3.5 h-3.5" />
               <span>دخول</span>
@@ -176,7 +176,7 @@ export const TopBar: React.FC<TopBarProps> = ({
           {/* Cart Button */}
           <button
             onClick={onOpenCart}
-            className="relative px-3 py-1.5 rounded-full bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors flex items-center gap-1.5"
+            className="relative px-2.5 sm:px-3.5 py-1.5 rounded-full bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors flex items-center gap-1.5 flex-shrink-0"
             aria-label="سلة المشتريات"
           >
             <ShoppingBag className="w-4 h-4 text-[#9b287b] dark:text-[#be3999]" />

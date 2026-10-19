@@ -145,60 +145,60 @@ export default function HomePage() {
       />
 
       {/* 2. Main Scrollable Page Area */}
-      <main className="flex-1 pb-24 md:pb-12 space-y-8 sm:space-y-12 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4">
+      <main className="flex-1 pb-28 md:pb-16 space-y-10 sm:space-y-14 max-w-[1536px] mx-auto w-full px-3 sm:px-6 lg:px-10 xl:px-14 pt-2 sm:pt-4">
         {/* Hero Section */}
-        <section className="pt-2">
-          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#1c1917] via-[#2c1825] to-[#8a1d63] dark:from-[#0d0d12] dark:via-[#1f0f1b] dark:to-[#631448] text-white p-6 sm:p-10 lg:p-12 shadow-2xl">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center relative z-10">
-              {/* Right Column */}
-              <div className="md:col-span-7 space-y-4">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-bold text-amber-300 border border-white/15">
+        <section className="pt-1">
+          <div className="relative rounded-3xl sm:rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-[#1c1917] via-[#2c1825] to-[#8a1d63] dark:from-[#0d0d12] dark:via-[#1f0f1b] dark:to-[#631448] text-white p-5 sm:p-10 lg:p-14 xl:p-16 shadow-2xl">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
+              {/* Right Column (Hero Typography & CTAs) */}
+              <div className="md:col-span-7 space-y-4 sm:space-y-6">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md text-xs sm:text-sm font-bold text-amber-300 border border-white/15">
                   <Sparkles className="w-4 h-4" />
                   <span>المنصة الأولى لتفصيل الشنط المخصصة أونلاين في مصر</span>
                 </div>
 
-                <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-tight">
-                  صممي شنطتك الحلم <br />
-                  <span className="text-[#e2b77a]">بكل تفاصيلها بلمسة يدك</span>
+                <h1 className="text-3xl sm:text-5xl lg:text-6xl xl:text-[4.2rem] font-black leading-[1.16] tracking-tight">
+                  صممي شنطتك الحلم <br className="hidden sm:inline" />
+                  <span className="text-[#e2b77a] inline-block mt-1 sm:mt-2">بكل تفاصيلها بلمسة يدك</span>
                 </h1>
 
-                <p className="text-xs sm:text-sm text-stone-300 leading-relaxed max-w-xl">
+                <p className="text-xs sm:text-base lg:text-lg text-stone-200/90 leading-relaxed max-w-2xl font-medium">
                   اختاري القصة المناسبة، نوع الجلد، الألوان، ولمعان الإكسسوارات المعدنية، واكتبي اسمك أو حروفك بحفر الذهب الخالص لتصلك لباب بيتك أينما كنتِ في مصر.
                 </p>
 
-                <div className="pt-2 flex flex-wrap items-center gap-3">
+                <div className="pt-2 sm:pt-4 flex flex-col min-[480px]:flex-row items-stretch min-[480px]:items-center gap-3 sm:gap-4">
                   <button
                     onClick={() => handleOpenConfiguratorWithBag(homePreviewConfig.bagType)}
-                    className="px-6 py-3.5 rounded-2xl bg-white text-stone-950 text-xs sm:text-sm font-black shadow-lg hover:bg-stone-100 active:scale-95 transition-all flex items-center gap-2"
+                    className="px-7 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-white text-stone-950 text-sm sm:text-base font-black shadow-xl hover:bg-stone-100 active:scale-95 transition-all flex items-center justify-center gap-2.5"
                   >
                     <span>ابدئي التفصيل الآن</span>
-                    <ArrowLeft className="w-4 h-4" />
+                    <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
 
                   <button
                     onClick={() => {
                       document.getElementById('catalog-section')?.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="px-5 py-3.5 rounded-2xl bg-white/10 hover:bg-white/15 text-white text-xs sm:text-sm font-bold border border-white/20 transition-all flex items-center gap-2"
+                    className="px-6 sm:px-7 py-3.5 sm:py-4 rounded-2xl bg-white/10 hover:bg-white/15 text-white text-sm sm:text-base font-bold border border-white/20 transition-all flex items-center justify-center gap-2"
                   >
                     <span>استكشفي الموديلات</span>
-                    <ChevronRight className="w-4 h-4 rotate-180" />
+                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 rotate-180" />
                   </button>
                 </div>
               </div>
 
-              {/* Left Column (Hero Visual) */}
+              {/* Left Column (Hero Visual Bag Card) */}
               <div className="md:col-span-5 flex justify-center">
-                <div className="relative w-full max-w-sm rounded-3xl p-4 bg-white/10 backdrop-blur-md border border-white/20 shadow-xl">
-                  <div className="text-center mb-2">
-                    <span className="text-[11px] font-bold text-amber-300">موديل اليوم الأكثر طلباً</span>
+                <div className="relative w-full max-w-sm sm:max-w-md lg:max-w-lg rounded-3xl p-4 sm:p-6 bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl">
+                  <div className="text-center mb-2.5">
+                    <span className="text-xs sm:text-sm font-bold text-amber-300">موديل اليوم الأكثر طلباً</span>
                   </div>
-                  <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-white/90 p-2 shadow-inner">
+                  <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-white/95 p-3 shadow-inner">
                     <BagCanvasPreview config={homePreviewConfig} />
                   </div>
-                  <div className="mt-3 flex items-center justify-between text-xs text-white/90 px-1">
-                    <span className="font-bold">{activeCategoryObj?.nameAr}</span>
-                    <span className="text-amber-300 font-extrabold">
+                  <div className="mt-3.5 flex items-center justify-between text-xs sm:text-sm text-white/90 px-1 font-bold">
+                    <span>{activeCategoryObj?.nameAr}</span>
+                    <span className="text-amber-300 font-extrabold text-sm sm:text-base">
                       {formatPrice(activeCategoryObj?.basePrice || 1850, 'EGP', 'ar')}
                     </span>
                   </div>
@@ -207,39 +207,39 @@ export default function HomePage() {
             </div>
 
             {/* Ambient Background Glow */}
-            <div className="absolute -bottom-12 -left-12 w-64 h-64 rounded-full bg-[#9b287b]/40 blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-12 -left-12 w-80 h-80 rounded-full bg-[#9b287b]/40 blur-3xl pointer-events-none" />
           </div>
         </section>
 
         {/* 3. Horizontal Stories / Categories */}
-        <section className="space-y-3">
+        <section className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-base sm:text-lg font-bold text-stone-900 dark:text-white">الموديلات والقصات</h2>
-              <p className="text-xs text-stone-500">اضغطي على أي موديل لتغيير المعاينة الحية فوراً وفلترة الكتالوج</p>
+              <h2 className="text-lg sm:text-2xl font-black text-stone-900 dark:text-white">الموديلات والقصات</h2>
+              <p className="text-xs sm:text-sm text-stone-500">اضغطي على أي موديل لتغيير المعاينة الحية فوراً وفلترة الكتالوج</p>
             </div>
             {selectedCategory !== 'all' && (
               <button
                 onClick={() => handleSelectCategory('all')}
-                className="text-xs font-bold text-[#9b287b] dark:text-[#be3999] bg-[#fdf2f8] dark:bg-[#281223] px-3 py-1.5 rounded-full hover:underline"
+                className="text-xs sm:text-sm font-bold text-[#9b287b] dark:text-[#be3999] bg-[#fdf2f8] dark:bg-[#281223] px-3.5 py-1.5 rounded-full hover:underline"
               >
                 إلغاء الفلتر (عرض الكل)
               </button>
             )}
           </div>
 
-          <div className="flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar pb-2 pt-1">
+          <div className="flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar scroll-touch pb-3 pt-1.5 -mx-3 px-3 sm:mx-0 sm:px-0">
             {/* "All" button */}
             <button
               onClick={() => handleSelectCategory('all')}
-              className={`flex-shrink-0 flex flex-col items-center gap-1.5 p-2 sm:p-3 rounded-2xl transition-all cursor-pointer ${
+              className={`flex-shrink-0 flex flex-col items-center gap-2 p-2.5 sm:p-3.5 rounded-3xl transition-all cursor-pointer ${
                 selectedCategory === 'all'
-                  ? 'bg-[#fdf2f8] dark:bg-[#281223] text-[#9b287b] dark:text-[#be3999] font-bold ring-2 ring-[#9b287b]/30'
+                  ? 'bg-[#fdf2f8] dark:bg-[#281223] text-[#9b287b] dark:text-[#be3999] font-black ring-2 ring-[#9b287b]/40 shadow-sm'
                   : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 bg-white dark:bg-[#15151e] border border-stone-200/80 dark:border-stone-800'
               }`}
             >
               <div
-                className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-xl sm:text-2xl shadow-sm border transition-transform ${
+                className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-2xl sm:text-3xl shadow-sm border transition-transform ${
                   selectedCategory === 'all'
                     ? 'border-[#9b287b] bg-white dark:bg-stone-800 ring-2 ring-[#9b287b]/20 scale-105'
                     : 'border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900'
@@ -247,7 +247,7 @@ export default function HomePage() {
               >
                 ✨
               </div>
-              <span className="text-xs font-bold">الكل ({dbProducts.length})</span>
+              <span className="text-xs sm:text-sm font-bold">الكل ({dbProducts.length})</span>
             </button>
 
             {/* Bag Types */}
@@ -258,14 +258,14 @@ export default function HomePage() {
                 <button
                   key={bag.id}
                   onClick={() => handleSelectCategory(bag.id)}
-                  className={`flex-shrink-0 flex flex-col items-center gap-1.5 p-2 sm:p-3 rounded-2xl transition-all cursor-pointer ${
+                  className={`flex-shrink-0 flex flex-col items-center gap-2 p-2.5 sm:p-3.5 rounded-3xl transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-[#fdf2f8] dark:bg-[#281223] text-[#9b287b] dark:text-[#be3999] font-bold ring-2 ring-[#9b287b]/40 shadow-sm'
+                      ? 'bg-[#fdf2f8] dark:bg-[#281223] text-[#9b287b] dark:text-[#be3999] font-black ring-2 ring-[#9b287b]/40 shadow-sm'
                       : 'text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 bg-white dark:bg-[#15151e] border border-stone-200/80 dark:border-stone-800'
                   }`}
                 >
                   <div
-                    className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-2xl sm:text-3xl shadow-sm border transition-transform ${
+                    className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-3xl sm:text-4xl shadow-sm border transition-transform ${
                       isSelected
                         ? 'border-[#9b287b] bg-white dark:bg-stone-800 ring-2 ring-[#9b287b]/30 scale-105'
                         : 'border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900'
@@ -273,8 +273,8 @@ export default function HomePage() {
                   >
                     {bag.icon}
                   </div>
-                  <span className="text-xs font-bold truncate max-w-[85px]">{bag.nameAr}</span>
-                  <span className="text-[10px] text-stone-400">({count} موديل)</span>
+                  <span className="text-xs sm:text-sm font-bold truncate max-w-[95px]">{bag.nameAr}</span>
+                  <span className="text-[10px] sm:text-xs text-stone-400">({count} موديل)</span>
                 </button>
               );
             })}
@@ -282,56 +282,56 @@ export default function HomePage() {
         </section>
 
         {/* 4. Live Interactive Sandbox Card */}
-        <section className="bg-white dark:bg-[#15151e] rounded-3xl border border-stone-200/80 dark:border-stone-800 p-5 sm:p-8 shadow-sm space-y-6 transition-colors">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 dark:border-stone-800 pb-4">
+        <section className="bg-white dark:bg-[#15151e] rounded-3xl sm:rounded-[2.5rem] border border-stone-200/80 dark:border-stone-800 p-5 sm:p-8 lg:p-10 shadow-sm space-y-6 transition-colors">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 dark:border-stone-800 pb-5">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-black uppercase text-[#9b287b] dark:text-[#be3999] tracking-wider bg-[#fdf2f8] dark:bg-[#281223] px-2.5 py-0.5 rounded-md border border-[#9b287b]/20">
+                <span className="text-[11px] sm:text-xs font-black uppercase text-[#9b287b] dark:text-[#be3999] tracking-wider bg-[#fdf2f8] dark:bg-[#281223] px-3 py-1 rounded-md border border-[#9b287b]/20">
                   تفاعلي مباشر
                 </span>
-                <span className="text-xs font-bold text-stone-500">
+                <span className="text-xs sm:text-sm font-bold text-stone-500">
                   الموديل المختار حالياً: <strong className="text-stone-900 dark:text-white">{activeCategoryObj?.nameAr}</strong>
                 </span>
               </div>
-              <h3 className="text-base sm:text-xl font-bold text-stone-900 dark:text-white mt-1">
+              <h3 className="text-lg sm:text-2xl font-black text-stone-900 dark:text-white mt-1.5">
                 جربي تغيير الموديل، الألوان، والحفر الآن:
               </h3>
             </div>
 
             <button
               onClick={() => handleOpenConfiguratorWithBag(homePreviewConfig.bagType)}
-              className="text-xs font-bold text-white bg-[#9b287b] hover:bg-[#831f67] px-4 py-2.5 rounded-2xl flex items-center gap-1.5 shadow-md transition-all self-start sm:self-auto"
+              className="text-xs sm:text-sm font-bold text-white bg-[#9b287b] hover:bg-[#831f67] px-5 py-3 rounded-2xl flex items-center gap-2 shadow-md transition-all self-start sm:self-auto"
             >
               <Sparkles className="w-4 h-4 text-amber-300" />
               <span>فتح معالج التفصيل الكامل (8 خطوات)</span>
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-10 items-center">
             {/* Canvas Preview Column */}
             <div className="md:col-span-6 lg:col-span-7">
-              <BagCanvasPreview config={homePreviewConfig} className="max-h-[380px]" />
+              <BagCanvasPreview config={homePreviewConfig} className="max-h-[340px] sm:max-h-[440px]" />
             </div>
 
             {/* Interactive Controls Column */}
-            <div className="md:col-span-6 lg:col-span-5 space-y-5">
+            <div className="md:col-span-6 lg:col-span-5 space-y-5 sm:space-y-6">
               {/* Quick Model Selector Pills */}
-              <div className="space-y-2">
-                <span className="text-xs font-bold text-stone-800 dark:text-stone-200 block">اختيار قصة الشنطة المعروضة:</span>
-                <div className="grid grid-cols-3 gap-2">
+              <div className="space-y-2.5">
+                <span className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200 block">اختيار قصة الشنطة المعروضة:</span>
+                <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
                   {BAG_TYPES.map((type) => {
                     const isCurrent = homePreviewConfig.bagType === type.id;
                     return (
                       <button
                         key={type.id}
                         onClick={() => handleSelectCategory(type.id)}
-                        className={`p-2 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
+                        className={`p-2.5 rounded-2xl text-xs sm:text-sm font-bold border transition-all flex items-center justify-center gap-1.5 ${
                           isCurrent
                             ? 'border-[#9b287b] bg-[#fdf2f8] dark:bg-[#281223] text-[#9b287b] dark:text-[#be3999] shadow-sm'
                             : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-300 hover:bg-stone-50'
                         }`}
                       >
-                        <span>{type.icon}</span>
+                        <span className="text-base sm:text-lg">{type.icon}</span>
                         <span className="truncate">{type.nameAr.split(' ')[0]}</span>
                       </button>
                     );
@@ -340,14 +340,14 @@ export default function HomePage() {
               </div>
 
               {/* Quick Live Color Toggles */}
-              <div className="space-y-2">
-                <span className="text-xs font-bold text-stone-800 dark:text-stone-200 block">اختيار لون الجلد:</span>
-                <div className="flex flex-wrap gap-2.5">
+              <div className="space-y-2.5">
+                <span className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200 block">اختيار لون الجلد:</span>
+                <div className="flex flex-wrap gap-2.5 sm:gap-3">
                   {COLORS.map((col) => (
                     <button
                       key={col.id}
                       onClick={() => setHomePreviewConfig({ ...homePreviewConfig, primaryColorId: col.id })}
-                      className={`w-9 h-9 rounded-full border transition-all flex items-center justify-center ${
+                      className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full border transition-all flex items-center justify-center ${
                         homePreviewConfig.primaryColorId === col.id
                           ? 'ring-2 ring-offset-2 ring-[#9b287b] scale-110 shadow-md'
                           : 'border-black/10 hover:scale-105'
@@ -356,7 +356,7 @@ export default function HomePage() {
                       title={col.nameAr}
                     >
                       {homePreviewConfig.primaryColorId === col.id && (
-                        <Check className="w-4 h-4 text-white drop-shadow-md" />
+                        <Check className="w-4 h-4 sm:w-5 sm:h-5 text-white drop-shadow-md" />
                       )}
                     </button>
                   ))}
@@ -364,9 +364,9 @@ export default function HomePage() {
               </div>
 
               {/* Quick Monogram Input */}
-              <div className="space-y-2">
-                <span className="text-xs font-bold text-stone-800 dark:text-stone-200 block">حفر اسمك أو حروفك بالذهب:</span>
-                <div className="flex gap-2 items-center">
+              <div className="space-y-2.5">
+                <span className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200 block">حفر اسمك أو حروفك بالذهب:</span>
+                <div className="flex gap-2.5 items-center">
                   <input
                     type="text"
                     maxLength={6}
@@ -378,11 +378,11 @@ export default function HomePage() {
                       })
                     }
                     placeholder="مثلاً: LOLA"
-                    className="flex-1 px-4 py-2.5 text-xs font-bold rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 uppercase tracking-widest text-center focus:ring-2 focus:ring-[#9b287b] focus:outline-none"
+                    className="flex-1 px-4 py-3 text-xs sm:text-sm font-bold rounded-2xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 uppercase tracking-widest text-center focus:ring-2 focus:ring-[#9b287b] focus:outline-none"
                   />
                   <button
                     onClick={() => handleOpenConfiguratorWithBag(homePreviewConfig.bagType)}
-                    className="px-5 py-2.5 bg-stone-900 dark:bg-white text-white dark:text-stone-900 text-xs font-bold rounded-xl shadow-sm hover:opacity-90 transition-opacity"
+                    className="px-5 sm:px-6 py-3 bg-stone-900 dark:bg-white text-white dark:text-stone-900 text-xs sm:text-sm font-bold rounded-2xl shadow-sm hover:opacity-90 transition-opacity flex-shrink-0"
                   >
                     تثبيت وطلب
                   </button>
@@ -393,27 +393,27 @@ export default function HomePage() {
         </section>
 
         {/* 5. Featured Bags Catalog Grid */}
-        <section id="catalog-section" className="space-y-4">
+        <section id="catalog-section" className="space-y-5">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg sm:text-xl font-bold text-stone-900 dark:text-white">
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-stone-900 dark:text-white">
                 {selectedCategory === 'all'
                   ? 'أكثر الشنط طلباً في مصر'
                   : `شنط ${activeCategoryObj?.nameAr || ''}`}
               </h2>
-              <p className="text-xs text-stone-500">
+              <p className="text-xs sm:text-sm text-stone-500">
                 عرض {filteredProducts.length} تصميم جاهز للشحن أو قابل للتعديل بالكامل
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-6">
             {filteredProducts.map((prod) => {
               const isLiked = likedProductIds.includes(prod.id);
               return (
                 <div
                   key={prod.id}
-                  className="rounded-3xl border border-stone-200/80 dark:border-stone-800 bg-white dark:bg-[#15151e] overflow-hidden shadow-sm flex flex-col justify-between hover:shadow-lg transition-all group"
+                  className="rounded-3xl border border-stone-200/80 dark:border-stone-800 bg-white dark:bg-[#15151e] overflow-hidden shadow-sm flex flex-col justify-between hover:shadow-xl transition-all group"
                 >
                   <div className="relative aspect-square overflow-hidden bg-stone-100 dark:bg-stone-900">
                     <img
@@ -425,33 +425,33 @@ export default function HomePage() {
                     {/* Like button */}
                     <button
                       onClick={() => toggleLike(prod.id)}
-                      className="absolute top-3 left-3 w-8 h-8 rounded-full bg-white/90 dark:bg-stone-900/90 backdrop-blur-md flex items-center justify-center text-stone-600 dark:text-stone-300 shadow-sm hover:scale-110 transition-transform"
+                      className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 dark:bg-stone-900/90 backdrop-blur-md flex items-center justify-center text-stone-600 dark:text-stone-300 shadow-sm hover:scale-110 transition-transform"
                     >
                       <Heart
-                        className={`w-4 h-4 transition-colors ${
+                        className={`w-4 h-4 sm:w-4.5 sm:h-4.5 transition-colors ${
                           isLiked ? 'fill-red-500 text-red-500' : 'text-stone-600 dark:text-stone-300'
                         }`}
                       />
                     </button>
 
                     {prod.isBestSeller && (
-                      <span className="absolute top-3 right-3 bg-[#9b287b] text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-sm">
+                      <span className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 bg-[#9b287b] text-white text-[9px] sm:text-[11px] font-black px-2.5 py-1 rounded-full shadow-sm">
                         الأكثر مبيعاً ⭐
                       </span>
                     )}
                   </div>
 
-                  <div className="p-4 space-y-2.5">
+                  <div className="p-3.5 sm:p-5 space-y-2.5">
                     <div className="space-y-1">
                       <div className="flex items-center gap-1 text-xs text-amber-500 font-bold">
                         <Star className="w-3.5 h-3.5 fill-amber-400" />
                         <span>{prod.rating || 5.0}</span>
                         <span className="text-stone-400 font-normal">({prod.reviewCount || 40})</span>
                       </div>
-                      <h3 className="text-xs sm:text-sm font-bold text-stone-900 dark:text-white line-clamp-1">
+                      <h3 className="text-xs sm:text-base font-bold text-stone-900 dark:text-white line-clamp-1">
                         {prod.nameAr}
                       </h3>
-                      <p className="text-xs sm:text-sm font-extrabold text-[#9b287b] dark:text-[#be3999]">
+                      <p className="text-sm sm:text-lg font-black text-[#9b287b] dark:text-[#be3999]">
                         {formatPrice(prod.price, 'EGP', 'ar')}
                       </p>
                     </div>
@@ -459,10 +459,10 @@ export default function HomePage() {
                     <div className="pt-1 flex flex-col gap-2">
                       <button
                         onClick={() => handleOpenConfiguratorWithBag(prod.category)}
-                        className="w-full py-2.5 rounded-xl bg-[#fdf2f8] dark:bg-[#281223] text-[#9b287b] dark:text-[#be3999] text-xs font-bold hover:bg-[#fae8f3] transition-colors flex items-center justify-center gap-1.5"
+                        className="w-full py-2.5 sm:py-3 rounded-xl sm:rounded-2xl bg-[#fdf2f8] dark:bg-[#281223] text-[#9b287b] dark:text-[#be3999] text-xs sm:text-sm font-bold hover:bg-[#fae8f3] transition-colors flex items-center justify-center gap-1.5"
                       >
                         <Sparkles className="w-3.5 h-3.5" />
-                        خصصها بذوقك
+                        <span>خصصها بذوقك</span>
                       </button>
                     </div>
                   </div>

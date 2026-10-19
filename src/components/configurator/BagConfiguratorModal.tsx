@@ -156,35 +156,35 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
   const currentStepInfo = STEPS[currentStep - 1];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 md:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 md:p-6 overflow-hidden">
       <div
-        className="relative w-full max-w-lg md:max-w-5xl bg-white sm:rounded-3xl shadow-2xl flex flex-col h-full sm:h-[94vh] max-h-[920px] overflow-hidden"
+        className="relative w-full max-w-lg md:max-w-5xl bg-white dark:bg-[#15151e] text-stone-900 dark:text-white rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col h-[96vh] sm:h-[94vh] max-h-[920px] overflow-hidden transition-colors"
         dir="rtl"
       >
         {/* Top Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100 bg-white sticky top-0 z-20">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-[#fdf2f8] text-[#9b287b] flex items-center justify-center font-bold text-sm">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-stone-100 dark:border-stone-800 bg-white dark:bg-[#15151e] sticky top-0 z-20">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#fdf2f8] dark:bg-[#281223] text-[#9b287b] dark:text-[#be3999] flex items-center justify-center font-bold text-xs sm:text-sm">
               {currentStep}/{STEPS.length}
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-bold text-stone-900 leading-tight">
+              <h2 className="text-sm sm:text-lg font-bold text-stone-900 dark:text-white leading-tight">
                 {currentStepInfo.titleAr}
               </h2>
-              <p className="text-xs text-stone-500">تفصيل يدوي حسب ذوقك واختياراتك</p>
+              <p className="text-[11px] sm:text-xs text-stone-500">تفصيل يدوي حسب ذوقك واختياراتك</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-stone-100 text-stone-600 flex items-center justify-center hover:bg-stone-200 transition-colors"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 flex items-center justify-center hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 
         {/* Horizontal Progress Bar */}
-        <div className="w-full bg-stone-100 h-1.5 flex">
+        <div className="w-full bg-stone-100 dark:bg-stone-800 h-1.5 flex">
           {STEPS.map((step) => (
             <div
               key={step.id}
@@ -198,24 +198,24 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
 
         {/* Responsive Body: 2 Columns on Desktop, Single Column on Mobile */}
         <div className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-12">
-          {/* Column 1: Live Canvas Preview (Sticky on desktop) */}
-          <div className="md:col-span-6 lg:col-span-5 bg-gradient-to-b from-stone-50 to-stone-100/60 p-4 sm:p-6 flex flex-col justify-center items-center border-b md:border-b-0 md:border-l border-stone-200">
-            <div className="w-full max-w-sm">
-              <div className="mb-2 text-center">
-                <span className="text-[11px] font-bold text-[#9b287b] bg-[#fdf2f8] px-3 py-1 rounded-full border border-[#9b287b]/20 inline-block">
+          {/* Column 1: Live Canvas Preview (Compact on mobile, Sticky on desktop) */}
+          <div className="md:col-span-6 lg:col-span-5 bg-gradient-to-b from-stone-50 to-stone-100/60 dark:from-[#191924] dark:to-[#12121a] p-2.5 sm:p-6 flex flex-col justify-center items-center border-b md:border-b-0 md:border-l border-stone-200 dark:border-stone-800">
+            <div className="w-full max-w-[220px] sm:max-w-sm">
+              <div className="mb-1 sm:mb-2 text-center">
+                <span className="text-[10px] sm:text-[11px] font-bold text-[#9b287b] dark:text-[#be3999] bg-[#fdf2f8] dark:bg-[#281223] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full border border-[#9b287b]/20 inline-block">
                   معاينة حية فورية
                 </span>
               </div>
               <BagCanvasPreview config={config} />
-              <div className="mt-3 text-center text-xs text-stone-500">
+              <div className="mt-1.5 sm:mt-3 text-center text-[10px] sm:text-xs text-stone-400 hidden sm:block">
                 <span>تتحدث الأبعاد والألوان وحفر الاسم تلقائياً مع كل خطوة</span>
               </div>
             </div>
           </div>
 
           {/* Column 2: Step Wizard Controls */}
-          <div className="md:col-span-6 lg:col-span-7 flex flex-col h-full overflow-hidden">
-            <div className="flex-1 overflow-y-auto px-5 sm:px-8 py-5 space-y-5 no-scrollbar">
+          <div className="md:col-span-6 lg:col-span-7 flex flex-col h-full overflow-hidden bg-white dark:bg-[#15151e]">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-4 sm:py-5 space-y-4 sm:space-y-5 no-scrollbar">
               {/* Step 1: Bag Type / Silhouette */}
               {currentStep === 1 && (
                 <div className="space-y-3">
@@ -575,28 +575,28 @@ export const BagConfiguratorModal: React.FC<BagConfiguratorModalProps> = ({
             </div>
 
             {/* Sticky Bottom Actions Bar */}
-            <div className="p-4 border-t border-stone-100 bg-white flex items-center justify-between gap-3 sticky bottom-0 z-20">
+            <div className="p-3 sm:p-4 border-t border-stone-100 dark:border-stone-800 bg-white dark:bg-[#15151e] flex items-center justify-between gap-2 sm:gap-3 sticky bottom-0 z-20 pb-safe">
               <div>
-                <span className="text-[11px] text-stone-400 block">السعر الإجمالي للتفصيل</span>
-                <span className="text-lg font-black text-stone-950">
+                <span className="text-[10px] sm:text-[11px] text-stone-400 block">السعر الإجمالي للتفصيل</span>
+                <span className="text-base sm:text-lg font-black text-stone-950 dark:text-white">
                   {formatPrice(totalPrice, 'EGP', 'ar')}
                 </span>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 {currentStep > 1 && (
                   <button
                     onClick={handleBack}
-                    className="px-4 py-3 rounded-2xl border border-stone-200 text-stone-700 text-xs font-bold hover:bg-stone-50 transition-colors flex items-center gap-1"
+                    className="px-3 sm:px-4 py-2.5 sm:py-3 rounded-2xl border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 text-xs font-bold hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors flex items-center gap-1"
                   >
-                    <ChevronRight className="w-4 h-4" />
-                    السابق
+                    <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span>السابق</span>
                   </button>
                 )}
 
                 <button
                   onClick={handleNext}
-                  className="px-6 py-3 rounded-2xl bg-[#9b287b] hover:bg-[#831f67] text-white text-xs font-bold transition-all shadow-lg shadow-[#9b287b]/25 flex items-center gap-1.5"
+                  className="px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl bg-[#9b287b] hover:bg-[#831f67] text-white text-xs sm:text-sm font-bold transition-all shadow-lg shadow-[#9b287b]/25 flex items-center gap-1.5"
                 >
                   {currentStep === STEPS.length ? (
                     <>

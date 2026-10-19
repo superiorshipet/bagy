@@ -34,7 +34,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
   const sizeScale = scaleMap[config.size] || 1;
 
   return (
-    <div className={`relative w-full aspect-[4/3] flex items-center justify-center p-4 bg-gradient-to-b from-[#f9f7f4] to-[#f0ece5] rounded-3xl overflow-hidden shadow-inner ${className}`}>
+    <div className={`relative w-full aspect-[4/3] flex items-center justify-center p-2.5 sm:p-5 bg-gradient-to-b from-[#f9f7f4] to-[#f0ece5] rounded-2xl sm:rounded-3xl overflow-hidden shadow-inner ${className}`}>
       {/* Background Studio Lighting & Pedestal Shadow */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(255,255,255,0.85)_0%,rgba(240,235,225,0.3)_60%,transparent_100%)] pointer-events-none" />
       <div className="absolute bottom-4 w-4/5 h-8 bg-black/10 rounded-[100%] blur-xl pointer-events-none" />
@@ -42,7 +42,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
       {/* Dynamic Bag SVG */}
       <svg
         viewBox="0 0 400 360"
-        className="w-full h-full max-h-[300px] drop-shadow-2xl transition-all duration-500 ease-out z-10"
+        className="w-full h-full max-h-[360px] drop-shadow-2xl transition-all duration-500 ease-out z-10"
         style={{ transform: `scale(${sizeScale})` }}
       >
         <defs>

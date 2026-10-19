@@ -139,7 +139,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex border-b border-stone-100 dark:border-stone-800 px-6 bg-stone-50/60 dark:bg-stone-900/40">
+        <div className="flex overflow-x-auto no-scrollbar scroll-touch border-b border-stone-100 dark:border-stone-800 px-3 sm:px-6 bg-stone-50/60 dark:bg-stone-900/40">
           <button
             onClick={() => setActiveTab('orders')}
             className={`py-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all ${

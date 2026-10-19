@@ -407,7 +407,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
         {/* Bottom Checkout CTA */}
         {!isOrderPlaced && items.length > 0 && (
-          <div className="p-4 border-t border-stone-100 dark:border-stone-800 bg-white dark:bg-[#15151e] sticky bottom-0 z-10">
+          <div className="p-4 border-t border-stone-100 dark:border-stone-800 bg-white dark:bg-[#15151e] sticky bottom-0 z-10 pb-safe">
             <button
               onClick={handlePlaceOrder}
               disabled={isSubmitting}
