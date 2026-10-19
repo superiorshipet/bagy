@@ -28,7 +28,12 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
   const colorDisplayName = config.customColorName || (config.customColorHex ? `مخصص (${config.customColorHex})` : currentColor.nameAr);
   const hardwareColor = currentHardware.color;
 
-  const isCrescent = config.bagType === 'crescent' || config.bagType === 'hobo' || config.bagType === 'ava';
+  // View mode: 3D interactive SVG is always the primary default
+  const [viewMode, setViewMode] = React.useState<'3d' | 'photo'>('3d');
+
+  // Support all 6 built-in types + fallback any custom admin categories or crescent/hobo to a designer silhouette
+  const isBuiltIn = ['tote', 'shoulder', 'crossbody', 'mini', 'backpack', 'clutch'].includes(config.bagType);
+  const isCustomOrHobo = !isBuiltIn || config.bagType === 'crescent' || config.bagType === 'hobo' || config.bagType === 'ava';
 
   // Determine scale based on size
   const scaleMap = {
@@ -49,7 +54,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
       ? 278
       : config.bagType === 'shoulder'
       ? 252
-      : isCrescent
+      : isCustomOrHobo
       ? 270
       : 275;
 
@@ -69,8 +74,36 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(255,255,255,0.85)_0%,rgba(240,235,225,0.3)_60%,transparent_100%)] pointer-events-none" />
       <div className="absolute bottom-4 w-4/5 h-8 bg-black/10 rounded-[100%] blur-xl pointer-events-none" />
 
-      {/* Dynamic Bag Image Canvas (The exact bag the user uploaded/chose) vs Vector SVG fallback */}
-      {imageUrl ? (
+      {/* Floating View Switcher (Allows switching between 3D Interactive Model and Real Photo) */}
+      {imageUrl && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 bg-white/95 dark:bg-[#1a1a26]/95 backdrop-blur-md p-1 rounded-full shadow-lg border border-stone-200/80 dark:border-stone-700">
+          <button
+            type="button"
+            onClick={() => setViewMode('3d')}
+            className={`px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold transition-all flex items-center gap-1 ${
+              viewMode === '3d'
+                ? 'bg-[#9b287b] text-white shadow-sm'
+                : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white'
+            }`}
+          >
+            <span>✨ مجسم 3D</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('photo')}
+            className={`px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold transition-all flex items-center gap-1 ${
+              viewMode === 'photo'
+                ? 'bg-[#9b287b] text-white shadow-sm'
+                : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white'
+            }`}
+          >
+            <span>📷 صورة الموديل</span>
+          </button>
+        </div>
+      )}
+
+      {/* Dynamic Bag Image Canvas (Photo Mode) vs Vector 3D SVG (3D Mode - DEFAULT) */}
+      {imageUrl && viewMode === 'photo' ? (
         <div
           className="relative w-full h-full max-h-[360px] flex items-center justify-center z-10 p-2 sm:p-4 transition-transform duration-500 ease-out"
           style={{ transform: `scale(${sizeScale})` }}
@@ -127,7 +160,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
 
             {/* 4. Luxury Monogram Hot Stamping directly on the bag image */}
             {config.monogram.enabled && textLength > 0 && (
-              <div className="absolute inset-x-0 bottom-8 sm:bottom-10 flex justify-center pointer-events-none">
+              <div className="absolute inset-x-0 bottom-12 sm:bottom-14 flex justify-center pointer-events-none">
                 <div
                   className={`px-3.5 py-1.5 rounded-lg border backdrop-blur-md shadow-2xl transition-all duration-300 flex items-center gap-1.5 ${
                     config.monogram.style === 'gold_foil'
@@ -506,7 +539,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
           </g>
         )}
 
-        {isCrescent && (
+        {isCustomOrHobo && (
           <g id="crescent-strap" className="transition-all duration-300">
             {config.strapId === 'woven_guitar' ? (
               <g>
@@ -762,7 +795,7 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
           </g>
         )}
 
-        {isCrescent && (
+        {isCustomOrHobo && (
           <g id="crescent-body" className="transition-all duration-300">
             {/* Main Crescent / Hobo Half-Moon Silhouette */}
             <path
@@ -966,12 +999,12 @@ export const BagCanvasPreview: React.FC<BagCanvasPreviewProps> = ({
       )}
 
       {/* Floating Info Badges */}
-      <div className="absolute top-3 left-3 bg-white/90 dark:bg-[#1a1a26]/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-stone-800 dark:text-white shadow-sm border border-stone-200/50 dark:border-stone-700 flex items-center gap-1.5">
-        <span className="w-2.5 h-2.5 rounded-full inline-block border border-black/10" style={{ backgroundColor: primaryHex }} />
-        <span>{colorDisplayName}</span>
+      <div className="absolute top-3 left-3 bg-white/90 dark:bg-[#1a1a26]/90 backdrop-blur-md px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold text-stone-800 dark:text-white shadow-sm border border-stone-200/50 dark:border-stone-700 flex items-center gap-1.5 z-20">
+        <span className="w-2.5 h-2.5 rounded-full inline-block border border-black/10 flex-shrink-0" style={{ backgroundColor: primaryHex }} />
+        <span className="max-w-[90px] sm:max-w-none truncate">{colorDisplayName}</span>
       </div>
 
-      <div className="absolute top-3 right-3 bg-white/90 dark:bg-[#1a1a26]/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-stone-800 dark:text-white shadow-sm border border-stone-200/50 dark:border-stone-700 flex items-center gap-1.5">
+      <div className="absolute top-3 right-3 bg-white/90 dark:bg-[#1a1a26]/90 backdrop-blur-md px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold text-stone-800 dark:text-white shadow-sm border border-stone-200/50 dark:border-stone-700 flex items-center gap-1 sm:gap-1.5 z-20">
         <span>{currentSize.nameAr}</span>
         <span className="text-stone-400">|</span>
         <span className="text-amber-700 dark:text-amber-400">{currentHardware.nameAr}</span>
