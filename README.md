@@ -1,241 +1,241 @@
-# BAGY - منصة تفصيل واقتناء الحقائب الفاخرة
+# BAGY - Custom Luxury Handbag Atelier and E-Commerce Platform
 
-منصة تجارة إلكترونية متطورة مخصصة لتصميم وتفصيل الحقائب النسائية الفاخرة حسب الطلب، تتيح للمستخدمين تجربة تفاعلية لتخصيص أدق تفاصيل الحقيبة من خامات الجلود والقصات والألوان والإكسسوارات المعدنية وحفر الأسماء بالذهب، إلى جانب إمكانية الشراء المباشر للحقائب الجاهزة، ودعم تعدد العملات، وتتبع مراحل التصنيع، ومركز إشعارات متكامل، ولوحة تحكم شاملة لإدارة خط الإنتاج والمبيعات.
-
----
-
-## جدول المحتويات
-
-- [نظرة عامة](#نظرة-عامة)
-- [المميزات الرئيسية](#المميزات-الرئيسية)
-- [البنية التقنية](#البنية-التقنية)
-- [هيكل المشروع](#هيكل-المشروع)
-- [مخطط قاعدة البيانات](#مخطط-قاعدة-البيانات)
-- [واجهات البرمجة (API Endpoints)](#واجهات-البرمجة-api-endpoints)
-- [متطلبات التشغيل](#متطلبات-التشغيل)
-- [خطوات التثبيت والإعداد](#خطوات-التثبيت-والإعداد)
-- [أوامر التشغيل المتاحة](#أوامر-التشغيل-المتاحة)
-- [بيانات الحسابات الافتراضية للتجربة](#بيانات-الحسابات-الافتراضية-للتجربة)
-- [معايير التصميم وتجربة المستخدم](#معايير-التصميم-وتجربة-المستخدم)
-- [الترخيص](#الترخيص)
+BAGY is a full-stack, enterprise-grade e-commerce application and interactive atelier for bespoke luxury handbags. The platform combines artisanal craftsmanship with modern web technologies, enabling customers to configure every detail of a handbag in real time—from silhouettes, premium leathers, and dual-tone strap colors to metallic hardware finishes and unrestricted monogram personalization. The platform also offers instant purchasing for ready-to-wear models, multi-currency conversion, production order tracking, a notification center, and a comprehensive administrative control panel backed by PostgreSQL and Prisma ORM.
 
 ---
 
-## نظرة عامة
+## Table of Contents
 
-مشروع **BAGY** يجمع بين فخامة الحِرفة اليدوية لصناعة الجلود وأحدث تقنيات الويب الحديثة. يقدم النظام حلاً رقمياً متكاملاً يشمل واجهة تسوق للعملاء واستوديو تفاعلي للمعاينة الفورية للتعديلات، بالإضافة إلى نظام خلفي متكامل لإدارة الطلبات والمخزون وحسابات المستخدمين مع ربط مباشر بقاعدة بيانات PostgreSQL عبر Prisma ORM.
-
----
-
-## المميزات الرئيسية
-
-### 1. استوديو التصميم والتخصيص الحي (Bag Studio & Configurator)
-- **اختيار موديل الحقيبة والقصة:** دعم متعدد للموديلات مثل (توت باج كلاسيك، كروس بودي، شولدر، ميني باج، شنطة كرستي، قصة V، وباك باك جلد).
-- **تخصيص الخامات والجلود:** مكتبة من الجلود الطبيعية الفاخرة تشمل (جلد سافيانو، جلد إيطالي أملس، نوبوك مخملي، جلد تمساح محفور، وجلد حبيبي بيبلد).
-- **ألوان الهيكل والأيدي:** حرية اختيار لون جسم الحقيبة ولون اليد/الحزام بشكل مستقل ومتناسق.
-- **الإكسسوارات والقطع المعدنية:** خيارات متعددة لتشطيب المعادن (ذهب كلاسيكي، فضة استرليني، ذهب وردي، جون ميتال، وأسود مطفي).
-- **أحزمة الحقائب والملحقات:** أحزمة جلدية كلاسيكية، أحزمة سلاسل معدنية مدمجة بالجلد، وأحزمة قماشية عريضة منقوشة.
-- **حفر الأسماء والحروف (Monogram):** حفر وتطريز الاسم أو الأحرف الأولى دون حد أقصى للحروف، مع ضبط ديناميكي لحجم الخط ليتناسب مع أبعاد الحقيبة بدقة.
-- **محرك المعاينة البصرية:** عرض متجهي فوري (Interactive SVG Vector Preview) يعكس خيارات العميل من إضاءة وتطريز وألوان ومعادن في الوقت الفعلي.
-- **الشراء المباشر:** إمكانية شراء الحقيبة المخصصة فوراً أو إضافتها لسلة التسوق.
-
-### 2. الكتالوج والتسوق السريع (Storefront & Ready-to-Buy)
-- استعراض موديلات الحقائب الجاهزة حسب التصنيفات.
-- زر شراء سريع للمنتجات المتاحة دون الحاجة للدخول في خطوات التخصيص.
-- نظام تقييمات العملاء ومراجعات المنتجات.
-- حساب آلي للضرائب ورسوم التوصيل بحسب المنطقة المختارة.
-- خدمة الإهداء الراقي (Gifting Service): خيارات التغليف الفاخر، بطاقات المعايدة المكتوبة، وإرسال الهدية مباشرة لعنوان المستلم.
-
-### 3. محرك العملات المتعددة (Multi-Currency Engine)
-- دعم التحويل الفوري للأسعار في كامل أرجاء المنصة بين 5 عملات:
-  - الجنيه المصري (EGP)
-  - الريال السعودي (SAR)
-  - الدرهم الإماراتي (AED)
-  - الدولار الأمريكي (USD)
-  - اليورو الأوروبي (EUR)
-- تحديث لحظي لأسعار المنتجات والسلة والإجماليات عند تغيير العملة، مع حفظ اختيار العميل في الجلسة.
-
-### 4. الحسابات والمصادقة وسجل المشتريات (Authentication & Profiles)
-- تسجيل الدخول وإنشاء الحساب برقم الهاتف وكلمة المرور.
-- دفتر عناوين الشحن المتعددة مع تعيين العنوان الافتراضي.
-- سجل مشتريات تفصيلي يتيح للعميل استعراض تاريخ طلباته وحالة كل طلب خطوة بخطوة.
-- إمكانية إلغاء الطلب مباشرة من قبل العميل في حال كان الطلب لا يزال في مرحلة المراجعة (Pending).
-
-### 5. مركز الإشعارات والتنبيهات (Notification Center)
-- قائمة إشعارات منسدلة في الشريط العلوي تدعم العرض المتجاوب الكامل دون خروج عن أبعاد الشاشة.
-- تنبيهات آلية عند تحديث حالة الطلب في خط الإنتاج والشحن.
-- إشعارات عامة بالعروض وأكواد الخصم الجديدة المرسلة من الإدارة.
-- زر لتمييز جميع الإشعارات كمقروءة وحذف الإشعارات غير المرغوبة.
-
-### 6. لوحة تحكم إدارة المتجر (Admin Control Panel)
-- واجهة إدارة محمية بالصلاحيات مخصصة لمدير النظام.
-- لوحة مؤشرات رقمية: إجمالي المبيعات، عدد الطلبات، الطلبات المسلمة، والعملاء المسجلون.
-- إدارة ومتابعة خط الإنتاج وتحديث مراحل الطلبات:
-  - قيد المراجعة (PENDING)
-  - في خط الإنتاج (IN_PRODUCTION)
-  - تم الشحن (SHIPPED)
-  - تم التسليم (DELIVERED)
-  - ملغي (CANCELLED)
-- إدارة المنتجات والقصات: إضافة موديلات جديدة، تعديل الأسعار، ومراقبة المخزون.
-- محرك أكواد الخصم (Promo Codes Engine): إنشاء أكواد خصم بنسب مئوية مخصصة، تحديد سقف الاستخدام، وتفعيل أو حذف الأكواد بنقرة واحدة.
-- إدارة المستخدمين واستعراض قائمة العملاء وسجلات طلباتهم.
-- مركز إرسال الإشعارات الإدارية للمستخدمين.
+- [Overview](#overview)
+- [Core Features](#core-features)
+- [Technology Stack](#technology-stack)
+- [System Architecture and Directory Structure](#system-architecture-and-directory-structure)
+- [Database Schema and Models](#database-schema-and-models)
+- [REST API Reference](#rest-api-reference)
+- [Prerequisites](#prerequisites)
+- [Installation and Setup](#installation-and-setup)
+- [Available Scripts](#available-scripts)
+- [Default Seed and Test Credentials](#default-seed-and-test-credentials)
+- [UI and Design Principles](#ui-and-design-principles)
+- [License](#license)
 
 ---
 
-## البنية التقنية
+## Overview
 
-| الطبقة | التقنية المستخدمة | الإصدار | الوظيفة |
+BAGY bridges high-end bespoke leather crafting with digital commerce. The platform provides a responsive, bidirectional (Arabic RTL first, English ready) interface powered by Next.js 16 (App Router) and React 19. It features a custom vector-based canvas customizer that updates live with every selected attribute, a frictionless checkout experience with promotional codes and multi-currency pricing, and a production management workflow for workshop artisans and store administrators.
+
+---
+
+## Core Features
+
+### 1. Interactive Bag Studio and Customizer
+- **Silhouette Selection:** Choose from multiple styles including Classic Tote, Crossbody, Shoulder Bag, Mini Bag, Christy, V-Shape, and Leather Backpack.
+- **Leather and Material Engine:** Selection of genuine leathers including Saffiano, Smooth Italian Calfskin, Velvet Nubuck, Embossed Crocodile, and Pebbled Grain.
+- **Dual-Tone Customization:** Independent color palettes for the bag body and handles/straps.
+- **Hardware Finish Engine:** Metallic accents available in Classic Gold, Sterling Silver, Rose Gold, Gunmetal, and Matte Black.
+- **Strap and Hardware Variations:** Classic stitched leather straps, interwoven chain-leather straps, and wide patterned canvas straps.
+- **Unrestricted Monogram Personalization:** Custom gold foil and embossed monograms with unlimited character support, automatically scaled dynamically using SVG vector transforms to fit the bag surface proportionately.
+- **Real-Time Vector Rendering:** Canvas preview rendered using interactive SVG vectors with realistic lighting, metallic accents, and seam textures.
+- **Instant Purchasing:** Direct checkout button allowing instant acquisition of customized designs without intermediate navigation.
+
+### 2. Storefront and Catalog
+- **Category Browsing:** Categorized product listings with real-time filtering, ratings, and customer reviews.
+- **Direct Acquisition (Ready-to-Wear):** Instant purchase flow for pre-configured, in-stock handbag designs.
+- **Dynamic Pricing and Shipping:** Automated calculation of subtotal, discounts, regional delivery fees, and taxes.
+- **Luxury Gifting Suite:** Bespoke gift packaging, customized greeting cards with personal messaging, and direct delivery to recipient addresses.
+
+### 3. Multi-Currency Engine
+- Seamless, live conversion between five international and regional currencies:
+  - Egyptian Pound (EGP) - Base Currency
+  - Saudi Riyal (SAR)
+  - UAE Dirham (AED)
+  - US Dollar (USD)
+  - Euro (EUR)
+- Instant re-calculation across the storefront, configurator, cart drawer, checkout, and order history, with user preference persisted in session storage.
+
+### 4. Authentication and User Profiles
+- **Credentials:** Login and registration using phone number and secure password, with email support.
+- **Role-Based Access Control:** Separation between `CUSTOMER` and `ADMIN` permissions.
+- **Address Book:** Management of multiple shipping addresses with default address designation.
+- **Order Tracking:** Comprehensive order history displaying chronological production milestones and item breakdowns.
+- **Self-Service Order Cancellation:** Customers can cancel orders directly while in the `PENDING` review stage.
+
+### 5. Notification Center
+- Dropdown panel accessible from the navigation bar with an unread badge counter.
+- Automated updates triggered when order status changes in the production line.
+- Administrative broadcasts for promotions, announcements, and discounts.
+- Individual notification deletion and "Mark all as read" capability.
+- Viewport-aware positioning preventing screen overflow on both mobile and desktop viewports.
+
+### 6. Administrative Control Panel
+- **Executive Metrics:** Real-time summary cards for total revenue, total orders, completed deliveries, and registered customers.
+- **Production Pipeline Workflow:** Granular status progression:
+  - PENDING (Under Review)
+  - IN_PRODUCTION (Workshop & Tailoring)
+  - SHIPPED (In Transit)
+  - DELIVERED (Completed)
+  - CANCELLED (Revoked)
+- **Product and Category Management:** Add new handbag models, update pricing, toggle availability, and monitor inventory levels.
+- **Promo Code Management:** Create custom promotional codes with percentage discounts, maximum usage limits, and activation states; delete obsolete codes instantly.
+- **Customer Directory:** View customer accounts, contact details, and historical orders.
+- **Broadcast Messaging:** Dispatch instant notifications to individual users or all registered customers.
+
+---
+
+## Technology Stack
+
+| Layer | Technology | Version | Purpose |
 | :--- | :--- | :--- | :--- |
-| Framework | Next.js (App Router, Turbopack) | 16.4.2 | إطار العمل الرئيسي ومعالجة الصفحات والواجهات البرمجية |
-| UI Library | React | 19.3.0 | بناء واجهات المستخدم والمكونات التفاعلية |
-| Language | TypeScript | 5.x | الكتابة الآمنة للأنواع وضمان استقرار الكود |
-| Database | PostgreSQL | 14+ | قاعدة البيانات العلائقية الرئيسية لتخزين البيانات |
-| ORM | Prisma ORM | 7.10.1 | إدارة النماذج والاستعلامات والترحيلات (@prisma/client, @prisma/adapter-pg) |
-| Styling | Tailwind CSS | 4.x | تنسيق الواجهات مع دعم كامل للوضع الليلي والنهاري |
-| Icons | Lucide React | 1.59.0 | حزمة الأيقونات المتجهية عالية الدقة |
-| Utilities | clsx / tailwind-merge | 2.x / 3.x | دمج فئات Tailwind البرمجية والتحكم بالأنماط |
-| Animation | canvas-confetti | 1.9.4 | مؤثرات الاحتفال عند إتمام الطلبات بنجاح |
+| Framework | Next.js (App Router, Turbopack) | 16.4.2 | Server and client rendering, API route handling |
+| UI Library | React | 19.3.0 | Component architecture and state lifecycle |
+| Language | TypeScript | 5.x | Static typing, interface definitions, and compile-time safety |
+| Database | PostgreSQL | 14+ | Relational data persistence |
+| ORM | Prisma ORM | 7.10.1 | Type-safe database queries, schema migrations, and relational mapping |
+| Styling | Tailwind CSS | 4.x | Utility-first styling with comprehensive dark mode support |
+| Icons | Lucide React | 1.59.0 | Scalable vector icon library |
+| Utilities | clsx / tailwind-merge | 2.x / 3.x | Conditional CSS class merging and resolution |
+| Visual Effects | canvas-confetti | 1.9.4 | Order completion celebration animations |
 
 ---
 
-## هيكل المشروع
+## System Architecture and Directory Structure
 
 ```text
 bagy/
 ├── prisma/
-│   ├── schema.prisma            # مخطط قاعدة البيانات والنماذج والعلاقات
-│   └── seed.ts                  # سكربت تهيئة البيانات الأولية (المشرف، العملاء، المنتجات، الأكواد)
+│   ├── schema.prisma            # Prisma schema: models, relations, and enums
+│   └── seed.ts                  # Database seeding script for admin, customers, and inventory
 ├── public/
-│   └── images/                  # الصور والأصول الثابتة
+│   └── images/                  # Static assets and product photography
 ├── src/
 │   ├── app/
-│   │   ├── api/                 # مسارات الواجهات البرمجية الخلفية (API Routes)
-│   │   │   ├── admin/           # إحصائيات الإدارة وإدارة المستخدمين
-│   │   │   ├── auth/            # مسار تسجيل الدخول والمصادقة
-│   │   │   ├── categories/      # إدارة واسترجاع التصنيفات والقصات
-│   │   │   ├── notifications/   # إدارة وتحديث واسترجاع الإشعارات
-│   │   │   ├── orders/          # إنشاء واستعلام وتحديث حالات الطلبات والإلغاء
-│   │   │   ├── products/        # إدارة واسترجاع المنتجات
-│   │   │   ├── promos/          # إنشاء والتحقق من وحذف أكواد الخصم
-│   │   │   └── user/            # إدارة الملف الشخصي والعناوين
-│   │   ├── globals.css          # إعدادات الأنماط العامة ومتغيرات Tailwind
-│   │   ├── layout.tsx           # المخطط العام للتطبيق والخطوط والإعدادات
-│   │   └── page.tsx             # الصفحة الرئيسية للمتجر واستوديو التخصيص
+│   │   ├── api/                 # Next.js Serverless API Route Handlers
+│   │   │   ├── admin/           # Administrative statistics and user management
+│   │   │   ├── auth/            # Authentication endpoints (phone/password login)
+│   │   │   ├── categories/      # Silhouette category CRUD operations
+│   │   │   ├── notifications/   # Notification retrieval, dispatch, and read state
+│   │   │   ├── orders/          # Order submission, status updates, and cancellation
+│   │   │   ├── products/        # Product catalog operations
+│   │   │   ├── promos/          # Promo code creation, validation, and deletion
+│   │   │   └── user/            # Customer profile and address book management
+│   │   ├── globals.css          # Global Tailwind styles and CSS variables
+│   │   ├── layout.tsx           # Root layout, fonts, and global context wrappers
+│   │   └── page.tsx             # Main storefront and configurator page
 │   ├── components/
-│   │   ├── admin/               # لوحة تحكم الإدارة الشاملة
-│   │   ├── auth/                # نوافذ تسجيل الدخول وإنشاء الحساب
-│   │   ├── cart/                # درج سلة المشتريات وإتمام الطلب
-│   │   ├── configurator/        # استوديو التخصيص ومكونات الرسم المتجهي للحقيبة
-│   │   ├── gifts/               # نافذة تخصيص باقات الهدايا وبطاقات المعايدة
-│   │   ├── layout/              # الشريط العلوي والفوتر والتنقل
-│   │   ├── profile/             # نافذة الملف الشخصي وسجل الطلبات والعناوين
-│   │   └── providers/           # موفرو السياق (Theme, Cart, Auth)
+│   │   ├── admin/               # Admin dashboard modal and tab views
+│   │   ├── auth/                # Login, registration, and password authentication modals
+│   │   ├── cart/                # Sliding cart drawer, promo input, and checkout flow
+│   │   ├── configurator/        # Interactive bag studio, canvas preview, and step controls
+│   │   ├── gifts/               # Gifting options and greeting card modals
+│   │   ├── layout/              # TopBar, navigation, footer, and notification dropdown
+│   │   ├── profile/             # Customer profile, address manager, and order tracking
+│   │   └── providers/           # Context providers wrapper
 │   ├── context/
-│   │   ├── AuthContext.tsx      # سياق إدارة جلسة المستخدم وصلاحيات الأدمن
-│   │   ├── CartContext.tsx      # سياق إدارة السلة والخصومات والعملات
-│   │   └── ThemeContext.tsx     # سياق الوضع الليلي/النهاري والعملة والمدينة
+│   │   ├── AuthContext.tsx      # User authentication session and role permissions
+│   │   ├── CartContext.tsx      # Cart items, discounts, delivery fees, and order processing
+│   │   └── ThemeContext.tsx     # Theme (dark/light), active currency, and location state
 │   ├── data/
-│   │   └── bagOptions.ts        # البيانات الافتراضية للجلود والقصات والخيارات
+│   │   └── bagOptions.ts        # Default options for leather, hardware, silhouettes, and products
 │   ├── lib/
-│   │   ├── prisma.ts            # عميل الاتصال بقاعدة البيانات عبر Prisma
-│   │   └── utils.ts             # دوال التحويل بين العملات وتنسيق المبالغ
-│   └── types/                   # تعريفات الأنواع البرمجية (TypeScript Types)
-├── .env.example                 # نموذج إعداد متغيرات البيئة
-├── package.json                 # الحزم والتبعيات وأوامر التشغيل
-├── tsconfig.json                # إعدادات مترجم TypeScript
-└── README.md                    # التوثيق الشامل للمشروع
+│   │   ├── prisma.ts            # Singleton Prisma Client instance with PostgreSQL adapter
+│   │   └── utils.ts             # Currency conversion formulas and price formatters
+│   └── types/                   # TypeScript interfaces and shared type declarations
+├── .env.example                 # Environment variable templates
+├── package.json                 # Project dependencies and script declarations
+├── tsconfig.json                # TypeScript compiler configuration
+└── README.md                    # Project documentation
 ```
 
 ---
 
-## مخطط قاعدة البيانات
+## Database Schema and Models
 
-يحتوي مخطط قاعدة البيانات على النماذج التالية:
+The application data layer is structured around the following Prisma models:
 
-| النموذج | الوصف | الحقول الأساسية |
+| Model | Purpose | Key Attributes |
 | :--- | :--- | :--- |
-| `User` | بيانات المستخدمين والعملاء والمشرفين | `id`, `name`, `email`, `phone`, `password`, `role` (CUSTOMER / ADMIN) |
-| `Address` | عناوين الشحن والتوصيل المرتبطة بالمستخدم | `id`, `userId`, `label`, `city`, `area`, `street`, `building`, `isDefault` |
-| `Product` | المنتجات الجاهزة المعروضة في المتجر | `id`, `nameEn`, `nameAr`, `category`, `price`, `salePrice`, `image`, `stock`, `isActive` |
-| `Category` | قصات وموديلات الحقائب الأساسية | `id`, `slug`, `nameAr`, `nameEn`, `icon`, `basePrice`, `image` |
-| `Customization` | المواصفات الدقيقة للتفصيل الخاص بالحقيبة | `id`, `bagType`, `size`, `materialId`, `primaryColor`, `accentColor`, `hardware`, `strapId`, `monogramText`, `calculatedPrice` |
-| `Order` | سجل الطلبات والفواتير وحالات التوصيل | `id`, `orderNumber`, `userId`, `customerName`, `customerPhone`, `subtotal`, `discount`, `total`, `status` (PENDING, IN_PRODUCTION, SHIPPED, DELIVERED, CANCELLED) |
-| `OrderItem` | عناصر كل طلب وتفاصيل القطع المطلوبة | `id`, `orderId`, `productId`, `customizationId`, `quantity`, `unitPrice`, `summaryText` |
-| `PromoCode` | أكواد الخصم والعروض الترويجية | `id`, `code`, `discountPercent`, `maxUsage`, `usedCount`, `isActive`, `expiresAt` |
-| `Notification` | الإشعارات والتنبيهات الموجهة للمستخدمين | `id`, `userId`, `title`, `message`, `type` (order, promo, alert), `isRead` |
-| `Review` | تقييمات العملاء وآراؤهم حول المنتجات | `id`, `productId`, `userId`, `rating`, `comment` |
-| `AdminLog` | سجل نشاط المشرفين والعمليات الإدارية | `id`, `action`, `details`, `adminEmail` |
+| `User` | User accounts for customers and administrators | `id`, `name`, `email`, `phone`, `password`, `role` (`CUSTOMER`, `ADMIN`) |
+| `Address` | Shipping addresses associated with customer accounts | `id`, `userId`, `label`, `city`, `area`, `street`, `building`, `isDefault` |
+| `Product` | Standard, ready-to-wear inventory items | `id`, `nameEn`, `nameAr`, `category`, `price`, `salePrice`, `image`, `stock`, `isActive` |
+| `Category` | Bag silhouettes and base models | `id`, `slug`, `nameAr`, `nameEn`, `icon`, `basePrice`, `image` |
+| `Customization` | Bespoke specifications generated by the studio | `id`, `bagType`, `size`, `materialId`, `primaryColor`, `accentColor`, `hardware`, `strapId`, `monogramText`, `calculatedPrice` |
+| `Order` | Purchase records, financials, and lifecycle stages | `id`, `orderNumber`, `userId`, `customerName`, `customerPhone`, `subtotal`, `discount`, `total`, `status` (`PENDING`, `IN_PRODUCTION`, `SHIPPED`, `DELIVERED`, `CANCELLED`) |
+| `OrderItem` | Line items linked to orders, referencing products or customizations | `id`, `orderId`, `productId`, `customizationId`, `quantity`, `unitPrice`, `summaryText` |
+| `PromoCode` | Discount voucher codes and redemption limits | `id`, `code`, `discountPercent`, `maxUsage`, `usedCount`, `isActive`, `expiresAt` |
+| `Notification` | System and order alerts dispatched to users | `id`, `userId`, `title`, `message`, `type` (`order`, `promo`, `alert`), `isRead` |
+| `Review` | Customer feedback and ratings on products | `id`, `productId`, `userId`, `rating`, `comment` |
+| `AdminLog` | Audit log of administrative operations | `id`, `action`, `details`, `adminEmail` |
 
 ---
 
-## واجهات البرمجة (API Endpoints)
+## REST API Reference
 
-### 1. المصادقة والملف الشخصي
-- `POST /api/auth/login`: تسجيل الدخول برقم الهاتف وكلمة المرور (أو البريد الإلكتروني).
-- `GET /api/user/profile?userId={id}`: استرجاع بيانات العميل وعناوينه وسجل طلباته.
-- `POST /api/user/profile`: إضافة عنوان شحن جديد أو تحديث بيانات الحساب.
+### Authentication and User Profile
+- `POST /api/auth/login`: Authenticate users via phone number/email and password. Returns user object and role.
+- `GET /api/user/profile?userId={id}`: Retrieve customer profile details, saved address book, and complete order history.
+- `POST /api/user/profile`: Add a new shipping address or update customer details.
 
-### 2. الطلبات وسير الإنتاج
-- `GET /api/orders`: استرجاع قائمة الطلبات (يدعم التصفية حسب المستخدم أو المشرف).
-- `POST /api/orders`: إنشاء طلب شراء جديد وتخزين تفاصيل التخصيص أو المنتجات.
-- `PATCH /api/orders`: تحديث حالة الطلب من قبل الإدارة، أو إلغاء الطلب من قبل العميل (`action: 'cancel'`).
+### Orders and Production Pipeline
+- `GET /api/orders`: Retrieve orders (filtered by customer ID for regular users, or comprehensive list for administrators).
+- `POST /api/orders`: Submit a new order containing standard items or bespoke customization specs.
+- `PATCH /api/orders`: Update order status across production stages (Admin), or cancel order (`action: 'cancel'`) when in `PENDING` status (Customer).
 
-### 3. المنتجات والقصات
-- `GET /api/products`: استرجاع قائمة المنتجات المتاحة مع إمكانية التصفية حسب التصنيف.
-- `POST /api/products`: إضافة منتج جديد للكتالوج (للإدارة).
-- `GET /api/categories`: استرجاع قصات وموديلات الحقائب الأساسية وأسعار البداية.
-- `POST /api/categories`: إضافة تصنيف جديد أو تحديث تفاصيل موديل.
+### Products and Silhouettes
+- `GET /api/products`: Retrieve all active products with optional category filtering.
+- `POST /api/products`: Add a new product to the catalog (Admin).
+- `GET /api/categories`: Retrieve all bag silhouettes, default base prices, and category metadata.
+- `POST /api/categories`: Add or update silhouette categories (Admin).
 
-### 4. أكواد الخصم
-- `GET /api/promos`: استرجاع كافة الأكواد المتاحة في قاعدة البيانات (للإدارة).
-- `POST /api/promos`: إنشاء كود خصم جديد مع نسبة الخصم والحد الأقصى للاستخدام.
-- `DELETE /api/promos?id={id}`: حذف كود خصم نهائياً من قاعدة البيانات.
+### Promotional Codes
+- `GET /api/promos`: Retrieve all promotional codes with redemption counts and status (Admin).
+- `POST /api/promos`: Create a new promotional code with percentage discount and usage limits (Admin).
+- `DELETE /api/promos?id={id}`: Permanently delete a promotional code (Admin).
 
-### 5. الإشعارات
-- `GET /api/notifications?userId={id}`: استرجاع الإشعارات المخصصة للمستخدم والإشعارات العامة.
-- `POST /api/notifications`: إرسال إشعار جديد لمستخدم محدد أو بث عام (للإدارة).
-- `PATCH /api/notifications`: تمييز إشعار معين أو جميع الإشعارات كمقروءة.
-- `DELETE /api/notifications?id={id}`: حذف إشعار محدد من قائمة المستخدم.
+### Notifications
+- `GET /api/notifications?userId={id}`: Retrieve targeted customer alerts and general system broadcasts.
+- `POST /api/notifications`: Dispatch a new notification to a specific user or broadcast to all users (Admin).
+- `PATCH /api/notifications`: Mark a specific notification or all notifications as read.
+- `DELETE /api/notifications?id={id}`: Delete a notification from user history.
 
-### 6. إدارة النظام
-- `GET /api/admin/stats`: جلب إحصائيات المبيعات، خط الإنتاج، وتوزيع الحالات.
-- `GET /api/admin/users`: استرجاع قائمة المستخدمين المسجلين وأدوارهم.
-
----
-
-## متطلبات التشغيل
-
-- **Node.js:** الإصدار 18.18.0 أو أحدث (يُفضل الإصدار 20 LTS أو 22).
-- **مدير الحزم:** `npm` أو `pnpm` أو `yarn`.
-- **قاعدة البيانات:** خادم `PostgreSQL` يعمل محلياً أو سحابياً (مثل Supabase أو Neon أو خدمة مدارة).
+### System Administration
+- `GET /api/admin/stats`: Fetch real-time revenue, order counts, production stage breakdown, and client metrics.
+- `GET /api/admin/users`: Retrieve registered user accounts, roles, and order summaries.
 
 ---
 
-## خطوات التثبيت والإعداد
+## Prerequisites
 
-### 1. استنساخ المستودع والدخول للمجلد
+- **Node.js:** Version 18.18.0 or higher (Node 20 LTS or Node 22 recommended).
+- **Package Manager:** `npm`, `pnpm`, or `yarn`.
+- **Database Engine:** `PostgreSQL` version 14 or higher (running locally or via cloud providers such as Supabase or Neon).
+
+---
+
+## Installation and Setup
+
+### 1. Clone Repository and Navigate to Directory
 
 ```bash
 git clone https://github.com/superiorship/bagy.git
 cd bagy
 ```
 
-### 2. تثبيت الحزم والتبعيات
+### 2. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 3. إعداد متغيرات البيئة
+### 3. Configure Environment Variables
 
-أنشئ ملف `.env` في المجلد الرئيسي عبر نسخ الملف النموذجي:
+Create a local environment file from the provided template:
 
 ```bash
 cp .env.example .env
 ```
 
-قم بفتح ملف `.env` وضبط رابط الاتصال بقاعدة بيانات PostgreSQL:
+Open `.env` and specify your PostgreSQL connection string:
 
 ```env
 DATABASE_URL="postgresql://username:password@localhost:5432/bagy_db?schema=public"
@@ -243,76 +243,77 @@ PORT=3000
 NODE_ENV=development
 ```
 
-### 4. مزامنة مخطط قاعدة البيانات وتوليد عميل Prisma
+### 4. Synchronize Schema and Generate Prisma Client
 
-قم بدفع المخطط وتوليد حزمة عميل Prisma:
+Push the Prisma schema to your PostgreSQL instance and generate the client bindings:
 
 ```bash
 npm run db:push
 ```
 
-### 5. بذر البيانات الأولية في قاعدة البيانات
+### 5. Seed Initial Data
 
-قم بتشغيل سكربت البذر لتحميل المنتجات الافتراضية، التصنيفات، أكواد الخصم، وحسابات التجربة:
+Populate the database with default products, categories, active promo codes, and sample user accounts:
 
 ```bash
 npm run db:seed
 ```
 
-### 6. تشغيل خادم التطوير
+### 6. Start the Development Server
 
 ```bash
 npm run dev
 ```
 
-افتح المتصفح وتوجه إلى الرابط:
+Open your browser and navigate to:
 `http://localhost:3000`
 
 ---
 
-## أوامر التشغيل المتاحة
+## Available Scripts
 
-| الأمر | الوصف |
+| Script | Purpose |
 | :--- | :--- |
-| `npm run dev` | تشغيل خادم التطوير المحلي مع خاصية التحديث الفوري (Fast Refresh) |
-| `npm run build` | توليد عميل Prisma وبناء نسخة الإنتاج المحسنة لتطبيق Next.js |
-| `npm run start` | تشغيل خادم الإنتاج بعد إتمام البناء |
-| `npm run lint` | فحص الكود والتأكد من مطابقة معايير جودة ESLint |
-| `npm run db:push` | مزامنة مخطط Prisma مع قاعدة بيانات PostgreSQL مباشرة |
-| `npm run db:seed` | إدخال البيانات التجريبية الأولية داخل قاعدة البيانات عبر tsx |
+| `npm run dev` | Runs the Next.js development server with hot module reloading on port 3000 |
+| `npm run build` | Generates the Prisma client and produces an optimized production build |
+| `npm run start` | Boots the compiled Next.js application in production mode |
+| `npm run lint` | Executes ESLint to check for syntax and style issues |
+| `npm run db:push` | Synchronizes the schema directly to PostgreSQL without generating migration files |
+| `npm run db:seed` | Seeds the database with administrator, customer, catalog, and promo data |
 
 ---
 
-## بيانات الحسابات الافتراضية للتجربة
+## Default Seed and Test Credentials
 
-تم تجهيز قاعدة البيانات بحسابات جاهزة للاختبار الفوري:
+The database seeding script provides pre-configured credentials for immediate evaluation:
 
-### 1. حساب الإدارة (Admin)
-- **رقم الهاتف:** `01012345678`
-- **البريد الإلكتروني:** `admin@bagy.eg`
-- **الصلاحية:** ADMIN (الوصول الكامل إلى لوحة تحكم الإدارة وتعديل خط الإنتاج والأسعار والأكواد)
+### 1. Administrator Account
+- **Phone:** `01012345678`
+- **Email:** `admin@bagy.eg`
+- **Role:** `ADMIN` (Full access to the Admin Dashboard, production pipeline, promo code generator, and inventory controls)
 
-### 2. حساب عميل تجريبي (Customer)
-- **رقم الهاتف:** `01123456789`
-- **البريد الإلكتروني:** `sarah.ahmed@example.com`
-- **الاسم:** سارة أحمد
-- **الصلاحية:** CUSTOMER (تحتوي على عناوين شحن مسجلة وسجل طلبات سابق للتجربة)
+### 2. Sample Customer Account
+- **Phone:** `01123456789`
+- **Email:** `sarah.ahmed@example.com`
+- **Name:** Sarah Ahmed
+- **Role:** `CUSTOMER` (Includes pre-saved Cairo addresses and order history for cancellation and tracking testing)
 
-### 3. أكواد الخصم الجاهزة للاختبار
-- **الكود:** `LOLA` (خصم 10% على إجمالي السلة)
-- **الكود:** `BAGY10` (خصم 10% على إجمالي السلة)
-
----
-
-## معايير التصميم وتجربة المستخدم
-
-- **تصميم يدعم اللغة العربية أصلياً (Native RTL):** تم ضبط المحاذاة والاتجاهات لتتوافق بطبيعتها مع القراءة من اليمين لليسار.
-- **الوضع الليلي والنهاري (Dark / Light Theme):** دعم كامل للتبديل السلس بين النمط الفاتح والنمط الداكن مع تناسق عالي في التباين والألوان.
-- **التوافق مع مختلف مقاسات الشاشات (Responsive Design):** تجربة متكاملة تبدأ من الهواتف الذكية وتتدرج بسلاسة للأجهزة اللوحية وشاشات الحواسيب المكتبية العريضة.
-- **واجهة مستخدم احترافية وبسيطة:** الاعتماد على معايير الفخامة الهادئة (Quiet Luxury) والابتعاد عن المؤشرات المزدحمة والعلامات غير المجدية للمستخدم النهائي.
+### 3. Active Promo Codes
+- **Code:** `LOLA` (10% discount across entire cart, up to 500 redemptions)
+- **Code:** `BAGY10` (10% discount across entire cart, up to 1000 redemptions)
 
 ---
 
-## الترخيص
+## UI and Design Principles
 
-هذا المشروع مرخص للاستخدام الخاص والتطوير التجاري لعلامة **BAGY**. جميع الحقوق محفوظة.
+- **Native Right-to-Left (RTL) Layout:** Designed from the ground up with Arabic typography (Cairo and Geist) and proper directional layout, fully adaptable to LTR.
+- **Dark and Light Modes:** Cohesive theme switcher maintaining high contrast, legible typography, and consistent color balances in both modes.
+- **Quiet Luxury Aesthetic:** Polished, minimalist interface avoiding superfluous visual clutter, debug badges, or extraneous emojis.
+- **Responsive Architecture:** Mobile-first approach guaranteeing fluid layouts across small smartphones, tablets, laptops, and ultra-wide desktop monitors.
+- **Dynamic Monogram Scaling:** Responsive SVG vector scaling prevents text clipping or visual distortion regardless of letter length.
+
+---
+
+## License
+
+This software is proprietary and confidential. All rights reserved by **BAGY**. Unauthorized copying, distribution, or deployment without explicit written permission is strictly prohibited.
